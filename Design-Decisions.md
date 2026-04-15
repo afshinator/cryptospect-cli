@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-04-12
+Last updated: 2026-04-15
 
 
 ## Step 1: Environment & Project Init
@@ -79,7 +79,7 @@ Last updated: 2026-04-12
     cryptospect-cli summary       --assets <SYM,SYM,...>
 
 ### Global Flags
-- --output, -o: "json" (default) or "nl"
+- --output, -o: "json" (default)
 - --verbose, -v: enable debug logging
 - --api-key: API key for authenticated endpoints
 
@@ -190,8 +190,16 @@ NOTE: These schemas are likely to change as development progresses.
 
     CLIResponse {
         status    string        // "ok" or "error"
-        data      <varies>      // payload on success, omitted on error
+        ts        int64         // Unix seconds when response was created
+        results   []MetricResult // zero or more metric results
         error     CLIError      // omitted on success
+    }
+
+    MetricResult {
+        metric    string        // canonical metric name, e.g., "liquidity-pulse"
+        status    string        // "ok", "degraded", or "unavailable"
+        data      <varies>      // metric-specific payload
+        meta      <varies>      // metadata, omitted when --detail basic
     }
 
     CLIError {
@@ -211,7 +219,7 @@ NOTE: These schemas are likely to change as development progresses.
         "z_score":   -2.1,           // float64
         "rvol":      1.8,            // float64
         "ts":        1744444800,     // int64, unix seconds
-        "summary":   "..."           // string, omitempty, only with --output nl
+        "summary":   "..."           // string, omitempty, human-readable NL summary
     }
 
     Regime Values:
@@ -338,18 +346,106 @@ NOTE: These schemas are likely to change as development progresses.
     └── README.md
 
 
-## Next: Step 12 (Build Order)
+## Step 12: Metric Conventions & Implementation Plan (2026‑04‑15)
 
-With all design and setup complete, the build order is:
+### 1. Registry with Aliases
+- **Location:** `internal/metrics/registry.go`
+- **MetricDef fields:** `Name`, `Aliases` (lowercase), `Endpoints`, `Sources` (datapoint → endpoint‑key map), `Description`
+- **Aliases:** `lp`, `sp`, `ft`, `mb`, `md`, `mr` (unique, lowercase)
+- **Purpose:** CLI `list‑metrics`, validation, foundation for future `get` command
+- **No compute wiring** in v1 — each standalone command calls its own compute directly
 
-1. internal/output/envelope.go — CLIResponse and CLIError structs,
-   WriteSuccess and WriteError functions
-2. cmd/cryptospect-cli/root.go — cobra root command, global flags,
-   slog-to-stderr setup in PersistentPreRun
-3. Replace cmd/cryptospect-cli/main.go — real entrypoint calling rootCmd
-4. Regime stub subcommand — hardcoded JSON through the envelope
-5. Error path stub — force a fake 429, confirm structured error JSON
-6. make lint, make test, make build all passing
-7. Wire real API clients in internal/api/
-8. Wire real metrics in internal/metrics/
-9. Connect everything to the subcommands
+### 2. Output Envelope (JSON)
+- **Top‑level:** `CLIResponse { status, ts, results[], error? }`
+- **Per‑metric:** `MetricResult { metric, status, data, meta? }`
+- **Metadata:** `MetaBasic` (cache_hit, ttl_remaining), `MetaExtended` (+ sources), `MetaFull` (+ thresholds, description)
+- **Envelope behavior:** Single‑metric commands return `Results` with one element. `--detail basic` → `Meta` omitted; `extended` → `MetaExtended`; `full` → `MetaFull`
+
+### 3. Metric‑Specific Conventions
+- **Types (`internal/metrics/<name>/types.go`):** `Data` struct with metric‑specific fields + `Classification` struct (per‑metric, typed fields) + `summary` string
+- **Compute function:** `func Compute(in Input) (Data, error)` (pure, no I/O)
+- **Classification:** Each metric defines a typed `Classification` struct (e.g., `TradeValidation`, `MarketCondition` fields). Classification values are package‑level constants; complete mapping table documented in LLM‑focused docs
+- **Constants:** Define classification values as package‑level constants
+
+### 4. CLI Command Wiring
+- Each metric command imports aliases from registry, uses Cobra’s `Aliases` field
+- `--detail` flag inherited from root (global flag)
+- Builds `MetricResult` with appropriate `Meta` based on `--detail`
+- Calls `output.WriteSuccess([]output.MetricResult{…})`
+
+### 5. Documentation
+- **Source‑truth (`docs/metrics/<metric>.md`):** Copy original structure (Overview, Formula, Output Schema, Interpretation, Data Source, Usage, Calibration)
+- **LLM‑focused (`docs/llm/<metric>.md`):** Concise, includes command, example JSON, complete classification table
+- **Directory structure:** `docs/metrics/` + `docs/llm/`
+
+### 6. Testing Conventions
+- Table‑driven tests for each `Compute` function
+- Fixture checklist: happy path, empty/nil, invalid JSON, semantically invalid, extreme values, thin‑data guard
+- Mock API with `httptest`
+- All tests pass `‑race ‑cover`
+
+### 7. Error Handling
+- **Statuses:** `"ok"`, `"degraded"`, `"unavailable"` per metric; top‑level `"error"` only for unrecoverable failures
+- **Sentinel errors** per package; wrap with `%w`; structured CLI errors via envelope
+- **Exit codes:** 0 for success AND handled errors; non‑zero only for unrecoverable failures
+
+### 8. Status Detection Helper (`detectStatus`)
+- **Location:** `internal/metrics/helpers.go`
+- **Signature:** `func detectStatus(confidence float64, thinData bool) string`
+- **Mapping:** confidence ≥ 0.8 → `"ok"`; confidence ≥ 0.5 → `"degraded"`; else `"unavailable"`. If `thinData` is true, downgrade by one level (e.g., `"ok"` → `"degraded"`, `"degraded"` → `"unavailable"`, `"unavailable"` unchanged).
+- **Usage:** Each metric’s `Compute` function calls `detectStatus` to set the `MetricResult.Status` field.
+
+### 9. Command‑Level Integration Tests
+- **Pattern:** Each metric command gets an `_e2e_test.go` file (e.g., `liquidity‑pulse_e2e_test.go`) that tests the full CLI flow.
+- **Scope:** Uses `httptest.NewServer` to mock API responses, invokes the Cobra command via `cmd.Execute()`, validates the JSON envelope.
+- **Goal:** Verify that flag parsing, config loading, cache, fetcher, compute, and output work together.
+- **Placement:** Same directory as the command file (`cmd/`).
+- **Naming:** `TestLiquidityPulse_Integration` (table‑driven with mock scenarios).
+
+---
+## Step 13: Document Sync & Single Source of Truth
+
+**Primary source:** `Design‑Decisions.md` (this file). All other documents derive from it.
+
+### Dependent Documents (update when this file changes)
+
+| Document | Purpose | Last Sync | Notes |
+|----------|---------|-----------|-------|
+| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑15 | Keep concise; reference this file for details. |
+| `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑15 | CLI commands, JSON envelope, error‑handling rules. |
+| `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑15 | Keep friendly; link to `agents.md` for agent integration. |
+| `/vault/Knowledge/CryptoSpect‑CLI‑new.md` | Architectural summary, metric tiers, build order | 2026‑04‑15 | Snapshot of this file + original‑project context. |
+
+**Sync checklist** (run after any change to this file):
+1. Update `Last Sync` date above.
+2. Propagate changed conventions to `CLAUDE.md` (metric conventions, testing, etc.).
+3. Update `agents.md` if CLI signatures, envelope schema, or error handling changed.
+4. Update `README.md` if commands, output format, or examples changed.
+5. Update vault knowledge file if architecture or build order changed.
+
+**Rationale:** Manual sync is error‑prone but manageable with this table. A future script could diff sections and auto‑update, but for v1, this table + checklist suffices.
+
+---
+
+## Next: Build Order (Step 14)
+
+1. `internal/output/envelope.go` — `CLIResponse`, `MetricResult`, `CLIError`
+2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`
+3. `internal/output/writer.go` — `WriteSuccess`, `WriteError`
+4. `internal/metrics/registry.go` — Registry with alias support, `MetricDef`, `RegisterDefaultMetrics`
+5. `internal/metrics/helpers.go` — `detectStatus()` helper (confidence/thin‑data → "ok"/"degraded"/"unavailable")
+6. `internal/api/constants.go` — Endpoint‑key constants (`coingecko.global`, `coingecko.coins_markets`, etc.)
+7. `internal/config/config.go` — `Config`, `Load`, `SourceFor` (uses endpoint‑key constants)
+8. `internal/cache/cache.go` — `Get`, `Set`, `Clear`, atomic writes, endpoint‑keyed file names
+9. `internal/httpclient/client.go` — retry, backoff, `APIError` (generic HTTP client)
+10. `internal/api/coingecko/client.go` — CoinGecko API client (global, coins/markets, market_chart)
+11. `internal/api/binance/client.go` — Binance US API client (klines, futures OI/funding)
+12. `internal/api/coindesk/client.go` — CoinDesk API client (asset top list)
+13. `internal/api/coinmetrics/client.go` — CoinMetrics Community API client
+14. `internal/api/fetcher.go` — `Fetch(ctx, endpointKey)` helper (cache‑first, provider dispatch, atomic writes)
+15. `cmd/cryptospect‑cli/root.go` — Cobra root, global flags (`--output`, `--verbose`, `--detail`)
+16. Replace `cmd/cryptospect‑cli/main.go`
+17. `cmd/cache.go` — cache‑clear subcommand
+18. `cmd/list.go` — list metrics from registry (`list‑metrics`)
+19. **First metric template: liquidity‑pulse** (full implementation) — includes command‑level integration test (`liquidity‑pulse_e2e_test.go`)
+20. Repeat for remaining Tier 2+3 metrics (`stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`, `market‑regime`) — each includes command‑level integration test

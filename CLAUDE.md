@@ -1,6 +1,8 @@
 # cryptospect-cli
 
-CLI tool that fetches live/historical crypto data, computes market regime metrics, and outputs agent-optimized JSON.
+CLI tool that fetches live crypto data, computes market regime metrics, and outputs agent-optimized JSON. Rewrite of original cryptospect-cli.
+
+**Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
 ## Stack
 - Go 1.25, single static binary (CGO_ENABLED=0)
@@ -13,25 +15,44 @@ CLI tool that fetches live/historical crypto data, computes market regime metric
 - `make lint` — golangci-lint v2
 - `make fmt` — goimports + gofumpt
 
-## Architecture
+## Architecture (v1)
 - `cmd/cryptospect-cli/` — main entrypoint, cobra root command
-- `internal/api/` — HTTP clients for CoinGecko, Binance, CoinDesk
-- `internal/metrics/` — Z-score, RVOL, correlation, regime detection (pure functions)
-- `internal/output/` — JSON envelope, token-dense NL summaries
-- `internal/config/` — API key loading, flag binding
+- `internal/output/` — JSON envelope (`CLIResponse`, `MetricResult`), metadata structs, writer
+- `internal/metrics/registry.go` — metric catalog with aliases (`lp`, `sp`, `ft`, `mb`, `md`, `mr`)
+- `internal/metrics/<name>/` — pure compute functions, types, constants
+- `internal/config/` — config loading, source mapping
+- `internal/cache/` — file‑based cache (endpoint‑keyed, atomic writes)
+- `internal/httpclient/` — retry, backoff, APIError
+- `internal/api/` — HTTP clients for CoinGecko, Binance US, CoinDesk, CoinMetrics
 
 ## Output Contract
-- stdout is ALWAYS valid JSON (CLIResponse envelope), never raw text
-- stderr is for diagnostic logs only (gated by --verbose)
-- Exit 0 for success AND handled errors; non-zero only for unrecoverable failures
+- stdout is ALWAYS valid JSON (`CLIResponse` envelope), never raw text
+- stderr is ONLY slog diagnostics, gated by `--verbose`
+- Exit 0 for success AND handled errors; non‑zero only for unrecoverable failures
+- Single‑metric commands return `results` array (one element) for forward compatibility
+- Detail levels: `--detail basic|extended|full` adds metadata, thresholds, description
 
-## Conventions
-- Errors: wrap with fmt.Errorf("context: %w", err), define sentinel errors per package
-- Tests: table-driven, use testdata/ for API fixture JSON, httptest for mocking
-- NL summaries: under 40 tokens, label:value pairs separated by pipes
+## Metric Conventions
+- **Types:** `Data` struct with metric‑specific fields + typed `Classification` struct (per‑metric fields) + `summary` string
+- **Compute:** `func Compute(in Input) (Data, error)` (pure, no I/O)
+- **Classification:** Per‑metric typed struct with package‑level constants for categorical values (e.g., `TradeValidationNormal`)
+- **Aliases:** Each metric has a lowercase 2‑letter alias (e.g., `lp` for `liquidity‑pulse`)
+- **Registry:** Single source of truth for metric names, aliases, endpoints, source mapping, descriptions
+- **Status detection:** `detectStatus(confidence, thinData)` helper sets metric status (`"ok"`, `"degraded"`, `"unavailable"`)
+
+## Testing Conventions
+- Table‑driven tests, stdlib only (no testify)
+- Fixture checklist: happy path, empty/nil, invalid JSON, semantically invalid, extreme values, thin‑data guard
+- Mock API with httptest
+- Command‑level integration tests (`_e2e_test.go`) for each metric (full CLI flow)
+- Always test with `-race -cover`
+
+## Documentation
+- **Source‑truth:** `docs/metrics/<metric>.md` (Overview, Formula, Output Schema, Interpretation, Data Source)
+- **LLM‑focused:** `docs/llm/<metric>.md` (command, example JSON, classification table)
 
 ## Orchestration (for agents calling this tool)
-1. Run `regime` first to establish macro context
-2. Then `zscore` and `rvol` for confirmation signals
-3. Run `correlation` only when comparing cross-asset behavior
-4. Always pass --output json
+1. Run `regime` first to establish macro context (future)
+2. For v1, use standalone commands: `liquidity‑pulse`, `stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`, `market‑regime`
+3. Use `--detail full` for thresholds and descriptions
+4. Always pass `--output json` (default)
