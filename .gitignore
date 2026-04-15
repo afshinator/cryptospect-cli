@@ -1,0 +1,37 @@
+# Binaries
+bin/
+dist/
+cryptospect-cli
+cryptospect-cli-*
+
+# Dependency directories
+vendor/
+
+# Test coverage
+coverage.out
+coverage.html
+*.cover
+
+# Logs
+*.log
+
+# Local cache
+.cache/
+.cryptospect/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# goreleaser
+dist-*/
+
+# Temporary files
+tmp/
+*.tmp
