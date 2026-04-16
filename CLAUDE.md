@@ -4,6 +4,14 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 **Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
+## Project Status (2026‑04‑16)
+- **Infrastructure through fetcher complete:** Steps 1‑14 of the build order are implemented and tested.
+- **API clients:** CoinGecko (global, stables markets, derivatives, coin markets) and Binance US (spot CVD) fully implemented with tests.
+- **Placeholder clients:** CoinDesk and CoinMetrics (stubs) satisfy build order.
+- **Cache‑first fetcher:** `internal/api/fetcher.go` implements memory → file cache → HTTP API → stale fallback; comprehensive test suite passes with `‑race`.
+- **Code review completed:** Agency‑agents engineering‑code‑reviewer scored infrastructure **9/10**. Critical blockers (security, context propagation, race condition) fixed.
+- **Ready for:** CLI command integration (Steps 15‑18) and first metric template (liquidity‑pulse).
+
 ## Stack
 - Go 1.25, single static binary (CGO_ENABLED=0)
 - cobra + viper for CLI, log/slog for logging

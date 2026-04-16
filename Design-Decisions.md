@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-04-15
+Last updated: 2026-04-16
 
 
 ## Step 1: Environment & Project Init
@@ -411,10 +411,10 @@ NOTE: These schemas are likely to change as development progresses.
 
 | Document | Purpose | Last Sync | Notes |
 |----------|---------|-----------|-------|
-| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑15 | Keep concise; reference this file for details. |
-| `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑15 | CLI commands, JSON envelope, error‑handling rules. |
-| `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑15 | Keep friendly; link to `agents.md` for agent integration. |
-| `/vault/Knowledge/CryptoSpect‑CLI‑new.md` | Architectural summary, metric tiers, build order | 2026‑04‑15 | Snapshot of this file + original‑project context. |
+| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑16 | Keep concise; reference this file for details. |
+| `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑16 | CLI commands, JSON envelope, error‑handling rules. |
+| `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑16 | Keep friendly; link to `agents.md` for agent integration. |
+| `/vault/Knowledge/CryptoSpect‑CLI‑new.md` | Architectural summary, metric tiers, build order | 2026‑04‑16 | Snapshot of this file + original‑project context. |
 
 **Sync checklist** (run after any change to this file):
 1. Update `Last Sync` date above.
@@ -425,9 +425,36 @@ NOTE: These schemas are likely to change as development progresses.
 
 **Rationale:** Manual sync is error‑prone but manageable with this table. A future script could diff sections and auto‑update, but for v1, this table + checklist suffices.
 
+## Code Review & Critical Fixes (2026‑04‑16)
+
+**Review summary:** Agency‑agents engineering‑code‑reviewer performed thorough review of infrastructure (Steps 1‑14). Score: **9/10** – exceptional foundation with minor but important fixes needed.
+
+### ✅ **Critical Blockers Fixed**
+1. **Cache file permissions** – `0600` (owner‑only) instead of `0644` (`internal/cache/cache.go:99`)
+2. **Context propagation** – HTTP client now uses `http.NewRequestWithContext` (`internal/httpclient/client.go`)
+3. **Fetcher race condition** – Coarse‑grained locking eliminates duplicate API calls (`internal/api/fetcher.go:60‑156`)
+
+### 🟡 **Suggestions Addressed**
+- **TTL validation** – Bounds checking added: negative → default 300, zero → 60, >86400 → cap at 1 day (`internal/api/fetcher.go:190‑198`)
+- **Unused variable** – Named `suffix` in endpoint parsing (`internal/api/fetcher.go:158`)
+- **Random seeding** – `rand.Seed(time.Now().UnixNano())` added for jitter (`internal/httpclient/client.go`)
+- **Permission check** – Group permissions now also enforced (`&0077` vs `&0177`) (`internal/config/config.go:69‑71`)
+
+### 📋 **Remaining Suggestions** (deferred)
+- **Error‑type preservation** – Keep `httpclient` typed errors accessible (non‑blocking)
+- **Endpoint parameterization** – Move hard‑coded symbols/intervals to registry/config (address before first metric)
+- **Registry config loading** – Consider YAML‑based metric definitions (YAGNI for v1)
+- **JSON RawMessage validation** – Add `Validate()` method (low priority)
+- **Test coverage gaps** – `Clear()` error paths, `Write()`, `Validate` edge cases
+
+### 🚀 **Next Steps**
+Proceed with CLI command integration (Steps 15‑18). Endpoint parameterization needed before implementing `liquidity‑pulse` (Step 19).
+
 ---
 
-## Next: Build Order (Step 14)
+## Build Order (Step 14 – Completed)
+
+✅ **Steps 1‑14 implemented and tested.**
 
 1. `internal/output/envelope.go` — `CLIResponse`, `MetricResult`, `CLIError`
 2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`
