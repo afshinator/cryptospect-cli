@@ -68,9 +68,9 @@ func RegisterDefaultMetrics(reg *Registry) {
 	// Flow Tension: CVD-based market pressure indicator
 	reg.Register("flow-tension",
 		[]string{"ft"},
-		[]string{"binance.spot_cvd", "coingecko.derivatives"},
+		[]string{"binance.spot_cvd_btc_1h", "coingecko.derivatives"},
 		map[string]string{
-			"spot_cvd":    "binance.spot_cvd",
+			"spot_cvd":    "binance.spot_cvd_btc_1h",
 			"derivatives": "coingecko.derivatives",
 		},
 		"CVD-based market pressure indicator.")
@@ -78,24 +78,24 @@ func RegisterDefaultMetrics(reg *Registry) {
 	// Market Breadth: participation across top assets
 	reg.Register("market-breadth",
 		[]string{"mb"},
-		[]string{"coingecko.coin_markets"},
-		map[string]string{"coin_markets": "coingecko.coin_markets"},
+		[]string{"coingecko.coin_markets_breadth"},
+		map[string]string{"coin_markets_breadth": "coingecko.coin_markets_breadth"},
 		"Measures participation across top assets.")
 
 	// Momentum Divergence: RSI divergence patterns
 	reg.Register("momentum-divergence",
 		[]string{"md"},
-		[]string{"coingecko.coin_markets"},
-		map[string]string{"coin_markets": "coingecko.coin_markets"},
+		[]string{"coingecko.coin_markets_momentum"},
+		map[string]string{"coin_markets_momentum": "coingecko.coin_markets_momentum"},
 		"RSI divergence patterns across assets.")
 
 	// Market Regime: composite regime classification
 	reg.Register("market-regime",
 		[]string{"mr"},
-		[]string{"coingecko.global_market", "coingecko.coin_markets"},
+		[]string{"coingecko.global_market", "coingecko.coin_markets_breadth"},
 		map[string]string{
-			"global_market": "coingecko.global_market",
-			"coin_markets":  "coingecko.coin_markets",
+			"global_market":        "coingecko.global_market",
+			"coin_markets_breadth": "coingecko.coin_markets_breadth",
 		},
 		"Composite regime classification using multiple signals.")
 }

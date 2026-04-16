@@ -24,8 +24,9 @@ func TestResolveURL(t *testing.T) {
 		{CoinGeckoGlobalMarket, false},
 		{CoinGeckoSPPStablesMarkets, false},
 		{CoinGeckoDerivatives, false},
-		{CoinGeckoCoinMarkets, false},
-		{BinanceSpotCVD, false},
+		{CoinGeckoCoinMarketsBreadth, false},
+		{CoinGeckoCoinMarketsMomentum, false},
+		{BinanceSpotCVD_BTC_1h, false},
 		{CoinDeskAssetTopList, false},
 		{CoinMetricsCommunity, false},
 		{"unknown.provider", true},
@@ -64,7 +65,7 @@ func TestResolveTTL(t *testing.T) {
 			Enabled: true,
 			TTL: map[string]int{
 				"coingecko_global_market": 123,
-				"binance_spot_cvd":        456,
+				"binance_spot_cvd_btc_1h": 456,
 			},
 		},
 	}
@@ -74,14 +75,15 @@ func TestResolveTTL(t *testing.T) {
 		endpoint string
 		want     int
 	}{
-		{CoinGeckoGlobalMarket, 123},      // underscore key matches config
-		{CoinGeckoSPPStablesMarkets, 300}, // default
-		{CoinGeckoDerivatives, 300},       // default
-		{CoinGeckoCoinMarkets, 300},       // default
-		{BinanceSpotCVD, 456},             // underscore key matches config
-		{CoinDeskAssetTopList, 300},       // default
-		{CoinMetricsCommunity, 300},       // default
-		{"unknown.provider", 300},         // default
+		{CoinGeckoGlobalMarket, 123},        // underscore key matches config
+		{CoinGeckoSPPStablesMarkets, 300},   // default
+		{CoinGeckoDerivatives, 300},         // default
+		{CoinGeckoCoinMarketsBreadth, 300},  // default
+		{CoinGeckoCoinMarketsMomentum, 300}, // default
+		{BinanceSpotCVD_BTC_1h, 456},        // underscore key matches config
+		{CoinDeskAssetTopList, 300},         // default
+		{CoinMetricsCommunity, 300},         // default
+		{"unknown.provider", 300},           // default
 	}
 
 	for _, tt := range tests {

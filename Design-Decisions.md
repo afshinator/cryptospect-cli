@@ -442,13 +442,25 @@ NOTE: These schemas are likely to change as development progresses.
 
 ### 📋 **Remaining Suggestions** (deferred)
 - **Error‑type preservation** – Keep `httpclient` typed errors accessible (non‑blocking)
-- **Endpoint parameterization** – Move hard‑coded symbols/intervals to registry/config (address before first metric)
 - **Registry config loading** – Consider YAML‑based metric definitions (YAGNI for v1)
 - **JSON RawMessage validation** – Add `Validate()` method (low priority)
 - **Test coverage gaps** – `Clear()` error paths, `Write()`, `Validate` edge cases
+- **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred (see `docs/architecture/go1.25‑caching‑patterns.md`)
+
+### ✅ **Endpoint Parameterization Completed** (2026‑04‑16)
+- Added distinct endpoint constants: `CoinGeckoCoinMarketsBreadth`, `CoinGeckoCoinMarketsMomentum`, `BinanceSpotCVD_BTC_1h`
+- Updated registry sources mapping with new datapoint names: `coin_markets_breadth`, `coin_markets_momentum`
+- Updated fetcher `resolveURL` to map each constant to appropriate URL builder with explicit parameters
+- All tests updated and passing
+
+### ✅ **Go 1.25 Caching Patterns Implemented** (2026‑04‑16)
+- **Sharded maps (16 shards)** – Eliminate lock contention for concurrent endpoint fetches; each shard has its own `sync.Mutex` and `map[unique.Handle[string]]…`.
+- **Zero‑allocation keying with `unique.Handle`** – Global `sync.Map` canonicalizes endpoint strings to `unique.Handle[string]`; memory cache lookups compare pointer‑sized integers instead of allocating strings.
+- Concurrent test (`TestFetchConcurrentDifferentEndpoints`) verifies parallelism (elapsed time ≤ `delay * (N‑1)`).
+- Backward compatibility maintained; all existing tests pass with `‑race`.
 
 ### 🚀 **Next Steps**
-Proceed with CLI command integration (Steps 15‑18). Endpoint parameterization needed before implementing `liquidity‑pulse` (Step 19).
+Proceed with CLI command integration (Steps 15‑18). Endpoint parameterization complete; ready for first metric (`liquidity‑pulse`).
 
 ---
 

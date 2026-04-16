@@ -3,9 +3,11 @@ package api
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"strings"
 	"sync"
 	"time"
+	"unique"
 
 	"github.com/afshinator/cryptospect-cli/internal/api/binance"
 	"github.com/afshinator/cryptospect-cli/internal/api/coindesk"
@@ -16,6 +18,21 @@ import (
 	"github.com/afshinator/cryptospect-cli/internal/httpclient"
 )
 
+var (
+	handleMap sync.Map // string -> unique.Handle[string]
+)
+
+func getHandle(key string) unique.Handle[string] {
+	if h, ok := handleMap.Load(key); ok {
+		return h.(unique.Handle[string])
+	}
+	h := unique.Make(key)
+	handleMap.Store(key, h)
+	return h
+}
+
+const shardCount = 16 // must be power of two
+
 // FetchMeta holds metadata about how the data was obtained.
 type FetchMeta struct {
 	CacheHit     bool      // true when served from a fresh cache entry
@@ -24,15 +41,26 @@ type FetchMeta struct {
 	FetchedAt    time.Time // when the data was originally fetched (UTC)
 }
 
+type shard struct {
+	mu         sync.Mutex
+	memory     map[unique.Handle[string]][]byte
+	memoryMeta map[unique.Handle[string]]FetchMeta
+}
+
 // Fetcher orchestrates cache‑first fetching of endpoint data.
 type Fetcher struct {
 	cache      *cache.Cache
 	httpClient *httpclient.Client
 	config     config.Config
 
-	mu         sync.Mutex
-	memory     map[string][]byte // endpointKey → raw data (already fetched this session)
-	memoryMeta map[string]FetchMeta
+	shards    []*shard
+	shardMask uint32
+}
+
+func (f *Fetcher) shardIndex(key string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(key))
+	return h.Sum32() & f.shardMask
 }
 
 // New creates a Fetcher with the given cache directory and configuration.
@@ -45,12 +73,19 @@ func New(cacheDir string, cfg config.Config) (*Fetcher, error) {
 
 	httpCli := httpclient.New(3) // default 3 retries
 
+	shards := make([]*shard, shardCount)
+	for i := range shards {
+		shards[i] = &shard{
+			memory:     make(map[unique.Handle[string]][]byte),
+			memoryMeta: make(map[unique.Handle[string]]FetchMeta),
+		}
+	}
 	return &Fetcher{
 		cache:      cacheCli,
 		httpClient: httpCli,
 		config:     cfg,
-		memory:     make(map[string][]byte),
-		memoryMeta: make(map[string]FetchMeta),
+		shards:     shards,
+		shardMask:  shardCount - 1,
 	}, nil
 }
 
@@ -58,12 +93,16 @@ func New(cacheDir string, cfg config.Config) (*Fetcher, error) {
 // It returns the raw response body, metadata about the fetch, and any error.
 // Errors are returned only when the API call fails and no stale cache is available.
 func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchMeta, error) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
+	h := getHandle(endpointKey)
+	idx := f.shardIndex(endpointKey)
+	shard := f.shards[idx]
+
+	shard.mu.Lock()
+	defer shard.mu.Unlock()
 
 	// First check in‑memory cache (same session)
-	if data, ok := f.memory[endpointKey]; ok {
-		meta := f.memoryMeta[endpointKey]
+	if data, ok := shard.memory[h]; ok {
+		meta := shard.memoryMeta[h]
 		// Serving from memory cache is considered a cache hit
 		meta.CacheHit = true
 		return data, meta, nil
@@ -87,8 +126,8 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 				FetchedAt:    entry.FetchedAt,
 			}
 			// Store in memory for subsequent calls
-			f.memory[endpointKey] = entry.Data
-			f.memoryMeta[endpointKey] = meta
+			shard.memory[h] = entry.Data
+			shard.memoryMeta[h] = meta
 			return entry.Data, meta, nil
 		}
 		// If stale, keep entry as fallback for later
@@ -105,8 +144,8 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 				TTLRemaining: 0,
 				FetchedAt:    fileEntry.FetchedAt,
 			}
-			f.memory[endpointKey] = fileEntry.Data
-			f.memoryMeta[endpointKey] = meta
+			shard.memory[h] = fileEntry.Data
+			shard.memoryMeta[h] = meta
 			return fileEntry.Data, meta, nil
 		}
 		return nil, FetchMeta{}, fmt.Errorf("resolving URL for %q: %w", endpointKey, err)
@@ -122,8 +161,8 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 				TTLRemaining: 0,
 				FetchedAt:    fileEntry.FetchedAt,
 			}
-			f.memory[endpointKey] = fileEntry.Data
-			f.memoryMeta[endpointKey] = meta
+			shard.memory[h] = fileEntry.Data
+			shard.memoryMeta[h] = meta
 			return fileEntry.Data, meta, nil
 		}
 		return nil, FetchMeta{}, fmt.Errorf("fetching %q: %w", endpointKey, err)
@@ -142,8 +181,8 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 		TTLRemaining: ttl,
 		FetchedAt:    fetchedAt,
 	}
-	f.memory[endpointKey] = data
-	f.memoryMeta[endpointKey] = meta
+	shard.memory[h] = data
+	shard.memoryMeta[h] = meta
 	return data, meta, nil
 }
 
@@ -168,11 +207,11 @@ func (f *Fetcher) resolveURL(endpointKey string) (string, error) {
 		return coingecko.StablesMarketsURL(), nil
 	case CoinGeckoDerivatives:
 		return coingecko.DerivativesURL(apiKey), nil
-	case CoinGeckoCoinMarkets:
-		// Default to breadth URL (250 coins) as in original resolveURL
+	case CoinGeckoCoinMarketsBreadth:
 		return coingecko.CoinMarketsBreadthURL(250), nil
-	case BinanceSpotCVD:
-		// Typical symbol/interval/limit for flow‑tension metric
+	case CoinGeckoCoinMarketsMomentum:
+		return coingecko.CoinMarketsMomentumURL(250), nil
+	case BinanceSpotCVD_BTC_1h:
 		return binance.KlinesURL("BTCUSDT", "1h", 1), nil
 	case CoinDeskAssetTopList:
 		// Placeholder – not yet implemented

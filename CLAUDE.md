@@ -9,7 +9,9 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 - **API clients:** CoinGecko (global, stables markets, derivatives, coin markets) and Binance US (spot CVD) fully implemented with tests.
 - **Placeholder clients:** CoinDesk and CoinMetrics (stubs) satisfy build order.
 - **Cache‑first fetcher:** `internal/api/fetcher.go` implements memory → file cache → HTTP API → stale fallback; comprehensive test suite passes with `‑race`.
+- **Go 1.25 caching patterns:** Sharded maps (16 shards) eliminate lock contention for concurrent endpoint fetches; `unique.Handle` provides zero‑allocation keying. Concurrent test verifies parallelism.
 - **Code review completed:** Agency‑agents engineering‑code‑reviewer scored infrastructure **9/10**. Critical blockers (security, context propagation, race condition) fixed.
+- **Endpoint parameterization complete:** Distinct constants for breadth/momentum endpoints, Binance CVD with explicit parameters.
 - **Ready for:** CLI command integration (Steps 15‑18) and first metric template (liquidity‑pulse).
 
 ## Stack

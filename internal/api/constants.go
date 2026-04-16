@@ -2,13 +2,14 @@ package api
 
 const (
 	// CoinGecko endpoints
-	CoinGeckoGlobalMarket      = "coingecko.global_market"
-	CoinGeckoSPPStablesMarkets = "coingecko.spp_stables_markets"
-	CoinGeckoDerivatives       = "coingecko.derivatives"
-	CoinGeckoCoinMarkets       = "coingecko.coin_markets"
+	CoinGeckoGlobalMarket        = "coingecko.global_market"
+	CoinGeckoSPPStablesMarkets   = "coingecko.spp_stables_markets"
+	CoinGeckoDerivatives         = "coingecko.derivatives"
+	CoinGeckoCoinMarketsBreadth  = "coingecko.coin_markets_breadth"
+	CoinGeckoCoinMarketsMomentum = "coingecko.coin_markets_momentum"
 
 	// Binance US endpoints
-	BinanceSpotCVD = "binance.spot_cvd"
+	BinanceSpotCVD_BTC_1h = "binance.spot_cvd_btc_1h"
 
 	// CoinDesk endpoints
 	CoinDeskAssetTopList = "coindesk.asset_top_list"
@@ -23,8 +24,9 @@ func AllEndpoints() []string {
 		CoinGeckoGlobalMarket,
 		CoinGeckoSPPStablesMarkets,
 		CoinGeckoDerivatives,
-		CoinGeckoCoinMarkets,
-		BinanceSpotCVD,
+		CoinGeckoCoinMarketsBreadth,
+		CoinGeckoCoinMarketsMomentum,
+		BinanceSpotCVD_BTC_1h,
 		CoinDeskAssetTopList,
 		CoinMetricsCommunity,
 	}
