@@ -28,6 +28,9 @@ jobs:
           find . -name "*.go" -not -path "./.cache/*" -not -path "./.gomodcache/*" -not -path "./.go/*" -not -path "./vendor/*" \
             -exec gofumpt -l {} \; | tee /dev/stderr | (! read)
 
+      - name: go mod download
+        run: go mod download
+
       - name: lint
         uses: golangci/golangci-lint-action@v7
         with:
