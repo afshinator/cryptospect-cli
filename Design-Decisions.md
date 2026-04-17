@@ -381,7 +381,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
 
 | Document | Purpose | Last Sync | Notes |
 |----------|---------|-----------|-------|
-| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑17 | Keep concise; reference this file for details. |
+| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑17 (session 2) | Keep concise; reference this file for details. |
 | `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑17 | CLI commands, JSON envelope, error‑handling rules. |
 | `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑17 | Keep friendly; link to `agents.md` for agent integration. |
 | `/vault/Knowledge/CryptoSpect‑CLI‑new.md` | Architectural summary, metric tiers, build order | 2026‑04‑16 | Snapshot of this file + original‑project context. |
@@ -404,11 +404,11 @@ They are preserved here for reference; do not treat them as current v1 output sh
 2. **Context propagation** – HTTP client now uses `http.NewRequestWithContext` (`internal/httpclient/client.go`)
 3. **Fetcher race condition** – Coarse‑grained locking eliminates duplicate API calls (`internal/api/fetcher.go:60‑156`)
 
-### 🟡 **Suggestions Addressed**
-- **TTL validation** – Bounds checking added: negative → default 300, zero → 60, >86400 → cap at 1 day (`internal/api/fetcher.go:190‑198`)
-- **Unused variable** – Named `suffix` in endpoint parsing (`internal/api/fetcher.go:158`)
-- **Random seeding** – `rand.Seed(time.Now().UnixNano())` added for jitter (`internal/httpclient/client.go`)
-- **Permission check** – Group permissions now also enforced (`&0077` vs `&0177`) (`internal/config/config.go:69‑71`)
+### 🟡 **Suggestions Addressed (first pass)**
+- **TTL validation** – Bounds checking added: negative → default 300, zero → 60, >86400 → cap at 1 day (`internal/api/fetcher.go`)
+- **Unused variable** – Named `suffix` in endpoint parsing (`internal/api/fetcher.go`)
+- **Permission check** – Group permissions now also enforced (`&0077` vs `&0177`) (`internal/config/config.go`)
+- Note: `rand.Seed` was briefly added for jitter then removed by linting (deprecated since Go 1.20 — auto‑seeded)
 
 
 ### ✅ **Linting & CI Fixes (2026‑04‑16)**
@@ -446,6 +446,13 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - **Critical error handling:** Fixed unchecked `os.Remove()` and `cache.Set()` errors
 - **All tests pass** with `make test`, `make lint`, `make build`
 
+### ✅ **Suggestions Addressed (second pass, 2026‑04‑17)**
+- **Dead code removal** – Deleted `GetWithKey` from `internal/httpclient/client.go` (CoinGecko‑specific method on a generic client, never called from production code) and its test
+- **Double stat eliminated** – `config.LoadWithViper` now calls `os.Stat` once and reuses the result (`internal/config/config.go`)
+- **Test reliability** – `TestStaleEntry` in `internal/cache/cache_test.go` uses TTL=0 instead of `time.Sleep(2s)`
+- **Write coverage** – Added `TestWrite` to `internal/config/config_test.go` (happy path, file‑exists error, nested dir creation)
+- **TTL bounds coverage** – Added `TestResolveTTLBounds` to `internal/api/resolve_test.go` (negative → 300, zero → 60, >86400 → 86400)
+
 ### 📋 **Remaining Suggestions & Technical Debt** (post‑CLI‑infrastructure)
 - **Addressed during CLI implementation:**
   - **Config file extensions** – Support for both `.yaml` and `.yml` via `resolveConfigPath()` (nit from review)
@@ -455,7 +462,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
   - **Error‑type preservation** – Keep `httpclient` typed errors accessible
   - **Registry config loading** – Consider YAML‑based metric definitions (YAGNI for v1)
   - **JSON RawMessage validation** – Add `Validate()` method (low priority)
-  - **Test coverage gaps** – `Clear()` error paths, `Write()`, `Validate` edge cases
+  - **Test coverage gaps** – `Clear()` error paths, `Validate` edge cases (`Write()` now covered)
   - **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred
 
 ### 🚀 **Next Steps**

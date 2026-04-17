@@ -96,12 +96,16 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 	shard.mu.Lock()
 	defer shard.mu.Unlock()
 
-	// First check in‑memory cache (same session)
+	// First check in‑memory cache (same session).
+	// Only serve fresh entries; stale entries fall through to retry the API so that
+	// a recovered API is not blocked by a stale entry written during a prior failure.
 	if data, ok := shard.memory[h]; ok {
 		meta := shard.memoryMeta[h]
-		// Serving from memory cache is considered a cache hit
-		meta.CacheHit = true
-		return data, meta, nil
+		if !meta.Stale {
+			meta.CacheHit = true
+			return data, meta, nil
+		}
+		// Stale entry in memory: fall through to re‑check file cache and retry API.
 	}
 
 	// Try file cache (if enabled)
@@ -185,15 +189,13 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 // resolveURL returns the API URL for the given endpoint key.
 // It uses the provider's API key from configuration where needed.
 func (f *Fetcher) resolveURL(endpointKey string) (string, error) {
-	// Split provider from key (format "provider.endpoint")
-	parts := strings.SplitN(endpointKey, ".", 2)
-	if len(parts) != 2 {
+	// Keys are "provider.endpoint_name". Dispatch on the full key (not just the
+	// suffix) so two providers can share an endpoint name without collision.
+	dotIdx := strings.Index(endpointKey, ".")
+	if dotIdx < 0 {
 		return "", fmt.Errorf("invalid endpoint key: %q", endpointKey)
 	}
-	provider, suffix := parts[0], parts[1]
-	_ = suffix // available for future endpoint‑specific logic
-
-	// Retrieve API key for this provider
+	provider := endpointKey[:dotIdx]
 	apiKey := f.apiKey(provider)
 
 	switch endpointKey {

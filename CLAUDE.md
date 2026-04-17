@@ -14,6 +14,7 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 - **Endpoint parameterization complete:** Distinct constants for breadth/momentum endpoints, Binance CVD with explicit parameters.
 - **CLI command infrastructure complete:** Cobra root with viper config precedence, cache‑clear and list‑metrics subcommands, command‑level integration tests.
 - **Linting & CI fixes:** 71 golangci‑lint errors resolved, CI pipeline passes with zero warnings.
+- **Code review suggestions addressed (2026‑04‑17):** Dead code removed (`GetWithKey` from httpclient), double `os.Stat` eliminated in config loader, `TestStaleEntry` now uses TTL=0 (no sleep), `config.Write()` and `resolveTTL` bounds fully tested. All tests pass with `-race`.
 - **Ready for:** First metric template implementation (liquidity‑pulse).
 
 ## Stack

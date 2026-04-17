@@ -195,6 +195,27 @@ func TestAtomicWrite(t *testing.T) {
 	}
 }
 
+func TestClosePreventsFurtherOps(t *testing.T) {
+	dir := t.TempDir()
+	c, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Close(); err != nil {
+		t.Fatalf("Close failed: %v", err)
+	}
+
+	if _, err := c.Get("endpoint"); err == nil {
+		t.Error("Get after Close should return error")
+	}
+	if err := c.Set("endpoint", []byte("data"), 300); err == nil {
+		t.Error("Set after Close should return error")
+	}
+	if err := c.Clear(); err == nil {
+		t.Error("Clear after Close should return error")
+	}
+}
+
 func TestEndpointWithDots(t *testing.T) {
 	dir := t.TempDir()
 	c, err := Open(dir)
