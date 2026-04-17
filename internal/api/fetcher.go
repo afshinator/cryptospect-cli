@@ -10,9 +10,7 @@ import (
 	"unique"
 
 	"github.com/afshinator/cryptospect-cli/internal/api/binance"
-	"github.com/afshinator/cryptospect-cli/internal/api/coindesk"
 	"github.com/afshinator/cryptospect-cli/internal/api/coingecko"
-	"github.com/afshinator/cryptospect-cli/internal/api/coinmetrics"
 	"github.com/afshinator/cryptospect-cli/internal/cache"
 	"github.com/afshinator/cryptospect-cli/internal/config"
 	"github.com/afshinator/cryptospect-cli/internal/httpclient"
@@ -212,11 +210,9 @@ func (f *Fetcher) resolveURL(endpointKey string) (string, error) {
 	case BinanceSpotCVD_BTC_1h:
 		return binance.KlinesURL("BTCUSDT", "1h", 1), nil
 	case CoinDeskAssetTopList:
-		// Placeholder – not yet implemented
-		return coindesk.AssetTopListURL(), nil
+		return "", fmt.Errorf("coindesk client not yet implemented")
 	case CoinMetricsCommunity:
-		// Placeholder – not yet implemented
-		return coinmetrics.CommunityURL(), nil
+		return "", fmt.Errorf("coinmetrics client not yet implemented")
 	default:
 		return "", fmt.Errorf("no URL resolver for endpoint: %q", endpointKey)
 	}

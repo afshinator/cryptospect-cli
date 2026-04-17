@@ -18,6 +18,7 @@ coverage.html
 
 # Local cache
 .cache/
+.gomodcache/
 .cryptospect/
 
 # Editor files

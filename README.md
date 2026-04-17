@@ -1,6 +1,6 @@
 # cryptospect-cli
 
-A portable, zero-dependency CLI tool that fetches live and historical cryptocurrency data, computes high-signal market regime metrics, and outputs them in a format optimized for AI agents and LLM tool-calling.
+A portable, zero-dependency CLI tool that fetches live cryptocurrency data, computes high-signal market regime metrics, and outputs them in a format optimized for AI agents and LLM tool-calling.
 
 **Source of truth:** `Design‑Decisions.md` — commands, output format, and architecture defined there.
 
@@ -9,21 +9,31 @@ A portable, zero-dependency CLI tool that fetches live and historical cryptocurr
     git clone https://github.com/<you>/cryptospect-cli.git
     cd cryptospect-cli
     make build
-    ./bin/cryptospect-cli regime --asset BTC --window 30d
+    ./bin/cryptospect-cli list-metrics
 
 ## Commands
 
-    cryptospect-cli regime        --asset <SYM> --window <DURATION> --output json
-    cryptospect-cli zscore        --asset <SYM> --period <DURATION> --output json
-    cryptospect-cli rvol          --asset <SYM> --output json
-    cryptospect-cli correlation   --pair <SYM,SYM> --window <DURATION> --output json
-    cryptospect-cli summary       --assets <SYM,SYM,...> --output json
+### Market Regime Metrics
+
+    cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
+    cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]
+    cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
+    cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]
+    cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]
+    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
+
+### Utility
+
+    cryptospect-cli list-metrics         # list all available metrics and their aliases
+    cryptospect-cli cache-clear          # clear the local API response cache
 
 ### Global Flags
 
-    --output, -o    Output format: json (default; natural‑language summaries embedded in JSON)
+    --output, -o    Output format: json (default)
     --verbose, -v   Enable debug logging on stderr
-    --api-key       API key for authenticated endpoints
+    --detail        Detail level: basic (default), extended, full
+    --api-key       API key for CoinGecko authenticated endpoints
+    --config        Config file path (default $HOME/.cryptospect.yaml)
 
 ## Output Format
 
@@ -36,17 +46,10 @@ Every invocation writes exactly one JSON object to stdout. Diagnostic logs go to
       "ts": 1744444800,
       "results": [
         {
-          "metric": "regime",
+          "metric": "liquidity-pulse",
           "status": "ok",
-          "data": {
-            "asset": "BTC",
-            "window": "30d",
-            "regime": "high_vol_bear",
-            "vol_score": 0.82,
-            "z_score": -2.1,
-            "rvol": 1.8,
-            "summary": "BTC 30d: High-Vol Bear Expansion | Z:-2.1 | RVOL:1.8x | Conviction:High"
-          }
+          "data": { ... },
+          "meta": { ... }    // omitted with --detail basic (default)
         }
       ]
     }
@@ -64,36 +67,39 @@ Every invocation writes exactly one JSON object to stdout. Diagnostic logs go to
       }
     }
 
+### Detail Levels
+
+- `--detail basic` (default): `meta` omitted
+- `--detail extended`: `meta` includes cache hit, TTL remaining, source timestamps
+- `--detail full`: `meta` adds thresholds and metric description
+
 ## Agent Integration
 
 Example LLM tool definition for agentic workflows:
 
     {
-      "name": "crypto_regime",
-      "description": "Get current market regime for a cryptocurrency",
-      "parameters": {
-        "asset": {"type": "string", "enum": ["BTC", "ETH", "SOL"]},
-        "window": {"type": "string", "default": "30d"}
-      },
-      "command": "cryptospect-cli regime --asset {asset} --window {window} --output json"
+      "name": "crypto_liquidity_pulse",
+      "description": "Get the current liquidity pulse metric for the crypto market",
+      "parameters": {},
+      "command": "cryptospect-cli liquidity-pulse --detail full --output json"
     }
 
-See agents.md for the full orchestration playbook.
+See `agents.md` for the full orchestration playbook.
 
 ## Configuration
 
 API key precedence (highest to lowest):
 
-1. CLI flag: --api-key
-2. Environment variable: CRYPTOSPECT_API_KEY
-3. Config file: ~/.cryptospect.yaml
+1. CLI flag: `--api-key` (maps to CoinGecko)
+2. Environment variables: `CRYPTOSPECT_COINGECKO_KEY`, `CRYPTOSPECT_BINANCE_KEY`
+3. Config file: `~/.cryptospect.yaml`
 
 ## Data Sources
 
-- CoinGecko (free tier, primary)
-- Binance-US (free tier)
-- CoinDesk (free tier)
-- CoinMarketCap (requires API key)
+- CoinGecko (free tier, primary — global market, stablecoins, derivatives, coin markets)
+- Binance US (free tier — spot CVD klines)
+- CoinDesk (stub, placeholder)
+- CoinMetrics Community (stub, placeholder)
 
 ## Development
 

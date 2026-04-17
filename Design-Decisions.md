@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-04-16
+Last updated: 2026-04-17
 
 
 ## Step 1: Environment & Project Init
@@ -71,7 +71,17 @@ Last updated: 2026-04-16
 - github.com/spf13/cobra — subcommands and flag parsing
 - github.com/spf13/viper — config file + env var binding
 
-### Command Tree
+### Command Tree (v1 — implemented)
+    cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
+    cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]
+    cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
+    cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]
+    cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]
+    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
+    cryptospect-cli list-metrics
+    cryptospect-cli cache-clear
+
+### Future Per-Asset Commands (deferred, not yet implemented)
     cryptospect-cli regime        --asset <SYM> --window <DURATION>
     cryptospect-cli zscore        --asset <SYM> --period <DURATION>
     cryptospect-cli rvol          --asset <SYM>
@@ -81,11 +91,13 @@ Last updated: 2026-04-16
 ### Global Flags
 - --output, -o: "json" (default)
 - --verbose, -v: enable debug logging
-- --api-key: API key for authenticated endpoints
+- --detail: "basic" (default), "extended", "full" — controls metadata in response
+- --api-key: API key for CoinGecko authenticated endpoints
+- --config: config file path (default $HOME/.cryptospect.yaml)
 
 ### Config Precedence (viper handles this)
-1. CLI flag (--api-key)
-2. Environment variable (CRYPTOSPECT_API_KEY)
+1. CLI flag (--api-key → maps to CoinGecko)
+2. Environment variables (CRYPTOSPECT_COINGECKO_KEY, CRYPTOSPECT_BINANCE_KEY)
 3. Config file (~/.cryptospect.yaml)
 
 
@@ -209,56 +221,14 @@ NOTE: These schemas are likely to change as development progresses.
         source           string    // which API failed, e.g. "coingecko" (omitempty)
     }
 
-### RegimeOutput (regime command)
+### Per-Metric `data` Payload (v1 global metrics)
+Each metric command returns a `MetricResult.data` field whose shape is metric-specific.
+The `data` struct is defined in `internal/metrics/<name>/types.go` for each metric.
+See Step 12 for the metric conventions and `docs/metrics/<metric>.md` once implemented.
 
-    {
-        "asset":     "BTC",           // string
-        "window":    "30d",           // string
-        "regime":    "high_vol_bear", // string, see Regime Values below
-        "vol_score": 0.82,           // float64
-        "z_score":   -2.1,           // float64
-        "rvol":      1.8,            // float64
-        "ts":        1744444800,     // int64, unix seconds
-        "summary":   "..."           // string, omitempty, human-readable NL summary
-    }
-
-    Regime Values:
-    - high_vol_bear
-    - high_vol_bull
-    - low_vol_bear
-    - low_vol_bull
-    - low_vol_sideways
-
-### ZScoreOutput (zscore command)
-
-    {
-        "asset":         "ETH",
-        "period":        "90d",
-        "z_score":       -1.5,        // float64
-        "mean":          2450.00,     // float64
-        "stddev":        320.50,      // float64
-        "current_price": 1970.00,    // float64
-        "ts":            1744444800
-    }
-
-### RVOLOutput (rvol command)
-
-    {
-        "asset":       "BTC",
-        "rvol":        1.8,          // float64, ratio of current to average
-        "current_vol": 45000000,     // float64
-        "avg_vol":     25000000,     // float64
-        "ts":          1744444800
-    }
-
-### CorrelationOutput (correlation command)
-
-    {
-        "pair":      "BTC,ETH",
-        "window":    "60d",
-        "pearson_r": 0.87,          // float64, -1 to 1
-        "ts":        1744444800
-    }
+NOTE: The per-asset schemas below (RegimeOutput, ZScoreOutput, etc.) were designed for
+future per-asset commands (regime, zscore, rvol, correlation) that are not yet implemented.
+They are preserved here for reference; do not treat them as current v1 output shapes.
 
 ### NL Summary Format
 - Under 40 tokens
@@ -389,11 +359,11 @@ NOTE: These schemas are likely to change as development progresses.
 - **Sentinel errors** per package; wrap with `%w`; structured CLI errors via envelope
 - **Exit codes:** 0 for success AND handled errors; non‑zero only for unrecoverable failures
 
-### 8. Status Detection Helper (`detectStatus`)
+### 8. Status Detection Helper (`DetectStatus`)
 - **Location:** `internal/metrics/helpers.go`
-- **Signature:** `func detectStatus(confidence float64, thinData bool) string`
+- **Signature:** `func DetectStatus(confidence float64, thinData bool) string`
 - **Mapping:** confidence ≥ 0.8 → `"ok"`; confidence ≥ 0.5 → `"degraded"`; else `"unavailable"`. If `thinData` is true, downgrade by one level (e.g., `"ok"` → `"degraded"`, `"degraded"` → `"unavailable"`, `"unavailable"` unchanged).
-- **Usage:** Each metric’s `Compute` function calls `detectStatus` to set the `MetricResult.Status` field.
+- **Usage:** Each metric’s `Compute` function calls `DetectStatus` to set the `MetricResult.Status` field.
 
 ### 9. Command‑Level Integration Tests
 - **Pattern:** Each metric command gets an `_e2e_test.go` file (e.g., `liquidity‑pulse_e2e_test.go`) that tests the full CLI flow.
@@ -411,9 +381,9 @@ NOTE: These schemas are likely to change as development progresses.
 
 | Document | Purpose | Last Sync | Notes |
 |----------|---------|-----------|-------|
-| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑16 | Keep concise; reference this file for details. |
-| `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑16 | CLI commands, JSON envelope, error‑handling rules. |
-| `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑16 | Keep friendly; link to `agents.md` for agent integration. |
+| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑17 | Keep concise; reference this file for details. |
+| `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑17 | CLI commands, JSON envelope, error‑handling rules. |
+| `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑17 | Keep friendly; link to `agents.md` for agent integration. |
 | `/vault/Knowledge/CryptoSpect‑CLI‑new.md` | Architectural summary, metric tiers, build order | 2026‑04‑16 | Snapshot of this file + original‑project context. |
 
 **Sync checklist** (run after any change to this file):
@@ -501,7 +471,7 @@ Proceed with first metric template implementation (`liquidity‑pulse`), includi
 2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`
 3. `internal/output/writer.go` — `WriteSuccess`, `WriteError`
 4. `internal/metrics/registry.go` — Registry with alias support, `MetricDef`, `RegisterDefaultMetrics`
-5. `internal/metrics/helpers.go` — `detectStatus()` helper (confidence/thin‑data → "ok"/"degraded"/"unavailable")
+5. `internal/metrics/helpers.go` — `DetectStatus()` helper (confidence/thin‑data → "ok"/"degraded"/"unavailable")
 6. `internal/api/constants.go` — Endpoint‑key constants (`coingecko.global`, `coingecko.coins_markets`, etc.)
 7. `internal/config/config.go` — `Config`, `Load`, `SourceFor` (uses endpoint‑key constants)
 8. `internal/cache/cache.go` — `Get`, `Set`, `Clear`, atomic writes, endpoint‑keyed file names

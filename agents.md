@@ -17,7 +17,7 @@ Computes crypto market regime metrics for agentic consumption. Outputs machine-r
 
 ### Utility Commands
     cryptospect-cli list-metrics         # list all available metrics + aliases
-    cryptospect-cli cache clear          # clear file cache
+    cryptospect-cli cache-clear          # clear the local API response cache
 
 ### Future Per‑Asset Commands (planned)
     cryptospect-cli regime               --asset <SYM> --window <DURATION>
@@ -60,4 +60,4 @@ Every invocation returns this structure on stdout:
 - Exit 0 for success AND handled errors; non‑zero only for unrecoverable failures
 
 ## API Key Injection
-Precedence: --api-key flag > CRYPTOSPECT_API_KEY env var > ~/.cryptospect.yaml
+Precedence: --api-key flag (CoinGecko) > CRYPTOSPECT_COINGECKO_KEY / CRYPTOSPECT_BINANCE_KEY env vars > ~/.cryptospect.yaml

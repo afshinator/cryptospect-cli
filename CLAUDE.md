@@ -4,7 +4,7 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 **Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
-## Project Status (2026‑04‑16)
+## Project Status (2026‑04‑17)
 - **Infrastructure through CLI complete:** Steps 1‑18 of the build order are implemented and tested.
 - **API clients:** CoinGecko (global, stables markets, derivatives, coin markets) and Binance US (spot CVD) fully implemented with tests.
 - **Placeholder clients:** CoinDesk and CoinMetrics (stubs) satisfy build order.
@@ -50,7 +50,7 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 - **Classification:** Per‑metric typed struct with package‑level constants for categorical values (e.g., `TradeValidationNormal`)
 - **Aliases:** Each metric has a lowercase 2‑letter alias (e.g., `lp` for `liquidity‑pulse`)
 - **Registry:** Single source of truth for metric names, aliases, endpoints, source mapping, descriptions
-- **Status detection:** `detectStatus(confidence, thinData)` helper sets metric status (`"ok"`, `"degraded"`, `"unavailable"`)
+- **Status detection:** `DetectStatus(confidence, thinData)` helper sets metric status (`"ok"`, `"degraded"`, `"unavailable"`)
 
 ## Testing Conventions
 - Table‑driven tests, stdlib only (no testify)

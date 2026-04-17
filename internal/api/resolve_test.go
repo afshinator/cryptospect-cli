@@ -27,8 +27,8 @@ func TestResolveURL(t *testing.T) {
 		{CoinGeckoCoinMarketsBreadth, false},
 		{CoinGeckoCoinMarketsMomentum, false},
 		{BinanceSpotCVD_BTC_1h, false},
-		{CoinDeskAssetTopList, false},
-		{CoinMetricsCommunity, false},
+		{CoinDeskAssetTopList, true},
+		{CoinMetricsCommunity, true},
 		{"unknown.provider", true},
 		{"malformed", true},
 		{"", true},
@@ -47,12 +47,7 @@ func TestResolveURL(t *testing.T) {
 				t.Errorf("resolveURL(%q) unexpected error: %v", tt.endpoint, err)
 				return
 			}
-			// Placeholder endpoints may return empty URLs (not yet implemented).
-			placeholderEndpoints := map[string]bool{
-				CoinDeskAssetTopList: true,
-				CoinMetricsCommunity: true,
-			}
-			if got == "" && !placeholderEndpoints[tt.endpoint] {
+			if got == "" {
 				t.Errorf("resolveURL(%q) returned empty URL", tt.endpoint)
 			}
 		})
