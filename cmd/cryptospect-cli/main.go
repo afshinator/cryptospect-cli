@@ -2,6 +2,8 @@ package main
 
 import (
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -10,3 +12,5 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+var _ = cobra.Command{}
