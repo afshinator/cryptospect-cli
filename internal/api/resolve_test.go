@@ -90,3 +90,32 @@ func TestResolveTTL(t *testing.T) {
 		})
 	}
 }
+
+func TestResolveTTLBounds(t *testing.T) {
+	tests := []struct {
+		name     string
+		ttlKey   string
+		ttlValue int
+		endpoint string
+		want     int
+	}{
+		{"negative → default 300", "coingecko_global_market", -1, CoinGeckoGlobalMarket, 300},
+		{"zero → minimum 60", "coingecko_spp_stables_markets", 0, CoinGeckoSPPStablesMarkets, 60},
+		{"exceeds max → cap 86400", "coingecko_derivatives", 99999, CoinGeckoDerivatives, 86400},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := config.Config{
+				Cache: config.CacheConfig{
+					Enabled: true,
+					TTL:     map[string]int{tt.ttlKey: tt.ttlValue},
+				},
+			}
+			f := &Fetcher{config: &cfg}
+			got := f.resolveTTL(tt.endpoint)
+			if got != tt.want {
+				t.Errorf("resolveTTL with TTL=%d = %d, want %d", tt.ttlValue, got, tt.want)
+			}
+		})
+	}
+}

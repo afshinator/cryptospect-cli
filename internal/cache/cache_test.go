@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 )
 
 func TestOpen(t *testing.T) {
@@ -101,13 +100,10 @@ func TestStaleEntry(t *testing.T) {
 	endpoint := "coingecko_coin_markets"
 	data := []byte(`[{"id":"bitcoin"}]`)
 
-	// Set with very short TTL (1 second)
-	if err := c.Set(endpoint, data, 1); err != nil {
+	// TTL=0 means ExpiresAt=now, so the entry is immediately stale
+	if err := c.Set(endpoint, data, 0); err != nil {
 		t.Fatal(err)
 	}
-
-	// Wait for expiration
-	time.Sleep(2 * time.Second)
 
 	entry, err := c.Get(endpoint)
 	if err != nil {
