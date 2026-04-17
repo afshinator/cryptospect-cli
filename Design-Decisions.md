@@ -440,12 +440,20 @@ NOTE: These schemas are likely to change as development progresses.
 - **Random seeding** – `rand.Seed(time.Now().UnixNano())` added for jitter (`internal/httpclient/client.go`)
 - **Permission check** – Group permissions now also enforced (`&0077` vs `&0177`) (`internal/config/config.go:69‑71`)
 
-### 📋 **Remaining Suggestions** (deferred)
-- **Error‑type preservation** – Keep `httpclient` typed errors accessible (non‑blocking)
-- **Registry config loading** – Consider YAML‑based metric definitions (YAGNI for v1)
-- **JSON RawMessage validation** – Add `Validate()` method (low priority)
-- **Test coverage gaps** – `Clear()` error paths, `Write()`, `Validate` edge cases
-- **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred (see `docs/architecture/go1.25‑caching‑patterns.md`)
+
+### ✅ **Linting & CI Fixes (2026‑04‑16)**
+
+- **71 lint errors resolved** – All `golangci‑lint` issues fixed, CI pipeline passes with zero warnings
+- **Error handling** – Added `_ = ` for unchecked error returns in tests (`cache.Close()`, `resp.Body.Close()`, `w.Write()`, `conn.Close()`)
+- **Error type assertions** – Replaced `err.(*Type)` with `errors.As()` for wrapped‑error compatibility
+- **Missing comments** – Added GoDoc for all exported types, constants, and functions (`revive` compliance)
+- **Performance** – Changed `string(entry.Data) != string(data)` to `!bytes.Equal(entry.Data, data)` (`gocritic`)
+- **Deprecated API** – Removed `rand.Seed` (Go 1.20+ auto‑seeds)
+- **Unused code** – Deleted unused test helper (`mockDoer`), unused constant (`klinesWrongTypeFixture`)
+- **Type safety** – Fixed `APIError.Body` type (`[]byte` vs `string`) in tests
+- **Struct naming** – Renamed `CacheEntry` → `Entry` (eliminates stutter)
+- **Switch style** – Converted `if‑else` chain to tagged `switch` in `resolveConfigPath`
+
 
 ### ✅ **Endpoint Parameterization Completed** (2026‑04‑16)
 - Added distinct endpoint constants: `CoinGeckoCoinMarketsBreadth`, `CoinGeckoCoinMarketsMomentum`, `BinanceSpotCVD_BTC_1h`
@@ -459,14 +467,35 @@ NOTE: These schemas are likely to change as development progresses.
 - Concurrent test (`TestFetchConcurrentDifferentEndpoints`) verifies parallelism (elapsed time ≤ `delay * (N‑1)`).
 - Backward compatibility maintained; all existing tests pass with `‑race`.
 
+### ✅ **CLI Command Infrastructure Completed** (2026‑04‑16)
+- **Steps 15‑18 implemented and tested:** Cobra root command, cache‑clear subcommand, list‑metrics subcommand
+- **Viper integration:** Proper precedence chain (CLI flag → environment variable → config file) with error handling for `BindEnv`
+- **Configuration enhancements:** Support for both `.yaml` and `.yml` extensions via `resolveConfigPath()`
+- **Command‑level integration tests:** `cache_clear_e2e_test.go` and `list_metrics_e2e_test.go` validate JSON envelope output
+- **Output package refinements:** Thread‑safe `SetWriter()`/`Writer()` for test stdout redirection
+- **Critical error handling:** Fixed unchecked `os.Remove()` and `cache.Set()` errors
+- **All tests pass** with `make test`, `make lint`, `make build`
+
+### 📋 **Remaining Suggestions & Technical Debt** (post‑CLI‑infrastructure)
+- **Addressed during CLI implementation:**
+  - **Config file extensions** – Support for both `.yaml` and `.yml` via `resolveConfigPath()` (nit from review)
+  - **Output package thread‑safety** – `SetWriter()`/`Writer()` with `sync.RWMutex` for test stdout redirection
+  - **Critical error handling** – Fixed unchecked `os.Remove()` and `cache.Set()` errors (errcheck)
+- **Still deferred (non‑blocking for v1):**
+  - **Error‑type preservation** – Keep `httpclient` typed errors accessible
+  - **Registry config loading** – Consider YAML‑based metric definitions (YAGNI for v1)
+  - **JSON RawMessage validation** – Add `Validate()` method (low priority)
+  - **Test coverage gaps** – `Clear()` error paths, `Write()`, `Validate` edge cases
+  - **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred
+
 ### 🚀 **Next Steps**
-Proceed with CLI command integration (Steps 15‑18). Endpoint parameterization complete; ready for first metric (`liquidity‑pulse`).
+Proceed with first metric template implementation (`liquidity‑pulse`), including compute function, classification types, and command‑level integration test.
 
 ---
 
-## Build Order (Step 14 – Completed)
+## Build Order (Step 18 – Completed)
 
-✅ **Steps 1‑14 implemented and tested.**
+✅ **Steps 1‑18 implemented and tested.**
 
 1. `internal/output/envelope.go` — `CLIResponse`, `MetricResult`, `CLIError`
 2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`

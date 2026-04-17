@@ -8,11 +8,11 @@ import (
 
 func TestWriteSuccess(t *testing.T) {
 	// Redirect stdout
-	old := stdout
-	defer func() { stdout = old }()
+	old := Writer()
+	defer SetWriter(old)
 
 	var buf bytes.Buffer
-	stdout = &buf
+	SetWriter(&buf)
 
 	results := []MetricResult{
 		{
@@ -46,11 +46,11 @@ func TestWriteSuccess(t *testing.T) {
 
 func TestWriteError(t *testing.T) {
 	// Redirect stdout
-	old := stdout
-	defer func() { stdout = old }()
+	old := Writer()
+	defer SetWriter(old)
 
 	var buf bytes.Buffer
-	stdout = &buf
+	SetWriter(&buf)
 
 	err := WriteError(429, "rate_limited", "coingecko", 60)
 	if err != nil {

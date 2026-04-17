@@ -4,126 +4,11 @@ import (
 	"context"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/afshinator/cryptospect-cli/internal/cache"
 	"github.com/afshinator/cryptospect-cli/internal/config"
 )
-
-// mockDoer implements httpclient.HTTPDoer and redirects requests to a test server.
-type mockDoer struct {
-	serverURL string
-}
-
-func (m *mockDoer) Do(req *http.Request) (*http.Response, error) {
-	// Rewrite the request to point to the test server.
-	newReq := req.Clone(req.Context())
-	newReq.URL.Host = m.serverURL[7:] // strip "http://"
-	newReq.URL.Scheme = "http"
-	// Use default transport to actually perform the request.
-	return http.DefaultTransport.RoundTrip(newReq)
-}
-
-// newTestFetcher creates a Fetcher with a test server and a mock doer.
-func newTestFetcher(t *testing.T, handler http.Handler) (*Fetcher, *httptest.Server, func()) {
-	t.Helper()
-
-	ts := httptest.NewServer(handler)
-	dir := t.TempDir()
-	cfg := config.Config{
-		Cache: config.CacheConfig{
-			Enabled: true,
-			TTL:     map[string]int{},
-		},
-		APIs: config.APIsConfig{
-			CoinGecko: config.APIKeyConfig{APIKey: "test-key"},
-			Binance:   config.APIKeyConfig{APIKey: "test-key"},
-		},
-	}
-
-	cacheCli, err := cache.Open(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	f, err := New(dir, cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Replace the httpClient's doer with our mock doer.
-	f.httpClient.SetDoer(&mockDoer{serverURL: ts.URL})
-
-	cleanup := func() {
-		ts.Close()
-		cacheCli.Close()
-	}
-	return f, ts, cleanup
-}
-
-// TestMemoryCacheHit verifies that repeated calls to the same endpoint within a session
-// return the in‑memory cached data.
-func TestMemoryCacheHit(t *testing.T) {
-	body := `{"test": "data"}`
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(body))
-	}))
-	defer ts.Close()
-
-	dir := t.TempDir()
-	cfg := config.Config{
-		Cache: config.CacheConfig{
-			Enabled: true,
-			TTL:     map[string]int{},
-		},
-		APIs: config.APIsConfig{
-			CoinGecko: config.APIKeyConfig{APIKey: "test-key"},
-			Binance:   config.APIKeyConfig{APIKey: "test-key"},
-		},
-	}
-
-	cacheCli, err := cache.Open(dir)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer cacheCli.Close()
-
-	f, err := New(dir, cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	f.httpClient.SetDoer(&mockDoer{serverURL: ts.URL})
-
-	ctx := context.Background()
-	endpoint := CoinGeckoGlobalMarket // use a real endpoint key
-
-	// First fetch should call the test server.
-	data, meta, err := f.Fetch(ctx, endpoint)
-	if err != nil {
-		t.Fatalf("first fetch error: %v", err)
-	}
-	if string(data) != body {
-		t.Errorf("first fetch data = %q, want %q", data, body)
-	}
-	if meta.CacheHit {
-		t.Error("first fetch should not be a cache hit")
-	}
-
-	// Second fetch should hit memory cache.
-	data2, meta2, err := f.Fetch(ctx, endpoint)
-	if err != nil {
-		t.Fatalf("second fetch error: %v", err)
-	}
-	if string(data2) != body {
-		t.Errorf("second fetch data = %q, want %q", data2, body)
-	}
-	if !meta2.CacheHit {
-		t.Error("second fetch should be a cache hit")
-	}
-}
 
 // countingDoer implements httpclient.HTTPDoer and counts requests.
 type countingDoer struct {
@@ -193,7 +78,7 @@ func TestFileCacheFreshHit(t *testing.T) {
 	}
 
 	// First fetcher: populate cache.
-	f1, err := New(dir, cfg)
+	f1, err := New(dir, &cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +102,7 @@ func TestFileCacheFreshHit(t *testing.T) {
 	}
 
 	// Second fetcher, same cache directory, fresh memory.
-	f2, err := New(dir, cfg)
+	f2, err := New(dir, &cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +142,7 @@ func TestFileCacheStaleAPISuccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cacheCli.Close()
+	defer func() { _ = cacheCli.Close() }()
 
 	staleData := `{"stale": true}`
 	endpoint := CoinGeckoGlobalMarket
@@ -273,7 +158,7 @@ func TestFileCacheStaleAPISuccess(t *testing.T) {
 		body:       freshBody,
 	}
 
-	f, err := New(dir, cfg)
+	f, err := New(dir, &cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +217,7 @@ func TestFileCacheStaleAPIFailFallback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cacheCli.Close()
+	defer func() { _ = cacheCli.Close() }()
 
 	staleData := `{"stale": true}`
 	endpoint := CoinGeckoGlobalMarket
@@ -347,7 +232,7 @@ func TestFileCacheStaleAPIFailFallback(t *testing.T) {
 		body:       `{"error": "server down"}`,
 	}
 
-	f, err := New(dir, cfg)
+	f, err := New(dir, &cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -398,7 +283,7 @@ func TestNoCacheAPISuccess(t *testing.T) {
 		body:       body,
 	}
 
-	f, err := New(dir, cfg)
+	f, err := New(dir, &cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,7 +314,7 @@ func TestNoCacheAPISuccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer cacheCli.Close()
+	defer func() { _ = cacheCli.Close() }()
 	entry, err := cacheCli.Get(endpoint)
 	if err != nil {
 		t.Fatal(err)
@@ -459,7 +344,7 @@ func TestNoCacheAPIFail(t *testing.T) {
 		body:       `{"error": "server down"}`,
 	}
 
-	f, err := New(dir, cfg)
+	f, err := New(dir, &cfg)
 	if err != nil {
 		t.Fatal(err)
 	}

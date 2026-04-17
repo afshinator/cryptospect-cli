@@ -12,8 +12,6 @@ const klinesEmptyFixture = `[]`
 
 const klinesInvalidFixture = `not json`
 
-const klinesWrongTypeFixture = `[[1775088000000,12345,"68304.58","68065.69","68304.58","0.04166000",1775091599999,"2838.36",48,"0.01687","1149.81","0"]]`
-
 func TestParseKlinesResponse_Valid(t *testing.T) {
 	result, err := ParseKlinesResponse([]byte(klinesFixture))
 	if err != nil {

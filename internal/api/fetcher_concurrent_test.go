@@ -58,7 +58,7 @@ func TestFetchConcurrentDifferentEndpoints(t *testing.T) {
 		body:       `{"test": "data"}`,
 	}
 
-	f, err := New(dir, cfg)
+	f, err := New(dir, &cfg)
 	if err != nil {
 		t.Fatal(err)
 	}

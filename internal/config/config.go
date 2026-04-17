@@ -4,10 +4,34 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/viper"
 )
 
+// resolveConfigPath returns the first existing file with .yaml or .yml extension,
+// preferring the given path if it exists. If neither exists, returns the given path.
+func resolveConfigPath(path string) string {
+	if _, err := os.Stat(path); err == nil {
+		return path
+	}
+	ext := filepath.Ext(path)
+	switch ext {
+	case ".yaml":
+		alt := strings.TrimSuffix(path, ".yaml") + ".yml"
+		if _, err := os.Stat(alt); err == nil {
+			return alt
+		}
+	case ".yml":
+		alt := strings.TrimSuffix(path, ".yml") + ".yaml"
+		if _, err := os.Stat(alt); err == nil {
+			return alt
+		}
+	}
+	return path
+}
+
+// Config holds the application configuration.
 type Config struct {
 	APIs            APIsConfig        `mapstructure:"apis"`
 	Cache           CacheConfig       `mapstructure:"cache"`
@@ -15,21 +39,25 @@ type Config struct {
 	SourceOverrides map[string]string `mapstructure:"source_overrides"`
 }
 
+// APIsConfig holds API key configuration for each provider.
 type APIsConfig struct {
 	CoinGecko APIKeyConfig `mapstructure:"coingecko"`
 	Binance   APIKeyConfig `mapstructure:"binance"`
 }
 
+// APIKeyConfig holds a single API key.
 type APIKeyConfig struct {
 	APIKey string `mapstructure:"api_key"`
 }
 
+// CacheConfig holds cache configuration.
 type CacheConfig struct {
 	Enabled bool           `mapstructure:"enabled"`
 	Dir     string         `mapstructure:"dir"`
 	TTL     map[string]int `mapstructure:"ttl"`
 }
 
+// OutputConfig holds output formatting configuration.
 type OutputConfig struct {
 	Format string `mapstructure:"format"`
 	Pretty bool   `mapstructure:"pretty"`
@@ -64,7 +92,8 @@ func LoadWithViper(v *viper.Viper, path string) (Config, error) {
 	if v == nil {
 		v = viper.New()
 	}
-	v.SetConfigFile(path)
+	resolvedPath := resolveConfigPath(path)
+	v.SetConfigFile(resolvedPath)
 
 	// Set defaults
 	v.SetDefault("cache.enabled", true)
@@ -72,14 +101,14 @@ func LoadWithViper(v *viper.Viper, path string) (Config, error) {
 	v.SetDefault("output.pretty", false)
 
 	// Read config file if it exists
-	if _, err := os.Stat(path); err == nil {
+	if _, err := os.Stat(resolvedPath); err == nil {
 		// Check permissions
-		info, err := os.Stat(path)
+		info, err := os.Stat(resolvedPath)
 		if err != nil {
 			return Config{}, fmt.Errorf("stat config: %w", err)
 		}
-		if info.Mode().Perm()&0077 != 0 {
-			return Config{}, fmt.Errorf("config file %s has permissions %04o; must be 0600 or stricter", path, info.Mode().Perm())
+		if info.Mode().Perm()&0o077 != 0 {
+			return Config{}, fmt.Errorf("config file %s has permissions %04o; must be 0600 or stricter", resolvedPath, info.Mode().Perm())
 		}
 
 		if err := v.ReadInConfig(); err != nil {
@@ -91,8 +120,12 @@ func LoadWithViper(v *viper.Viper, path string) (Config, error) {
 
 	// Bind environment variables (if not already bound)
 	v.SetEnvPrefix("CRYPTOSPECT")
-	v.BindEnv("apis.coingecko.api_key", "CRYPTOSPECT_COINGECKO_KEY")
-	v.BindEnv("apis.binance.api_key", "CRYPTOSPECT_BINANCE_KEY")
+	if err := v.BindEnv("apis.coingecko.api_key", "CRYPTOSPECT_COINGECKO_KEY"); err != nil {
+		return Config{}, fmt.Errorf("binding coingecko env: %w", err)
+	}
+	if err := v.BindEnv("apis.binance.api_key", "CRYPTOSPECT_BINANCE_KEY"); err != nil {
+		return Config{}, fmt.Errorf("binding binance env: %w", err)
+	}
 
 	// Unmarshal into struct
 	if err := v.Unmarshal(&cfg); err != nil {
@@ -107,6 +140,7 @@ func LoadWithViper(v *viper.Viper, path string) (Config, error) {
 	return cfg, nil
 }
 
+// SourceFor returns the endpoint key to use for a given datapoint.
 func (c *Config) SourceFor(datapoint, defaultEndpoint string) string {
 	if endpoint, ok := c.SourceOverrides[datapoint]; ok {
 		return endpoint
@@ -126,6 +160,7 @@ func (c *Config) CacheDir() string {
 	return filepath.Join(home, ".cryptospect-cli", "cache")
 }
 
+// Write writes a default configuration template to the given path.
 func Write(path string) error {
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("config file already exists at %s", path)
@@ -133,7 +168,7 @@ func Write(path string) error {
 
 	dir := filepath.Dir(path)
 	if dir != "" && dir != "." {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return fmt.Errorf("creating config directory: %w", err)
 		}
 	}
@@ -170,5 +205,5 @@ source_overrides:
   # example: global_market: "coingecko.custom_endpoint"
 `
 
-	return os.WriteFile(path, []byte(template), 0600)
+	return os.WriteFile(path, []byte(template), 0o600)
 }

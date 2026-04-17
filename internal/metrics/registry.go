@@ -9,11 +9,15 @@ import (
 )
 
 var (
-	ErrMetricNotFound  = errors.New("metric not found")
+	// ErrMetricNotFound is returned when a metric name is not registered.
+	ErrMetricNotFound = errors.New("metric not found")
+	// ErrDuplicateMetric is returned when trying to register a metric with a name that already exists.
 	ErrDuplicateMetric = errors.New("metric already registered")
-	ErrDuplicateAlias  = errors.New("alias already registered")
+	// ErrDuplicateAlias is returned when trying to register an alias that already exists.
+	ErrDuplicateAlias = errors.New("alias already registered")
 )
 
+// MetricDef holds the definition of a metric.
 type MetricDef struct {
 	Name        string            `json:"name"`
 	Aliases     []string          `json:"aliases"`
@@ -22,11 +26,13 @@ type MetricDef struct {
 	Description string            `json:"description,omitempty"`
 }
 
+// Registry maintains a catalog of available metrics and their aliases.
 type Registry struct {
 	metrics     map[string]*MetricDef
 	aliasToName map[string]string
 }
 
+// NewRegistry creates and returns a new empty Registry.
 func NewRegistry() *Registry {
 	return &Registry{
 		metrics:     make(map[string]*MetricDef),
@@ -39,6 +45,7 @@ var (
 	globalRegistryOnce sync.Once
 )
 
+// GlobalRegistry returns the global singleton Registry with default metrics registered.
 func GlobalRegistry() *Registry {
 	globalRegistryOnce.Do(func() {
 		globalRegistry = NewRegistry()
@@ -47,16 +54,17 @@ func GlobalRegistry() *Registry {
 	return globalRegistry
 }
 
+// RegisterDefaultMetrics registers the built‑in metrics (liquidity‑pulse, stablecoin‑power, etc.) into the given Registry.
 func RegisterDefaultMetrics(reg *Registry) {
 	// Liquidity Pulse: ratio of 24h trading volume to market cap
-	reg.Register("liquidity-pulse",
+	_ = reg.Register("liquidity-pulse",
 		[]string{"lp"},
 		[]string{"coingecko.global_market"},
 		map[string]string{"global_market": "coingecko.global_market"},
 		"Measures the ratio of 24h trading volume to market cap.")
 
 	// Stablecoin Power: stablecoin dominance and flow strength
-	reg.Register("stablecoin-power",
+	_ = reg.Register("stablecoin-power",
 		[]string{"sp"},
 		[]string{"coingecko.global_market", "coingecko.spp_stables_markets"},
 		map[string]string{
@@ -66,7 +74,7 @@ func RegisterDefaultMetrics(reg *Registry) {
 		"Measures stablecoin dominance and flow strength.")
 
 	// Flow Tension: CVD-based market pressure indicator
-	reg.Register("flow-tension",
+	_ = reg.Register("flow-tension",
 		[]string{"ft"},
 		[]string{"binance.spot_cvd_btc_1h", "coingecko.derivatives"},
 		map[string]string{
@@ -76,21 +84,21 @@ func RegisterDefaultMetrics(reg *Registry) {
 		"CVD-based market pressure indicator.")
 
 	// Market Breadth: participation across top assets
-	reg.Register("market-breadth",
+	_ = reg.Register("market-breadth",
 		[]string{"mb"},
 		[]string{"coingecko.coin_markets_breadth"},
 		map[string]string{"coin_markets_breadth": "coingecko.coin_markets_breadth"},
 		"Measures participation across top assets.")
 
 	// Momentum Divergence: RSI divergence patterns
-	reg.Register("momentum-divergence",
+	_ = reg.Register("momentum-divergence",
 		[]string{"md"},
 		[]string{"coingecko.coin_markets_momentum"},
 		map[string]string{"coin_markets_momentum": "coingecko.coin_markets_momentum"},
 		"RSI divergence patterns across assets.")
 
 	// Market Regime: composite regime classification
-	reg.Register("market-regime",
+	_ = reg.Register("market-regime",
 		[]string{"mr"},
 		[]string{"coingecko.global_market", "coingecko.coin_markets_breadth"},
 		map[string]string{
@@ -100,6 +108,8 @@ func RegisterDefaultMetrics(reg *Registry) {
 		"Composite regime classification using multiple signals.")
 }
 
+// Register adds a new metric definition to the registry.
+// It returns ErrDuplicateMetric if the name already exists, or ErrDuplicateAlias if any alias is already taken.
 func (r *Registry) Register(name string, aliases, endpoints []string, sources map[string]string, description string) error {
 	if _, exists := r.metrics[name]; exists {
 		return ErrDuplicateMetric
@@ -127,6 +137,8 @@ func (r *Registry) Register(name string, aliases, endpoints []string, sources ma
 	return nil
 }
 
+// Get returns the metric definition for the given name.
+// It returns ErrMetricNotFound if the metric is not registered.
 func (r *Registry) Get(name string) (*MetricDef, error) {
 	m, ok := r.metrics[name]
 	if !ok {
@@ -135,6 +147,8 @@ func (r *Registry) Get(name string) (*MetricDef, error) {
 	return m, nil
 }
 
+// GetByAlias returns the metric definition for the given alias.
+// It returns ErrMetricNotFound if the alias is not registered.
 func (r *Registry) GetByAlias(alias string) (*MetricDef, error) {
 	name, ok := r.aliasToName[alias]
 	if !ok {
@@ -143,6 +157,7 @@ func (r *Registry) GetByAlias(alias string) (*MetricDef, error) {
 	return r.Get(name)
 }
 
+// List returns all registered metric definitions, sorted by name.
 func (r *Registry) List() []*MetricDef {
 	list := make([]*MetricDef, 0, len(r.metrics))
 	for _, m := range r.metrics {
@@ -154,6 +169,7 @@ func (r *Registry) List() []*MetricDef {
 	return list
 }
 
+// RequiredEndpoints returns the unique endpoint keys needed to compute the given metrics.
 func (r *Registry) RequiredEndpoints(metricNames []string) []string {
 	seen := make(map[string]bool)
 	var endpoints []string
@@ -174,6 +190,7 @@ func (r *Registry) RequiredEndpoints(metricNames []string) []string {
 	return endpoints
 }
 
+// Validate checks that each metric name is registered and returns a slice of errors for invalid names.
 func (r *Registry) Validate(metricNames []string) []error {
 	var errs []error
 	for _, name := range metricNames {
@@ -189,6 +206,7 @@ func (r *Registry) Validate(metricNames []string) []error {
 	return errs
 }
 
+// ValidateAlias checks that the given alias is registered.
 func (r *Registry) ValidateAlias(alias string) error {
 	_, err := r.GetByAlias(alias)
 	return err

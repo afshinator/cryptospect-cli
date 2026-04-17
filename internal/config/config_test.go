@@ -42,7 +42,7 @@ output:
 source_overrides:
   global_market: "coingecko.custom_endpoint"
 `
-	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -71,6 +71,38 @@ source_overrides:
 	}
 }
 
+func TestLoadWithYmlExtension(t *testing.T) {
+	dir := t.TempDir()
+	// Create .yml file (no .yaml file)
+	ymlPath := filepath.Join(dir, "config.yml")
+	content := `
+apis:
+  coingecko:
+    api_key: "yml-key-123"
+cache:
+  enabled: false
+  dir: "/yml/cache"
+`
+	if err := os.WriteFile(ymlPath, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	// Load with .yaml path (should resolve to .yml)
+	yamlPath := filepath.Join(dir, "config.yaml")
+	cfg, err := Load(yamlPath)
+	if err != nil {
+		t.Fatalf("Load with .yaml path (but .yml exists) failed: %v", err)
+	}
+	if cfg.APIs.CoinGecko.APIKey != "yml-key-123" {
+		t.Errorf("CoinGecko API key = %q, want yml-key-123", cfg.APIs.CoinGecko.APIKey)
+	}
+	if cfg.Cache.Dir != "/yml/cache" {
+		t.Errorf("Cache.Dir = %q, want /yml/cache", cfg.Cache.Dir)
+	}
+	if cfg.Cache.Enabled {
+		t.Error("Cache.Enabled should be false")
+	}
+}
+
 func TestEnvironmentOverrides(t *testing.T) {
 	t.Setenv("CRYPTOSPECT_COINGECKO_KEY", "env-key-456")
 	t.Setenv("CRYPTOSPECT_BINANCE_KEY", "binance-env-key")
@@ -84,7 +116,7 @@ apis:
   binance:
     api_key: "file-binance-key"
 `
-	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -124,7 +156,7 @@ func TestInvalidOutputFormat(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yaml")
 	content := `output: {format: "xml"}`
-	if err := os.WriteFile(path, []byte(content), 0600); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -138,13 +170,96 @@ func TestFilePermissions(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yaml")
 	content := `output: {format: "json"}`
-	if err := os.WriteFile(path, []byte(content), 0644); err != nil { // world-readable
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil { // world-readable
 		t.Fatal(err)
 	}
 
 	_, err := Load(path)
 	if err == nil {
 		t.Error("Load with world-readable config should fail")
+	}
+}
+
+func TestResolveConfigPath(t *testing.T) {
+	tests := []struct {
+		name  string
+		setup func(dir string) (path string, want string)
+	}{
+		{
+			name: "given path exists (yaml)",
+			setup: func(dir string) (string, string) {
+				path := filepath.Join(dir, "config.yaml")
+				if err := os.WriteFile(path, []byte(""), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				return path, path
+			},
+		},
+		{
+			name: "given path does not exist, alternative extension exists (yml)",
+			setup: func(dir string) (string, string) {
+				ymlPath := filepath.Join(dir, "config.yml")
+				if err := os.WriteFile(ymlPath, []byte(""), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				// Request .yaml, but only .yml exists
+				requestPath := filepath.Join(dir, "config.yaml")
+				return requestPath, ymlPath
+			},
+		},
+		{
+			name: "both exist, prefer given extension (yaml)",
+			setup: func(dir string) (string, string) {
+				yamlPath := filepath.Join(dir, "config.yaml")
+				if err := os.WriteFile(yamlPath, []byte(""), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				ymlPath := filepath.Join(dir, "config.yml")
+				if err := os.WriteFile(ymlPath, []byte(""), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				return yamlPath, yamlPath
+			},
+		},
+		{
+			name: "both exist, prefer given extension (yml)",
+			setup: func(dir string) (string, string) {
+				yamlPath := filepath.Join(dir, "config.yaml")
+				if err := os.WriteFile(yamlPath, []byte(""), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				ymlPath := filepath.Join(dir, "config.yml")
+				if err := os.WriteFile(ymlPath, []byte(""), 0o600); err != nil {
+					t.Fatal(err)
+				}
+				return ymlPath, ymlPath
+			},
+		},
+		{
+			name: "neither exists, return original path",
+			setup: func(dir string) (string, string) {
+				path := filepath.Join(dir, "nonexistent.cfg")
+				return path, path
+			},
+		},
+		{
+			name: "no extension, no alternative",
+			setup: func(dir string) (string, string) {
+				path := filepath.Join(dir, "config")
+				return path, path
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path, want := tt.setup(dir)
+			got := resolveConfigPath(path)
+			if got != want {
+				t.Errorf("resolveConfigPath(%q) = %q, want %q", path, got, want)
+			}
+		})
 	}
 }
 

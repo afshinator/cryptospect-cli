@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// BaseURL is the base URL for the CoinGecko API v3.
 const BaseURL = "https://api.coingecko.com/api/v3"
 
 // GlobalData holds the global market data from CoinGecko /global endpoint.

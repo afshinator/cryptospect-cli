@@ -18,9 +18,7 @@ import (
 	"github.com/afshinator/cryptospect-cli/internal/httpclient"
 )
 
-var (
-	handleMap sync.Map // string -> unique.Handle[string]
-)
+var handleMap sync.Map // string -> unique.Handle[string]
 
 func getHandle(key string) unique.Handle[string] {
 	if h, ok := handleMap.Load(key); ok {
@@ -51,7 +49,7 @@ type shard struct {
 type Fetcher struct {
 	cache      *cache.Cache
 	httpClient *httpclient.Client
-	config     config.Config
+	config     *config.Config
 
 	shards    []*shard
 	shardMask uint32
@@ -65,7 +63,7 @@ func (f *Fetcher) shardIndex(key string) uint32 {
 
 // New creates a Fetcher with the given cache directory and configuration.
 // The cache directory will be created if it does not exist.
-func New(cacheDir string, cfg config.Config) (*Fetcher, error) {
+func New(cacheDir string, cfg *config.Config) (*Fetcher, error) {
 	cacheCli, err := cache.Open(cacheDir)
 	if err != nil {
 		return nil, fmt.Errorf("opening cache: %w", err)
@@ -109,7 +107,7 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 	}
 
 	// Try file cache (if enabled)
-	var fileEntry cache.CacheEntry
+	var fileEntry cache.Entry
 	if f.config.Cache.Enabled {
 		entry, _ := f.cache.Get(endpointKey)
 		fileEntry = entry
@@ -173,7 +171,7 @@ func (f *Fetcher) Fetch(ctx context.Context, endpointKey string) ([]byte, FetchM
 	ttl := 0
 	if f.config.Cache.Enabled {
 		ttl = f.resolveTTL(endpointKey)
-		f.cache.Set(endpointKey, data, ttl)
+		_ = f.cache.Set(endpointKey, data, ttl)
 	}
 	meta := FetchMeta{
 		CacheHit:     false,

@@ -2,6 +2,7 @@ package httpclient
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +20,7 @@ func TestGetSuccess(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
-		w.Write([]byte(`{"data":"ok"}`))
+		_, _ = w.Write([]byte(`{"data":"ok"}`))
 	}))
 	defer server.Close()
 
@@ -36,7 +37,7 @@ func TestGetSuccess(t *testing.T) {
 func TestGet404(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(404)
-		w.Write([]byte(`not found`))
+		_, _ = w.Write([]byte(`not found`))
 	}))
 	defer server.Close()
 
@@ -45,14 +46,14 @@ func TestGet404(t *testing.T) {
 	if err == nil {
 		t.Fatal("Get should fail on 404")
 	}
-	apiErr, ok := err.(*APIError)
-	if !ok {
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
 		t.Fatalf("error type = %T, want *APIError", err)
 	}
 	if apiErr.StatusCode != 404 {
 		t.Errorf("StatusCode = %v, want 404", apiErr.StatusCode)
 	}
-	if apiErr.Body != "not found" {
+	if string(apiErr.Body) != "not found" {
 		t.Errorf("Body = %q, want 'not found'", apiErr.Body)
 	}
 }
@@ -61,7 +62,7 @@ func TestGet429(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Retry-After", "60")
 		w.WriteHeader(429)
-		w.Write([]byte(`rate limited`))
+		_, _ = w.Write([]byte(`rate limited`))
 	}))
 	defer server.Close()
 
@@ -70,8 +71,8 @@ func TestGet429(t *testing.T) {
 	if err == nil {
 		t.Fatal("Get should fail on 429")
 	}
-	rateErr, ok := err.(*RateLimitError)
-	if !ok {
+	var rateErr *RateLimitError
+	if !errors.As(err, &rateErr) {
 		t.Fatalf("error type = %T, want *RateLimitError", err)
 	}
 	if rateErr.StatusCode != 429 {
@@ -88,11 +89,11 @@ func TestGet500WithRetry(t *testing.T) {
 		attempt++
 		if attempt < 3 {
 			w.WriteHeader(500)
-			w.Write([]byte(`internal error`))
+			_, _ = w.Write([]byte(`internal error`))
 			return
 		}
 		w.WriteHeader(200)
-		w.Write([]byte(`success`))
+		_, _ = w.Write([]byte(`success`))
 	}))
 	defer server.Close()
 
@@ -117,11 +118,11 @@ func TestGetNetworkErrorRetry(t *testing.T) {
 			// Simulate network error by closing connection
 			hj, _ := w.(http.Hijacker)
 			conn, _, _ := hj.Hijack()
-			conn.Close()
+			_ = conn.Close()
 			return
 		}
 		w.WriteHeader(200)
-		w.Write([]byte(`ok`))
+		_, _ = w.Write([]byte(`ok`))
 	}))
 	defer server.Close()
 
@@ -143,7 +144,7 @@ func TestGetExhaustRetries(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		attempt++
 		w.WriteHeader(503)
-		w.Write([]byte(`service unavailable`))
+		_, _ = w.Write([]byte(`service unavailable`))
 	}))
 	defer server.Close()
 
@@ -155,8 +156,8 @@ func TestGetExhaustRetries(t *testing.T) {
 	if attempt != 3 {
 		t.Errorf("attempts = %v, want 3", attempt)
 	}
-	apiErr, ok := err.(*APIError)
-	if !ok {
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
 		t.Fatalf("error type = %T, want *APIError", err)
 	}
 	if apiErr.StatusCode != 503 {
@@ -168,10 +169,10 @@ func TestGetWithKey(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Query().Get("x_cg_demo_api_key") == "test-key" {
 			w.WriteHeader(200)
-			w.Write([]byte(`with key`))
+			_, _ = w.Write([]byte(`with key`))
 		} else {
 			w.WriteHeader(200)
-			w.Write([]byte(`without key`))
+			_, _ = w.Write([]byte(`without key`))
 		}
 	}))
 	defer server.Close()
@@ -227,11 +228,10 @@ func TestBackoffDuration(t *testing.T) {
 func TestAPIErrorString(t *testing.T) {
 	err := &APIError{
 		StatusCode: 404,
-		Endpoint:   "https://api.example.com/data",
-		Body:       "Not found",
+		Body:       []byte("Not found"),
 	}
 	msg := err.Error()
-	expected := "https://api.example.com/data: HTTP 404: Not found"
+	expected := "HTTP 404: Not found"
 	if msg != expected {
 		t.Errorf("Error() = %q, want %q", msg, expected)
 	}

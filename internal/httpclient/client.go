@@ -12,35 +12,41 @@ import (
 )
 
 const (
-	DefaultTimeout   = 10 * time.Second
+	// DefaultTimeout is the default HTTP client timeout.
+	DefaultTimeout = 10 * time.Second
+	// BackoffBaseDelay is the base delay for exponential backoff.
 	BackoffBaseDelay = 500 * time.Millisecond
 )
 
+// HTTPDoer is an interface for HTTP clients (compatible with http.Client).
 type HTTPDoer interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
+// APIError represents an HTTP API error (non‑2xx status).
 type APIError struct {
 	StatusCode int
-	Endpoint   string
-	Body       string
+	Body       []byte
 }
 
 func (e *APIError) Error() string {
-	return fmt.Sprintf("%s: HTTP %d: %s", e.Endpoint, e.StatusCode, e.Body)
+	return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Body)
 }
 
+// RateLimitError represents an HTTP 429 Too Many Requests error.
 type RateLimitError struct {
 	APIError
 	RetryAfter time.Duration
 }
 
+// Client is an HTTP client with retry and backoff.
 type Client struct {
 	doer       HTTPDoer
 	maxRetries int
 	sleep      func(time.Duration)
 }
 
+// New creates a new HTTP client with the given max retries.
 func New(maxRetries int) *Client {
 	return &Client{
 		doer:       &http.Client{Timeout: DefaultTimeout},
@@ -49,6 +55,7 @@ func New(maxRetries int) *Client {
 	}
 }
 
+// Get performs an HTTP GET request with retry and backoff.
 func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 	sleepFn := c.sleep
 	if sleepFn == nil {
@@ -76,7 +83,7 @@ func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 		}
 
 		body, readErr := io.ReadAll(resp.Body)
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		if readErr != nil {
 			return nil, fmt.Errorf("reading response: %w", readErr)
 		}
@@ -87,8 +94,7 @@ func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 
 		apiErr := APIError{
 			StatusCode: resp.StatusCode,
-			Endpoint:   url,
-			Body:       string(body),
+			Body:       body,
 		}
 
 		if resp.StatusCode == http.StatusTooManyRequests {
@@ -107,6 +113,7 @@ func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 	return nil, lastErr
 }
 
+// GetWithKey performs an HTTP GET request with an API key query parameter.
 func (c *Client) GetWithKey(ctx context.Context, urlStr, key string) ([]byte, error) {
 	if key != "" {
 		u, err := url.Parse(urlStr)
@@ -119,12 +126,6 @@ func (c *Client) GetWithKey(ctx context.Context, urlStr, key string) ([]byte, er
 		urlStr = u.String()
 	}
 	return c.Get(ctx, urlStr)
-}
-
-func init() {
-	// Seed the random number generator for jitter in backoff.
-	// Using nanosecond time ensures different seeds across invocations.
-	rand.Seed(time.Now().UnixNano())
 }
 
 func backoffDuration(attempt int) time.Duration {

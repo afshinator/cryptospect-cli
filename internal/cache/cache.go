@@ -8,7 +8,8 @@ import (
 	"time"
 )
 
-type CacheEntry struct {
+// Entry represents a cached entry returned by Get.
+type Entry struct {
 	Data       []byte    `json:"data"`
 	Found      bool      `json:"found"`
 	Stale      bool      `json:"stale"`
@@ -23,17 +24,31 @@ type record struct {
 	TTLSeconds int       `json:"ttl_seconds"`
 }
 
+// Cache provides file‑based caching with TTL and stale‑while‑revalidate semantics.
 type Cache struct {
 	dir string
 }
 
+// Exists returns true if the cache directory exists and is a directory.
+func Exists(path string) (bool, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("checking cache dir: %w", err)
+	}
+	return info.IsDir(), nil
+}
+
+// Open opens (or creates) a cache directory at the given path.
 func Open(path string) (*Cache, error) {
 	info, err := os.Stat(path)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("checking cache dir: %w", err)
 		}
-		if err := os.MkdirAll(path, 0755); err != nil {
+		if err := os.MkdirAll(path, 0o755); err != nil {
 			return nil, fmt.Errorf("creating cache dir: %w", err)
 		}
 	} else if !info.IsDir() {
@@ -42,7 +57,9 @@ func Open(path string) (*Cache, error) {
 	return &Cache{dir: path}, nil
 }
 
+// Close closes the cache (no‑op for file‑based cache).
 func (c *Cache) Close() error {
+	c.dir = ""
 	return nil
 }
 
@@ -52,21 +69,22 @@ func (c *Cache) filePath(endpoint string) string {
 	return safeName
 }
 
-func (c *Cache) Get(endpoint string) (CacheEntry, error) {
-	var entry CacheEntry
+// Get retrieves a cached entry for the given endpoint.
+func (c *Cache) Get(endpoint string) (Entry, error) {
+	var entry Entry
 	path := c.filePath(endpoint)
 
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return CacheEntry{Found: false}, nil
+			return Entry{Found: false}, nil
 		}
-		return CacheEntry{}, fmt.Errorf("reading cache file: %w", err)
+		return Entry{}, fmt.Errorf("reading cache file: %w", err)
 	}
 
 	var rec record
 	if err := json.Unmarshal(data, &rec); err != nil {
-		return CacheEntry{}, fmt.Errorf("unmarshalling cache record: %w", err)
+		return Entry{}, fmt.Errorf("unmarshalling cache record: %w", err)
 	}
 
 	entry.Found = true
@@ -78,6 +96,7 @@ func (c *Cache) Get(endpoint string) (CacheEntry, error) {
 	return entry, nil
 }
 
+// Set writes data for the given endpoint with the specified TTL (seconds).
 func (c *Cache) Set(endpoint string, data []byte, ttl int) error {
 	now := time.Now()
 	rec := record{
@@ -96,19 +115,20 @@ func (c *Cache) Set(endpoint string, data []byte, ttl int) error {
 	tmpPath := path + ".tmp"
 
 	// Write to temp file first
-	if err := os.WriteFile(tmpPath, encoded, 0600); err != nil {
+	if err := os.WriteFile(tmpPath, encoded, 0o600); err != nil {
 		return fmt.Errorf("writing temp file: %w", err)
 	}
 
 	// Atomic rename
 	if err := os.Rename(tmpPath, path); err != nil {
-		os.Remove(tmpPath)
+		_ = os.Remove(tmpPath)
 		return fmt.Errorf("atomic rename: %w", err)
 	}
 
 	return nil
 }
 
+// Clear removes all cached entries from the cache directory.
 func (c *Cache) Clear() error {
 	entries, err := os.ReadDir(c.dir)
 	if err != nil {

@@ -15,7 +15,7 @@ func TestResolveURL(t *testing.T) {
 	}
 	// We need a Fetcher to call resolveURL, but we can create a minimal one.
 	// Since resolveURL only uses config and apiKey method, we can create a dummy fetcher.
-	f := &Fetcher{config: cfg}
+	f := &Fetcher{config: &cfg}
 
 	tests := []struct {
 		endpoint string
@@ -69,7 +69,7 @@ func TestResolveTTL(t *testing.T) {
 			},
 		},
 	}
-	f := &Fetcher{config: cfg}
+	f := &Fetcher{config: &cfg}
 
 	tests := []struct {
 		endpoint string

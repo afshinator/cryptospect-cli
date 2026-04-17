@@ -3,6 +3,7 @@ bin/
 dist/
 cryptospect-cli
 cryptospect-cli-*
+*.test
 
 # Dependency directories
 vendor/

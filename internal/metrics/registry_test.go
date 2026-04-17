@@ -78,9 +78,9 @@ func TestRegistry_Get(t *testing.T) {
 
 func TestRegistry_List(t *testing.T) {
 	reg := NewRegistry()
-	reg.Register("liquidity-pulse", []string{"lp"}, []string{"coingecko.global_market"},
+	_ = reg.Register("liquidity-pulse", []string{"lp"}, []string{"coingecko.global_market"},
 		map[string]string{"global_market": "coingecko.global_market"}, "")
-	reg.Register("stablecoin-power", []string{"sp"}, []string{"coingecko.global_market", "coingecko.spp_stables_markets"},
+	_ = reg.Register("stablecoin-power", []string{"sp"}, []string{"coingecko.global_market", "coingecko.spp_stables_markets"},
 		map[string]string{"global_market": "coingecko.global_market", "spp_stables_markets": "coingecko.spp_stables_markets"}, "")
 
 	list := reg.List()
@@ -98,9 +98,9 @@ func TestRegistry_List(t *testing.T) {
 
 func TestRegistry_RequiredEndpoints(t *testing.T) {
 	reg := NewRegistry()
-	reg.Register("liquidity-pulse", []string{"lp"}, []string{"coingecko.global_market"},
+	_ = reg.Register("liquidity-pulse", []string{"lp"}, []string{"coingecko.global_market"},
 		map[string]string{"global_market": "coingecko.global_market"}, "")
-	reg.Register("stablecoin-power", []string{"sp"}, []string{"coingecko.global_market", "coingecko.spp_stables_markets"},
+	_ = reg.Register("stablecoin-power", []string{"sp"}, []string{"coingecko.global_market", "coingecko.spp_stables_markets"},
 		map[string]string{"global_market": "coingecko.global_market", "spp_stables_markets": "coingecko.spp_stables_markets"}, "")
 
 	endpoints := reg.RequiredEndpoints([]string{"liquidity-pulse", "stablecoin-power"})
@@ -122,7 +122,7 @@ func TestRegistry_RequiredEndpoints(t *testing.T) {
 
 func TestRegistry_Validate(t *testing.T) {
 	reg := NewRegistry()
-	reg.Register("liquidity-pulse", []string{"lp"}, []string{"coingecko.global_market"},
+	_ = reg.Register("liquidity-pulse", []string{"lp"}, []string{"coingecko.global_market"},
 		map[string]string{"global_market": "coingecko.global_market"}, "")
 
 	errs := reg.Validate([]string{"liquidity-pulse", "unknown"})

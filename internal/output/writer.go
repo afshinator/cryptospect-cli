@@ -4,11 +4,29 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"sync"
 	"time"
 )
 
-// stdout is the writer for JSON output. Defaults to os.Stdout.
-var stdout io.Writer = os.Stdout
+var (
+	stdoutMu sync.RWMutex
+	stdout   io.Writer = os.Stdout
+)
+
+// SetWriter replaces the writer used for JSON output.
+// This is intended for testing only.
+func SetWriter(w io.Writer) {
+	stdoutMu.Lock()
+	defer stdoutMu.Unlock()
+	stdout = w
+}
+
+// Writer returns the current writer used for JSON output.
+func Writer() io.Writer {
+	stdoutMu.RLock()
+	defer stdoutMu.RUnlock()
+	return stdout
+}
 
 // WriteSuccess writes a successful CLIResponse envelope containing the given results.
 func WriteSuccess(results []MetricResult) error {
@@ -23,6 +41,8 @@ func WriteSuccess(results []MetricResult) error {
 		return err
 	}
 
+	stdoutMu.RLock()
+	defer stdoutMu.RUnlock()
 	_, err = stdout.Write(data)
 	return err
 }
@@ -47,6 +67,8 @@ func WriteError(code int, msg, source string, retryAfterSec int) error {
 		return err2
 	}
 
+	stdoutMu.RLock()
+	defer stdoutMu.RUnlock()
 	_, err2 = stdout.Write(data)
 	return err2
 }

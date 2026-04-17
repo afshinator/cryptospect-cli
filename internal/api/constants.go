@@ -1,20 +1,24 @@
 package api
 
 const (
-	// CoinGecko endpoints
-	CoinGeckoGlobalMarket        = "coingecko.global_market"
-	CoinGeckoSPPStablesMarkets   = "coingecko.spp_stables_markets"
-	CoinGeckoDerivatives         = "coingecko.derivatives"
-	CoinGeckoCoinMarketsBreadth  = "coingecko.coin_markets_breadth"
+	// CoinGeckoGlobalMarket is the endpoint key for CoinGecko global market data.
+	CoinGeckoGlobalMarket = "coingecko.global_market"
+	// CoinGeckoSPPStablesMarkets is the endpoint key for CoinGecko stablecoin market data.
+	CoinGeckoSPPStablesMarkets = "coingecko.spp_stables_markets"
+	// CoinGeckoDerivatives is the endpoint key for CoinGecko derivatives data.
+	CoinGeckoDerivatives = "coingecko.derivatives"
+	// CoinGeckoCoinMarketsBreadth is the endpoint key for CoinGecko coin markets breadth data.
+	CoinGeckoCoinMarketsBreadth = "coingecko.coin_markets_breadth"
+	// CoinGeckoCoinMarketsMomentum is the endpoint key for CoinGecko coin markets momentum data.
 	CoinGeckoCoinMarketsMomentum = "coingecko.coin_markets_momentum"
 
-	// Binance US endpoints
+	// BinanceSpotCVD_BTC_1h is the endpoint key for Binance US spot CVD (BTC) 1-hour data.
 	BinanceSpotCVD_BTC_1h = "binance.spot_cvd_btc_1h"
 
-	// CoinDesk endpoints
+	// CoinDeskAssetTopList is the endpoint key for CoinDesk asset top list data.
 	CoinDeskAssetTopList = "coindesk.asset_top_list"
 
-	// CoinMetrics endpoints
+	// CoinMetricsCommunity is the endpoint key for CoinMetrics community data.
 	CoinMetricsCommunity = "coinmetrics.community"
 )
 
