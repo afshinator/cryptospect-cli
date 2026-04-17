@@ -10,6 +10,7 @@ vendor/
 
 # Test coverage
 coverage.out
+cover.out
 coverage.html
 *.cover
 
@@ -19,6 +20,7 @@ coverage.html
 # Local cache
 .cache/
 .gomodcache/
+.go/
 .cryptospect/
 
 # Editor files
