@@ -48,10 +48,22 @@ func defaults() Config {
 	}
 }
 
+// Load loads configuration from the given path, using a new viper instance.
+// It respects the standard precedence: config file → environment variables → defaults.
 func Load(path string) (Config, error) {
+	return LoadWithViper(nil, path)
+}
+
+// LoadWithViper loads configuration using the provided viper instance (or creates one if nil).
+// The viper instance should already have any CLI flags bound via viper.BindPFlag.
+// Environment variables are bound with prefix CRYPTOSPECT.
+// Returns the parsed configuration or an error.
+func LoadWithViper(v *viper.Viper, path string) (Config, error) {
 	cfg := defaults()
 
-	v := viper.New()
+	if v == nil {
+		v = viper.New()
+	}
 	v.SetConfigFile(path)
 
 	// Set defaults
@@ -77,7 +89,7 @@ func Load(path string) (Config, error) {
 		return Config{}, fmt.Errorf("stat config: %w", err)
 	}
 
-	// Bind environment variables
+	// Bind environment variables (if not already bound)
 	v.SetEnvPrefix("CRYPTOSPECT")
 	v.BindEnv("apis.coingecko.api_key", "CRYPTOSPECT_COINGECKO_KEY")
 	v.BindEnv("apis.binance.api_key", "CRYPTOSPECT_BINANCE_KEY")
@@ -100,6 +112,18 @@ func (c *Config) SourceFor(datapoint, defaultEndpoint string) string {
 		return endpoint
 	}
 	return defaultEndpoint
+}
+
+// CacheDir returns the cache directory path, defaulting to ~/.cryptospect-cli/cache if empty.
+func (c *Config) CacheDir() string {
+	if c.Cache.Dir != "" {
+		return c.Cache.Dir
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(home, ".cryptospect-cli", "cache")
 }
 
 func Write(path string) error {

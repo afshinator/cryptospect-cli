@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"os"
+)
 
 func main() {
-	fmt.Println("hello")
+	cmd := NewRootCommand()
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }

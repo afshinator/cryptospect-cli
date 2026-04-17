@@ -4,6 +4,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 func TestDefaults(t *testing.T) {
@@ -142,5 +145,32 @@ func TestFilePermissions(t *testing.T) {
 	_, err := Load(path)
 	if err == nil {
 		t.Error("Load with world-readable config should fail")
+	}
+}
+
+func TestLoadWithViperFlagPrecedence(t *testing.T) {
+	// Create a viper instance
+	v := viper.New()
+	// Create a flagset and bind to viper
+	fs := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	fs.String("api-key", "", "API key")
+	if err := v.BindPFlag("apis.coingecko.api_key", fs.Lookup("api-key")); err != nil {
+		t.Fatalf("binding flag: %v", err)
+	}
+	// Set the flag value (simulating CLI flag)
+	if err := fs.Set("api-key", "flag-value-789"); err != nil {
+		t.Fatalf("setting flag: %v", err)
+	}
+
+	// Call LoadWithViper with a non-existent config file (no env vars)
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	cfg, err := LoadWithViper(v, path)
+	if err != nil {
+		t.Fatalf("LoadWithViper failed: %v", err)
+	}
+	// Flag value should be present in config
+	if cfg.APIs.CoinGecko.APIKey != "flag-value-789" {
+		t.Errorf("CoinGecko API key = %q, want flag-value-789", cfg.APIs.CoinGecko.APIKey)
 	}
 }
