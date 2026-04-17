@@ -112,7 +112,6 @@ func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 	return nil, lastErr
 }
 
-
 func backoffDuration(attempt int) time.Duration {
 	d := BackoffBaseDelay * (1 << (attempt - 1))
 	jitter := time.Duration(rand.Int63n(int64(d)/2)) - d/4

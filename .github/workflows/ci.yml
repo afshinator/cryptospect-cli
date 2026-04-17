@@ -9,6 +9,8 @@ on:
 jobs:
   lint-test-build:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - uses: actions/checkout@v4
 
@@ -20,8 +22,11 @@ jobs:
         run: |
           go install golang.org/x/tools/cmd/goimports@latest
           go install mvdan.cc/gofumpt@latest
-          goimports -l . | tee /dev/stderr | (! read)
-          gofumpt -l . | tee /dev/stderr | (! read)
+          # Exclude cache directories from formatting checks
+          find . -name "*.go" -not -path "./.cache/*" -not -path "./.gomodcache/*" -not -path "./.go/*" -not -path "./vendor/*" \
+            -exec goimports -l {} \; | tee /dev/stderr | (! read)
+          find . -name "*.go" -not -path "./.cache/*" -not -path "./.gomodcache/*" -not -path "./.go/*" -not -path "./vendor/*" \
+            -exec gofumpt -l {} \; | tee /dev/stderr | (! read)
 
       - name: lint
         uses: golangci/golangci-lint-action@v7

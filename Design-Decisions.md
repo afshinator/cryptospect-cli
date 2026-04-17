@@ -262,8 +262,9 @@ They are preserved here for reference; do not treat them as current v1 output sh
   5. Vet (go vet ./...)
   6. Test (go test -race -cover ./...)
   7. Build (go build to /dev/null — proves it compiles)
-- Format check technique: goimports -l . | tee /dev/stderr | (! read)
-  — lists unformatted files and fails if any exist
+- Format check technique: Excludes cache directories (.cache/, .gomodcache/, .go/, vendor/) using find command
+  - Command: find . -name "*.go" -not -path "./.cache/*" -not -path "./.gomodcache/*" -not -path "./.go/*" -not -path "./vendor/*" -exec goimports -l {} \;
+  - Same pattern for gofumpt
 
 ### Files in Repo
 - cmd/cryptospect-cli/main.go — throwaway stub committed so CI build step
