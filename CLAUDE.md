@@ -4,16 +4,17 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 **Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
-## Project Status (2026‑04‑16)
-- **Infrastructure through CLI complete:** Steps 1‑18 of the build order are implemented and tested.
+## Project Status (2026‑04‑17)
+- **Core infrastructure complete:** Steps 1‑14 of the build order are implemented and tested (output, config, cache, HTTP client, API clients, fetcher).
+- **CLI infrastructure complete:** Steps 15‑18 implemented (Cobra root, cache‑clear, list‑metrics subcommands).
 - **API clients:** CoinGecko (global, stables markets, derivatives, coin markets) and Binance US (spot CVD) fully implemented with tests.
 - **Placeholder clients:** CoinDesk and CoinMetrics (stubs) satisfy build order.
 - **Cache‑first fetcher:** `internal/api/fetcher.go` implements memory → file cache → HTTP API → stale fallback; comprehensive test suite passes with `‑race`.
 - **Go 1.25 caching patterns:** Sharded maps (16 shards) eliminate lock contention for concurrent endpoint fetches; `unique.Handle` provides zero‑allocation keying. Concurrent test verifies parallelism.
 - **Code review completed:** Agency‑agents engineering‑code‑reviewer scored infrastructure **9/10**. Critical blockers (security, context propagation, race condition) fixed.
 - **Endpoint parameterization complete:** Distinct constants for breadth/momentum endpoints, Binance CVD with explicit parameters.
-- **CLI command infrastructure complete:** Cobra root with viper config precedence, cache‑clear and list‑metrics subcommands, command‑level integration tests.
 - **Linting & CI fixes:** 71 golangci‑lint errors resolved, CI pipeline passes with zero warnings.
+- **Current blockers:** Go module cache permissions (owned by root, requires GOMODCACHE=/tmp/go-mod-cache workaround).
 - **Ready for:** First metric template implementation (liquidity‑pulse).
 
 ## Stack

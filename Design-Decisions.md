@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-04-16
+Last updated: 2026-04-17
 
 
 ## Step 1: Environment & Project Init
@@ -467,20 +467,18 @@ NOTE: These schemas are likely to change as development progresses.
 - Concurrent test (`TestFetchConcurrentDifferentEndpoints`) verifies parallelism (elapsed time ≤ `delay * (N‑1)`).
 - Backward compatibility maintained; all existing tests pass with `‑race`.
 
-### ✅ **CLI Command Infrastructure Completed** (2026‑04‑16)
-- **Steps 15‑18 implemented and tested:** Cobra root command, cache‑clear subcommand, list‑metrics subcommand
-- **Viper integration:** Proper precedence chain (CLI flag → environment variable → config file) with error handling for `BindEnv`
-- **Configuration enhancements:** Support for both `.yaml` and `.yml` extensions via `resolveConfigPath()`
-- **Command‑level integration tests:** `cache_clear_e2e_test.go` and `list_metrics_e2e_test.go` validate JSON envelope output
-- **Output package refinements:** Thread‑safe `SetWriter()`/`Writer()` for test stdout redirection
-- **Critical error handling:** Fixed unchecked `os.Remove()` and `cache.Set()` errors
-- **All tests pass** with `make test`, `make lint`, `make build`
+### ✅ **CLI Command Infrastructure Completed** (2026‑04‑17)
+- **Steps 15‑18 implemented:** Cobra root command (`root.go`), cache‑clear subcommand (`cache.go`), list‑metrics subcommand (`list.go`)
+- **Configuration:** `LoadWithViper()` integrated with Cobra flag binding, environment variable precedence
+- **Output envelope:** All commands produce valid JSON envelopes via `output.WriteSuccess`/`WriteError`
+- **Command‑level integration tests:** Pending (to be added with metric templates)
+- **Build status:** `make test` passes, `make build` produces functional binary
 
 ### 📋 **Remaining Suggestions & Technical Debt** (post‑CLI‑infrastructure)
-- **Addressed during CLI implementation:**
+- **Addressed in config enhancements (commit 058de9f):**
   - **Config file extensions** – Support for both `.yaml` and `.yml` via `resolveConfigPath()` (nit from review)
-  - **Output package thread‑safety** – `SetWriter()`/`Writer()` with `sync.RWMutex` for test stdout redirection
-  - **Critical error handling** – Fixed unchecked `os.Remove()` and `cache.Set()` errors (errcheck)
+  - **Output package thread‑safety** – `SetWriter()`/`Writer()` with `sync.RWMutex` for test stdout redirection (pre‑existing)
+  - **Critical error handling** – Fixed unchecked `os.Remove()` and `cache.Set()` errors (errcheck) (pre‑existing)
 - **Still deferred (non‑blocking for v1):**
   - **Error‑type preservation** – Keep `httpclient` typed errors accessible
   - **Registry config loading** – Consider YAML‑based metric definitions (YAGNI for v1)
@@ -489,13 +487,17 @@ NOTE: These schemas are likely to change as development progresses.
   - **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred
 
 ### 🚀 **Next Steps**
-Proceed with first metric template implementation (`liquidity‑pulse`), including compute function, classification types, and command‑level integration test.
+1. Fix vendoring inconsistency (`go mod vendor`)
+2. Implement missing CLI infrastructure (Steps 15‑18): `root.go`, `cache.go`, `list.go`
+3. Update project documentation to reflect actual status
+4. Proceed with first metric template implementation (`liquidity‑pulse`), including compute function, classification types, and command‑level integration test.
 
 ---
 
 ## Build Order (Step 18 – Completed)
 
-✅ **Steps 1‑18 implemented and tested.**
+✅ **Steps 1‑14 implemented and tested.**  
+❌ **Steps 15‑18 pending (CLI infrastructure).**
 
 1. `internal/output/envelope.go` — `CLIResponse`, `MetricResult`, `CLIError`
 2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`
