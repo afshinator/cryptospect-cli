@@ -1,7 +1,7 @@
 # Binaries
 bin/
 dist/
-cryptospect-cli
+/cryptospect-cli
 cryptospect-cli-*
 *.test
 
@@ -24,6 +24,7 @@ coverage.html
 .tempcache/
 .tempgomod/
 .cryptospect/
+.localbin/
 
 # Editor files
 .vscode/
