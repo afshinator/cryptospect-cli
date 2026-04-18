@@ -31,6 +31,9 @@ jobs:
       - name: go mod download
         run: go mod download
 
+      - name: build (for typecheck)
+        run: go build ./cmd/cryptospect-cli
+
       - name: lint
         uses: golangci/golangci-lint-action@v7
         with:

@@ -7,7 +7,7 @@ Computes crypto market regime metrics for agentic consumption. Outputs machine-r
 
 ## CLI Signatures (v1)
 
-### Global Metrics (Tier 2+3)
+### Global Metrics (Tier 2+3) — Planned for v1, not yet implemented
     cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
     cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]
     cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]

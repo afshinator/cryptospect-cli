@@ -13,7 +13,7 @@ A portable, zero-dependency CLI tool that fetches live cryptocurrency data, comp
 
 ## Commands
 
-### Market Regime Metrics
+### Market Regime Metrics (Planned — not yet implemented)
 
     cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
     cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]
