@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/afshinator/cryptospect-cli/internal/api"
 )
 
 var (
@@ -46,6 +48,9 @@ var (
 )
 
 // GlobalRegistry returns the global singleton Registry with default metrics registered.
+// It is initialized once and shared across the process lifetime.
+// Tests that need to inspect or mutate registry state should use NewRegistry() +
+// RegisterDefaultMetrics() instead, to avoid cross-test pollution via the singleton.
 func GlobalRegistry() *Registry {
 	globalRegistryOnce.Do(func() {
 		globalRegistry = NewRegistry()
@@ -55,55 +60,56 @@ func GlobalRegistry() *Registry {
 }
 
 // RegisterDefaultMetrics registers the built‑in metrics (liquidity‑pulse, stablecoin‑power, etc.) into the given Registry.
+// Endpoint keys use api package constants to ensure compile‑time agreement with constants.go.
 func RegisterDefaultMetrics(reg *Registry) {
 	// Liquidity Pulse: ratio of 24h trading volume to market cap
 	_ = reg.Register("liquidity-pulse",
 		[]string{"lp"},
-		[]string{"coingecko.global_market"},
-		map[string]string{"global_market": "coingecko.global_market"},
+		[]string{api.CoinGeckoGlobalMarket},
+		map[string]string{"global_market": api.CoinGeckoGlobalMarket},
 		"Measures the ratio of 24h trading volume to market cap.")
 
 	// Stablecoin Power: stablecoin dominance and flow strength
 	_ = reg.Register("stablecoin-power",
 		[]string{"sp"},
-		[]string{"coingecko.global_market", "coingecko.spp_stables_markets"},
+		[]string{api.CoinGeckoGlobalMarket, api.CoinGeckoSPPStablesMarkets},
 		map[string]string{
-			"global_market":       "coingecko.global_market",
-			"spp_stables_markets": "coingecko.spp_stables_markets",
+			"global_market":       api.CoinGeckoGlobalMarket,
+			"spp_stables_markets": api.CoinGeckoSPPStablesMarkets,
 		},
 		"Measures stablecoin dominance and flow strength.")
 
 	// Flow Tension: CVD-based market pressure indicator
 	_ = reg.Register("flow-tension",
 		[]string{"ft"},
-		[]string{"binance.spot_cvd_btc_1h", "coingecko.derivatives"},
+		[]string{api.BinanceSpotCVD_BTC_1h, api.CoinGeckoDerivatives},
 		map[string]string{
-			"spot_cvd":    "binance.spot_cvd_btc_1h",
-			"derivatives": "coingecko.derivatives",
+			"spot_cvd":    api.BinanceSpotCVD_BTC_1h,
+			"derivatives": api.CoinGeckoDerivatives,
 		},
 		"CVD-based market pressure indicator.")
 
 	// Market Breadth: participation across top assets
 	_ = reg.Register("market-breadth",
 		[]string{"mb"},
-		[]string{"coingecko.coin_markets_breadth"},
-		map[string]string{"coin_markets_breadth": "coingecko.coin_markets_breadth"},
+		[]string{api.CoinGeckoCoinMarketsBreadth},
+		map[string]string{"coin_markets_breadth": api.CoinGeckoCoinMarketsBreadth},
 		"Measures participation across top assets.")
 
 	// Momentum Divergence: RSI divergence patterns
 	_ = reg.Register("momentum-divergence",
 		[]string{"md"},
-		[]string{"coingecko.coin_markets_momentum"},
-		map[string]string{"coin_markets_momentum": "coingecko.coin_markets_momentum"},
+		[]string{api.CoinGeckoCoinMarketsMomentum},
+		map[string]string{"coin_markets_momentum": api.CoinGeckoCoinMarketsMomentum},
 		"RSI divergence patterns across assets.")
 
 	// Market Regime: composite regime classification
 	_ = reg.Register("market-regime",
 		[]string{"mr"},
-		[]string{"coingecko.global_market", "coingecko.coin_markets_breadth"},
+		[]string{api.CoinGeckoGlobalMarket, api.CoinGeckoCoinMarketsBreadth},
 		map[string]string{
-			"global_market":        "coingecko.global_market",
-			"coin_markets_breadth": "coingecko.coin_markets_breadth",
+			"global_market":        api.CoinGeckoGlobalMarket,
+			"coin_markets_breadth": api.CoinGeckoCoinMarketsBreadth,
 		},
 		"Composite regime classification using multiple signals.")
 }

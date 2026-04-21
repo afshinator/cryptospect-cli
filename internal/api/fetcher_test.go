@@ -4,11 +4,40 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"sync"
 	"testing"
 
 	"github.com/afshinator/cryptospect-cli/internal/cache"
 	"github.com/afshinator/cryptospect-cli/internal/config"
 )
+
+// switchingDoer returns 500 for the first failUntil calls, then 200 with freshBody.
+// Used to simulate API recovery between two Fetch calls.
+type switchingDoer struct {
+	mu        sync.Mutex
+	callCount int
+	failUntil int
+	freshBody string
+}
+
+func (s *switchingDoer) Do(_ *http.Request) (*http.Response, error) {
+	s.mu.Lock()
+	call := s.callCount
+	s.callCount++
+	s.mu.Unlock()
+	if call < s.failUntil {
+		return &http.Response{
+			StatusCode: http.StatusInternalServerError,
+			Body:       &mockReadCloser{data: []byte(`{"error":"down"}`)},
+			Header:     make(http.Header),
+		}, nil
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       &mockReadCloser{data: []byte(s.freshBody)},
+		Header:     make(http.Header),
+	}, nil
+}
 
 // countingDoer implements httpclient.HTTPDoer and counts requests.
 type countingDoer struct {
@@ -321,6 +350,76 @@ func TestNoCacheAPISuccess(t *testing.T) {
 	}
 	if entry.Found {
 		t.Error("cache entry should not exist when cache disabled")
+	}
+}
+
+// TestStaleMemorySkippedOnRecovery verifies that a stale entry stored in the in-memory
+// shard does not block a fresh API response when the API recovers on a subsequent Fetch.
+// This guards against the batch-command scenario: metric A fetches, API fails → stale stored
+// in memory; metric B also needs the same endpoint → should retry API, not serve stale.
+func TestStaleMemorySkippedOnRecovery(t *testing.T) {
+	dir := t.TempDir()
+	cfg := config.Config{
+		Cache: config.CacheConfig{
+			Enabled: true,
+			TTL:     map[string]int{},
+		},
+		APIs: config.APIsConfig{
+			CoinGecko: config.APIKeyConfig{APIKey: "test-key"},
+			Binance:   config.APIKeyConfig{APIKey: "test-key"},
+		},
+	}
+
+	// Pre-populate file cache with immediately stale data (TTL=0).
+	cacheCli, err := cache.Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = cacheCli.Close() }()
+
+	staleBody := `{"stale": true}`
+	endpoint := CoinGeckoGlobalMarket
+	if err := cacheCli.Set(endpoint, []byte(staleBody), 0); err != nil {
+		t.Fatal(err)
+	}
+
+	freshBody := `{"fresh": true}`
+	// maxRetries=3 → 4 total attempts per Fetch; first Fetch exhausts retries, second succeeds.
+	doer := &switchingDoer{failUntil: 4, freshBody: freshBody}
+
+	f, err := New(dir, &cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.httpClient.SetDoer(doer)
+
+	ctx := context.Background()
+
+	// First Fetch: API fails → stale fallback served, stored in memory with Stale=true.
+	data1, meta1, err := f.Fetch(ctx, endpoint)
+	if err != nil {
+		t.Fatalf("first fetch should succeed via stale fallback, got: %v", err)
+	}
+	if string(data1) != staleBody {
+		t.Errorf("first fetch data = %q, want stale %q", data1, staleBody)
+	}
+	if !meta1.Stale {
+		t.Error("first fetch meta.Stale should be true")
+	}
+
+	// Second Fetch: API now up. Must NOT serve stale data from memory.
+	data2, meta2, err := f.Fetch(ctx, endpoint)
+	if err != nil {
+		t.Fatalf("second fetch error: %v", err)
+	}
+	if string(data2) != freshBody {
+		t.Errorf("second fetch data = %q, want fresh %q", data2, freshBody)
+	}
+	if meta2.Stale {
+		t.Error("second fetch meta.Stale should be false (API recovered)")
+	}
+	if meta2.CacheHit {
+		t.Error("second fetch should not be a memory cache hit")
 	}
 }
 

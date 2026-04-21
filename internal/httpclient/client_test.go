@@ -165,37 +165,6 @@ func TestGetExhaustRetries(t *testing.T) {
 	}
 }
 
-func TestGetWithKey(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("x_cg_demo_api_key") == "test-key" {
-			w.WriteHeader(200)
-			_, _ = w.Write([]byte(`with key`))
-		} else {
-			w.WriteHeader(200)
-			_, _ = w.Write([]byte(`without key`))
-		}
-	}))
-	defer server.Close()
-
-	c := New(0)
-	// With key
-	body, err := c.GetWithKey(context.Background(), server.URL, "test-key")
-	if err != nil {
-		t.Fatalf("GetWithKey failed: %v", err)
-	}
-	if string(body) != "with key" {
-		t.Errorf("body with key = %q, want 'with key'", body)
-	}
-	// Without key
-	body, err = c.GetWithKey(context.Background(), server.URL, "")
-	if err != nil {
-		t.Fatalf("GetWithKey empty key failed: %v", err)
-	}
-	if string(body) != "without key" {
-		t.Errorf("body empty key = %q, want 'without key'", body)
-	}
-}
-
 func TestParseRetryAfter(t *testing.T) {
 	tests := []struct {
 		header string

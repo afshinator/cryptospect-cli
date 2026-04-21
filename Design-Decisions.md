@@ -71,7 +71,17 @@ Last updated: 2026-04-17
 - github.com/spf13/cobra — subcommands and flag parsing
 - github.com/spf13/viper — config file + env var binding
 
-### Command Tree
+### Command Tree (v1 — implemented)
+    cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
+    cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]
+    cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
+    cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]
+    cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]
+    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
+    cryptospect-cli list-metrics
+    cryptospect-cli cache-clear
+
+### Future Per-Asset Commands (deferred, not yet implemented)
     cryptospect-cli regime        --asset <SYM> --window <DURATION>
     cryptospect-cli zscore        --asset <SYM> --period <DURATION>
     cryptospect-cli rvol          --asset <SYM>
@@ -81,11 +91,13 @@ Last updated: 2026-04-17
 ### Global Flags
 - --output, -o: "json" (default)
 - --verbose, -v: enable debug logging
-- --api-key: API key for authenticated endpoints
+- --detail: "basic" (default), "extended", "full" — controls metadata in response
+- --api-key: API key for CoinGecko authenticated endpoints
+- --config: config file path (default $HOME/.cryptospect.yaml)
 
 ### Config Precedence (viper handles this)
-1. CLI flag (--api-key)
-2. Environment variable (CRYPTOSPECT_API_KEY)
+1. CLI flag (--api-key → maps to CoinGecko)
+2. Environment variables (CRYPTOSPECT_COINGECKO_KEY, CRYPTOSPECT_BINANCE_KEY)
 3. Config file (~/.cryptospect.yaml)
 
 
@@ -209,56 +221,14 @@ NOTE: These schemas are likely to change as development progresses.
         source           string    // which API failed, e.g. "coingecko" (omitempty)
     }
 
-### RegimeOutput (regime command)
+### Per-Metric `data` Payload (v1 global metrics)
+Each metric command returns a `MetricResult.data` field whose shape is metric-specific.
+The `data` struct is defined in `internal/metrics/<name>/types.go` for each metric.
+See Step 12 for the metric conventions and `docs/metrics/<metric>.md` once implemented.
 
-    {
-        "asset":     "BTC",           // string
-        "window":    "30d",           // string
-        "regime":    "high_vol_bear", // string, see Regime Values below
-        "vol_score": 0.82,           // float64
-        "z_score":   -2.1,           // float64
-        "rvol":      1.8,            // float64
-        "ts":        1744444800,     // int64, unix seconds
-        "summary":   "..."           // string, omitempty, human-readable NL summary
-    }
-
-    Regime Values:
-    - high_vol_bear
-    - high_vol_bull
-    - low_vol_bear
-    - low_vol_bull
-    - low_vol_sideways
-
-### ZScoreOutput (zscore command)
-
-    {
-        "asset":         "ETH",
-        "period":        "90d",
-        "z_score":       -1.5,        // float64
-        "mean":          2450.00,     // float64
-        "stddev":        320.50,      // float64
-        "current_price": 1970.00,    // float64
-        "ts":            1744444800
-    }
-
-### RVOLOutput (rvol command)
-
-    {
-        "asset":       "BTC",
-        "rvol":        1.8,          // float64, ratio of current to average
-        "current_vol": 45000000,     // float64
-        "avg_vol":     25000000,     // float64
-        "ts":          1744444800
-    }
-
-### CorrelationOutput (correlation command)
-
-    {
-        "pair":      "BTC,ETH",
-        "window":    "60d",
-        "pearson_r": 0.87,          // float64, -1 to 1
-        "ts":        1744444800
-    }
+NOTE: The per-asset schemas below (RegimeOutput, ZScoreOutput, etc.) were designed for
+future per-asset commands (regime, zscore, rvol, correlation) that are not yet implemented.
+They are preserved here for reference; do not treat them as current v1 output shapes.
 
 ### NL Summary Format
 - Under 40 tokens
@@ -292,8 +262,9 @@ NOTE: These schemas are likely to change as development progresses.
   5. Vet (go vet ./...)
   6. Test (go test -race -cover ./...)
   7. Build (go build to /dev/null — proves it compiles)
-- Format check technique: goimports -l . | tee /dev/stderr | (! read)
-  — lists unformatted files and fails if any exist
+- Format check technique: Excludes cache directories (.cache/, .gomodcache/, .go/, vendor/) using find command
+  - Command: find . -name "*.go" -not -path "./.cache/*" -not -path "./.gomodcache/*" -not -path "./.go/*" -not -path "./vendor/*" -exec goimports -l {} \;
+  - Same pattern for gofumpt
 
 ### Files in Repo
 - cmd/cryptospect-cli/main.go — throwaway stub committed so CI build step
@@ -389,11 +360,11 @@ NOTE: These schemas are likely to change as development progresses.
 - **Sentinel errors** per package; wrap with `%w`; structured CLI errors via envelope
 - **Exit codes:** 0 for success AND handled errors; non‑zero only for unrecoverable failures
 
-### 8. Status Detection Helper (`detectStatus`)
+### 8. Status Detection Helper (`DetectStatus`)
 - **Location:** `internal/metrics/helpers.go`
-- **Signature:** `func detectStatus(confidence float64, thinData bool) string`
+- **Signature:** `func DetectStatus(confidence float64, thinData bool) string`
 - **Mapping:** confidence ≥ 0.8 → `"ok"`; confidence ≥ 0.5 → `"degraded"`; else `"unavailable"`. If `thinData` is true, downgrade by one level (e.g., `"ok"` → `"degraded"`, `"degraded"` → `"unavailable"`, `"unavailable"` unchanged).
-- **Usage:** Each metric’s `Compute` function calls `detectStatus` to set the `MetricResult.Status` field.
+- **Usage:** Each metric’s `Compute` function calls `DetectStatus` to set the `MetricResult.Status` field.
 
 ### 9. Command‑Level Integration Tests
 - **Pattern:** Each metric command gets an `_e2e_test.go` file (e.g., `liquidity‑pulse_e2e_test.go`) that tests the full CLI flow.
@@ -411,9 +382,9 @@ NOTE: These schemas are likely to change as development progresses.
 
 | Document | Purpose | Last Sync | Notes |
 |----------|---------|-----------|-------|
-| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑16 | Keep concise; reference this file for details. |
-| `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑16 | CLI commands, JSON envelope, error‑handling rules. |
-| `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑16 | Keep friendly; link to `agents.md` for agent integration. |
+| `CLAUDE.md` | Claude‑Code onboarding, stack, conventions | 2026‑04‑17 (session 2) | Keep concise; reference this file for details. |
+| `agents.md` | Agent‑focused CLI signatures, envelope, error handling | 2026‑04‑17 | CLI commands, JSON envelope, error‑handling rules. |
+| `README.md` | Human‑facing GitHub docs, quick start, examples | 2026‑04‑17 | Keep friendly; link to `agents.md` for agent integration. |
 | `/vault/Knowledge/CryptoSpect‑CLI‑new.md` | Architectural summary, metric tiers, build order | 2026‑04‑16 | Snapshot of this file + original‑project context. |
 
 **Sync checklist** (run after any change to this file):
@@ -434,11 +405,11 @@ NOTE: These schemas are likely to change as development progresses.
 2. **Context propagation** – HTTP client now uses `http.NewRequestWithContext` (`internal/httpclient/client.go`)
 3. **Fetcher race condition** – Coarse‑grained locking eliminates duplicate API calls (`internal/api/fetcher.go:60‑156`)
 
-### 🟡 **Suggestions Addressed**
-- **TTL validation** – Bounds checking added: negative → default 300, zero → 60, >86400 → cap at 1 day (`internal/api/fetcher.go:190‑198`)
-- **Unused variable** – Named `suffix` in endpoint parsing (`internal/api/fetcher.go:158`)
-- **Random seeding** – `rand.Seed(time.Now().UnixNano())` added for jitter (`internal/httpclient/client.go`)
-- **Permission check** – Group permissions now also enforced (`&0077` vs `&0177`) (`internal/config/config.go:69‑71`)
+### 🟡 **Suggestions Addressed (first pass)**
+- **TTL validation** – Bounds checking added: negative → default 300, zero → 60, >86400 → cap at 1 day (`internal/api/fetcher.go`)
+- **Unused variable** – Named `suffix` in endpoint parsing (`internal/api/fetcher.go`)
+- **Permission check** – Group permissions now also enforced (`&0077` vs `&0177`) (`internal/config/config.go`)
+- Note: `rand.Seed` was briefly added for jitter then removed by linting (deprecated since Go 1.20 — auto‑seeded)
 
 
 ### ✅ **Linting & CI Fixes (2026‑04‑16)**
@@ -474,6 +445,13 @@ NOTE: These schemas are likely to change as development progresses.
 - **Command‑level integration tests:** Pending (to be added with metric templates)
 - **Build status:** `make test` passes, `make build` produces functional binary
 
+### ✅ **Suggestions Addressed (second pass, 2026‑04‑17)**
+- **Dead code removal** – Deleted `GetWithKey` from `internal/httpclient/client.go` (CoinGecko‑specific method on a generic client, never called from production code) and its test
+- **Double stat eliminated** – `config.LoadWithViper` now calls `os.Stat` once and reuses the result (`internal/config/config.go`)
+- **Test reliability** – `TestStaleEntry` in `internal/cache/cache_test.go` uses TTL=0 instead of `time.Sleep(2s)`
+- **Write coverage** – Added `TestWrite` to `internal/config/config_test.go` (happy path, file‑exists error, nested dir creation)
+- **TTL bounds coverage** – Added `TestResolveTTLBounds` to `internal/api/resolve_test.go` (negative → 300, zero → 60, >86400 → 86400)
+
 ### 📋 **Remaining Suggestions & Technical Debt** (post‑CLI‑infrastructure)
 - **Addressed in config enhancements (commit 058de9f):**
   - **Config file extensions** – Support for both `.yaml` and `.yml` via `resolveConfigPath()` (nit from review)
@@ -483,7 +461,7 @@ NOTE: These schemas are likely to change as development progresses.
   - **Error‑type preservation** – Keep `httpclient` typed errors accessible
   - **Registry config loading** – Consider YAML‑based metric definitions (YAGNI for v1)
   - **JSON RawMessage validation** – Add `Validate()` method (low priority)
-  - **Test coverage gaps** – `Clear()` error paths, `Write()`, `Validate` edge cases
+  - **Test coverage gaps** – `Clear()` error paths, `Validate` edge cases (`Write()` now covered)
   - **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred
 
 ### 🚀 **Next Steps**
@@ -503,7 +481,7 @@ NOTE: These schemas are likely to change as development progresses.
 2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`
 3. `internal/output/writer.go` — `WriteSuccess`, `WriteError`
 4. `internal/metrics/registry.go` — Registry with alias support, `MetricDef`, `RegisterDefaultMetrics`
-5. `internal/metrics/helpers.go` — `detectStatus()` helper (confidence/thin‑data → "ok"/"degraded"/"unavailable")
+5. `internal/metrics/helpers.go` — `DetectStatus()` helper (confidence/thin‑data → "ok"/"degraded"/"unavailable")
 6. `internal/api/constants.go` — Endpoint‑key constants (`coingecko.global`, `coingecko.coins_markets`, etc.)
 7. `internal/config/config.go` — `Config`, `Load`, `SourceFor` (uses endpoint‑key constants)
 8. `internal/cache/cache.go` — `Get`, `Set`, `Clear`, atomic writes, endpoint‑keyed file names

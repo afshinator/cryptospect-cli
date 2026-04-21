@@ -101,16 +101,10 @@ func LoadWithViper(v *viper.Viper, path string) (Config, error) {
 	v.SetDefault("output.pretty", false)
 
 	// Read config file if it exists
-	if _, err := os.Stat(resolvedPath); err == nil {
-		// Check permissions
-		info, err := os.Stat(resolvedPath)
-		if err != nil {
-			return Config{}, fmt.Errorf("stat config: %w", err)
-		}
+	if info, err := os.Stat(resolvedPath); err == nil {
 		if info.Mode().Perm()&0o077 != 0 {
 			return Config{}, fmt.Errorf("config file %s has permissions %04o; must be 0600 or stricter", resolvedPath, info.Mode().Perm())
 		}
-
 		if err := v.ReadInConfig(); err != nil {
 			return Config{}, fmt.Errorf("reading config: %w", err)
 		}

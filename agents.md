@@ -7,7 +7,7 @@ Computes crypto market regime metrics for agentic consumption. Outputs machine-r
 
 ## CLI Signatures (v1)
 
-### Global Metrics (Tier 2+3)
+### Global Metrics (Tier 2+3) — Planned for v1, not yet implemented
     cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
     cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]
     cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
@@ -17,7 +17,7 @@ Computes crypto market regime metrics for agentic consumption. Outputs machine-r
 
 ### Utility Commands
     cryptospect-cli list-metrics         # list all available metrics + aliases
-    cryptospect-cli cache clear          # clear file cache
+    cryptospect-cli cache-clear          # clear the local API response cache
 
 ### Future Per‑Asset Commands (planned)
     cryptospect-cli regime               --asset <SYM> --window <DURATION>
@@ -60,4 +60,19 @@ Every invocation returns this structure on stdout:
 - Exit 0 for success AND handled errors; non‑zero only for unrecoverable failures
 
 ## API Key Injection
-Precedence: --api-key flag > CRYPTOSPECT_API_KEY env var > ~/.cryptospect.yaml
+Precedence: --api-key flag (CoinGecko) > CRYPTOSPECT_COINGECKO_KEY / CRYPTOSPECT_BINANCE_KEY env vars > ~/.cryptospect.yaml
+
+## Agent Communication Style (Caveman Mode)
+
+Terse like caveman. Technical substance exact. Only fluff die.
+Drop: articles, filler (just/really/basically), pleasantries, hedging.
+Fragments OK. Short synonyms. Code unchanged.
+Pattern: [thing] [action] [reason]. [next step].
+ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift.
+Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
+
+Caveman skill installed: `.agents/skills/caveman/`
+- Use `/caveman` to switch intensity levels (lite/full/ultra/wenyan)
+- Use `/caveman-commit` for terse commit messages
+- Use `/caveman-review` for one-line code reviews
+- Use `/caveman-compress` to compress memory files

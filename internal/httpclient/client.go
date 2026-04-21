@@ -6,7 +6,6 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 )
@@ -111,21 +110,6 @@ func (c *Client) Get(ctx context.Context, url string) ([]byte, error) {
 		lastErr = &apiErr
 	}
 	return nil, lastErr
-}
-
-// GetWithKey performs an HTTP GET request with an API key query parameter.
-func (c *Client) GetWithKey(ctx context.Context, urlStr, key string) ([]byte, error) {
-	if key != "" {
-		u, err := url.Parse(urlStr)
-		if err != nil {
-			return nil, fmt.Errorf("parsing URL: %w", err)
-		}
-		q := u.Query()
-		q.Set("x_cg_demo_api_key", key)
-		u.RawQuery = q.Encode()
-		urlStr = u.String()
-	}
-	return c.Get(ctx, urlStr)
 }
 
 func backoffDuration(attempt int) time.Duration {

@@ -26,7 +26,8 @@ type record struct {
 
 // Cache provides file‑based caching with TTL and stale‑while‑revalidate semantics.
 type Cache struct {
-	dir string
+	dir    string
+	closed bool
 }
 
 // Exists returns true if the cache directory exists and is a directory.
@@ -57,9 +58,17 @@ func Open(path string) (*Cache, error) {
 	return &Cache{dir: path}, nil
 }
 
-// Close closes the cache (no‑op for file‑based cache).
+// Close closes the cache. Any operation on a closed cache returns an error.
 func (c *Cache) Close() error {
+	c.closed = true
 	c.dir = ""
+	return nil
+}
+
+func (c *Cache) checkClosed() error {
+	if c.closed {
+		return fmt.Errorf("cache: operation on closed cache")
+	}
 	return nil
 }
 
@@ -71,6 +80,9 @@ func (c *Cache) filePath(endpoint string) string {
 
 // Get retrieves a cached entry for the given endpoint.
 func (c *Cache) Get(endpoint string) (Entry, error) {
+	if err := c.checkClosed(); err != nil {
+		return Entry{}, err
+	}
 	var entry Entry
 	path := c.filePath(endpoint)
 
@@ -98,6 +110,9 @@ func (c *Cache) Get(endpoint string) (Entry, error) {
 
 // Set writes data for the given endpoint with the specified TTL (seconds).
 func (c *Cache) Set(endpoint string, data []byte, ttl int) error {
+	if err := c.checkClosed(); err != nil {
+		return err
+	}
 	now := time.Now()
 	rec := record{
 		Data:       data,
@@ -130,6 +145,9 @@ func (c *Cache) Set(endpoint string, data []byte, ttl int) error {
 
 // Clear removes all cached entries from the cache directory.
 func (c *Cache) Clear() error {
+	if err := c.checkClosed(); err != nil {
+		return err
+	}
 	entries, err := os.ReadDir(c.dir)
 	if err != nil {
 		return fmt.Errorf("reading cache dir: %w", err)

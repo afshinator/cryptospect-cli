@@ -5,10 +5,11 @@ LDFLAGS  := -s -w -X main.version=$(VERSION)
 .PHONY: build lint fmt vet test clean release
 
 build:
-	GOCACHE=/tmp/go-cache GOMODCACHE=/tmp/go-mod-cache CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/$(APP_NAME) ./cmd/cryptospect-cli
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/$(APP_NAME) ./cmd/cryptospect-cli
 
 fmt:
-	go fmt ./...
+	goimports -w .
+	gofumpt -w .
 
 lint:
 	golangci-lint run ./...
@@ -17,7 +18,7 @@ vet:
 	go vet ./...
 
 test:
-	go test -race -cover ./...
+	GOMODCACHE=$(PWD)/.gomodcache GOCACHE=$(PWD)/.cache/go go test -race -cover ./...
 
 clean:
 	rm -rf bin/ dist/

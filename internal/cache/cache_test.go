@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 )
 
 func TestOpen(t *testing.T) {
@@ -101,13 +100,10 @@ func TestStaleEntry(t *testing.T) {
 	endpoint := "coingecko_coin_markets"
 	data := []byte(`[{"id":"bitcoin"}]`)
 
-	// Set with very short TTL (1 second)
-	if err := c.Set(endpoint, data, 1); err != nil {
+	// TTL=0 means ExpiresAt=now, so the entry is immediately stale
+	if err := c.Set(endpoint, data, 0); err != nil {
 		t.Fatal(err)
 	}
-
-	// Wait for expiration
-	time.Sleep(2 * time.Second)
 
 	entry, err := c.Get(endpoint)
 	if err != nil {
@@ -196,6 +192,27 @@ func TestAtomicWrite(t *testing.T) {
 	entry, _ := c.Get(endpoint)
 	if !bytes.Equal(entry.Data, []byte("first")) {
 		t.Errorf("Data = %q, want 'first'", entry.Data)
+	}
+}
+
+func TestClosePreventsFurtherOps(t *testing.T) {
+	dir := t.TempDir()
+	c, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Close(); err != nil {
+		t.Fatalf("Close failed: %v", err)
+	}
+
+	if _, err := c.Get("endpoint"); err == nil {
+		t.Error("Get after Close should return error")
+	}
+	if err := c.Set("endpoint", []byte("data"), 300); err == nil {
+		t.Error("Set after Close should return error")
+	}
+	if err := c.Clear(); err == nil {
+		t.Error("Clear after Close should return error")
 	}
 }
 

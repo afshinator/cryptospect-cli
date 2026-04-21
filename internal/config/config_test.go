@@ -289,3 +289,39 @@ func TestLoadWithViperFlagPrecedence(t *testing.T) {
 		t.Errorf("CoinGecko API key = %q, want flag-value-789", cfg.APIs.CoinGecko.APIKey)
 	}
 }
+
+func TestWrite(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+
+	// Happy path: write template
+	if err := Write(path); err != nil {
+		t.Fatalf("Write failed: %v", err)
+	}
+
+	// File should be loadable (Write sets 0600 perms)
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load after Write failed: %v", err)
+	}
+	if cfg.Output.Format != "json" {
+		t.Errorf("expected output.format=json, got %q", cfg.Output.Format)
+	}
+	if !cfg.Cache.Enabled {
+		t.Error("expected cache.enabled=true")
+	}
+
+	// Second write to same path should fail
+	if err := Write(path); err == nil {
+		t.Error("Write to existing path should fail")
+	}
+
+	// Write to a path whose parent directory doesn't exist yet (should create it)
+	nested := filepath.Join(dir, "subdir", "config.yaml")
+	if err := Write(nested); err != nil {
+		t.Fatalf("Write to nested path failed: %v", err)
+	}
+	if _, err := os.Stat(nested); err != nil {
+		t.Errorf("nested config file not created: %v", err)
+	}
+}

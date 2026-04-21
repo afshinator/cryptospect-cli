@@ -1,7 +1,7 @@
 # Go 1.25 Structured Caching Patterns — Evaluation
 
 *Created: 2026‑04‑16*  
-*Updated: 2026‑04‑16*  
+*Updated: 2026‑04‑17*  
 *Context: Architecture tip received about using Go 1.25’s new structured caching patterns to keep the binary static and high‑performance.*
 
 ---
@@ -45,7 +45,7 @@ The goal: ensure the **cache‑first fetcher** remains the high‑performance ba
 ### Missed 1.25 Performance Opportunities
 1. **GC pressure** – ~~Every cache lookup allocates strings~~ **Resolved**: `unique.Handle` eliminates string allocations for memory cache lookups.
 2. **Lock contention** – ~~Single mutex blocks concurrent metric fetches~~ **Resolved**: 16‑shard map with per‑shard mutex enables concurrent fetches to different endpoints.
-3. **Test flakiness** – No virtualized time for stale‑fallback tests (relies on real `time.Sleep`).
+3. **Test flakiness** – ~~Relies on real `time.Sleep` for stale‑fallback tests~~ **Resolved**: `TestStaleEntry` now uses TTL=0 (entry is immediately stale) — no sleep required. `testing/synctest` still not adopted.
 4. **Serialization overhead** – JSON v2 could speed up `CLIResponse` envelope encoding by **30–50%**.
 
 ---
