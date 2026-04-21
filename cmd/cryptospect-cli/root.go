@@ -37,8 +37,9 @@ func NewRootCommand() *cobra.Command {
 	var configFile string
 
 	cmd := &cobra.Command{
-		Use:   "cryptospect-cli",
-		Short: "Compute crypto market regime metrics for agentic consumption",
+		Use:     "cryptospect-cli",
+		Version: version,
+		Short:   "Compute crypto market regime metrics for agentic consumption",
 		Long: `A portable, zero-dependency CLI tool that fetches live and historical cryptocurrency data,
 computes high-signal market regime metrics, and outputs them in a format optimized for AI agents and LLM tool-calling.`,
 		SilenceUsage:  true,
