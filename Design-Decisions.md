@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-04-17
+Last updated: 2026-04-21
 
 
 ## Step 1: Environment & Project Init
@@ -208,11 +208,17 @@ NOTE: These schemas are likely to change as development progresses.
     }
 
     MetricResult {
-        metric    string        // canonical metric name, e.g., "liquidity-pulse"
-        status    string        // "ok", "degraded", or "unavailable"
-        data      <varies>      // metric-specific payload
-        meta      <varies>      // metadata, omitted when --detail basic
+        metric     string        // canonical metric name, e.g., "liquidity-pulse"
+        namespace  string        // provider namespace, e.g., "cryptospect" — always present
+        version    string        // SemVer of the provider, e.g., "v1.0.0" — always present
+        status     string        // "ok", "degraded", or "unavailable"
+        data       <varies>      // metric-specific payload
+        meta       <varies>      // metadata, omitted when --detail basic
     }
+
+    NOTE: namespace and version are mandatory identity fields — non-pointer plain strings,
+    never omitted regardless of --detail level. A provider registering with empty namespace
+    or version is rejected at registration time.
 
     CLIError {
         code             int       // HTTP status or custom code
@@ -465,17 +471,16 @@ They are preserved here for reference; do not treat them as current v1 output sh
   - **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred
 
 ### 🚀 **Next Steps**
-1. Fix vendoring inconsistency (`go mod vendor`)
-2. Implement missing CLI infrastructure (Steps 15‑18): `root.go`, `cache.go`, `list.go`
-3. Update project documentation to reflect actual status
-4. Proceed with first metric template implementation (`liquidity‑pulse`), including compute function, classification types, and command‑level integration test.
+1. Implement Step 15: Plugin Architecture (MetricProvider interface, SemVer registry, scaffolds, generic dispatcher — see Step 15 section below)
+2. Proceed with first metric compute implementation (`liquidity‑pulse`) inside its scaffolded package
+3. Repeat for remaining metrics
 
 ---
 
 ## Build Order (Step 18 – Completed)
 
-✅ **Steps 1‑14 implemented and tested.**  
-❌ **Steps 15‑18 pending (CLI infrastructure).**
+✅ **Steps 1‑18 implemented and tested.**  
+⏳ **Step 15 (Plugin Architecture) in progress.**
 
 1. `internal/output/envelope.go` — `CLIResponse`, `MetricResult`, `CLIError`
 2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`
@@ -495,5 +500,138 @@ They are preserved here for reference; do not treat them as current v1 output sh
 16. Replace `cmd/cryptospect‑cli/main.go`
 17. `cmd/cache.go` — cache‑clear subcommand
 18. `cmd/list.go` — list metrics from registry (`list‑metrics`)
-19. **First metric template: liquidity‑pulse** (full implementation) — includes command‑level integration test (`liquidity‑pulse_e2e_test.go`)
+15a. **Plugin Architecture Refactor** — MetricProvider interface, SemVer registry, 6 scaffolded metric packages, `catalog.go`, generic dispatcher in `root.go`
+19. **First metric compute: liquidity‑pulse** — implement `Compute()` inside `internal/metrics/liquiditypulse/v1/provider.go`; add command‑level integration test
 20. Repeat for remaining Tier 2+3 metrics (`stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`, `market‑regime`) — each includes command‑level integration test
+
+---
+
+## Step 15: Plugin Architecture (2026-04-21)
+
+### Goal
+Replace the hardcoded `RegisterDefaultMetrics` function with a compile-time plugin system where each metric self-registers via `init()`. Enables decentralized metric authorship, versioned output schemas, and agent-predictable CLI surface.
+
+### MetricProvider Interface (`internal/metrics/provider.go`)
+
+```go
+type MetricDef struct {
+    Name        string   `json:"name"`
+    Namespace   string   `json:"namespace"` // e.g. "cryptospect"; enforced non-empty at registration
+    Version     string   `json:"version"`   // SemVer "v1.0.0"; v-prefix required
+    Aliases     []string `json:"aliases"`
+    Endpoints   []string `json:"endpoints"` // EndpointKey constants
+    Description string   `json:"description,omitempty"`
+}
+
+type MetricProvider interface {
+    Def() MetricDef
+    Compute(ctx context.Context, data map[string]json.RawMessage) (output.MetricResult, error)
+}
+```
+
+`Sources map[string]string` removed from `MetricDef` — redundant with `Endpoints`.
+
+### SemVer (`internal/metrics/semver.go`)
+- `ParseSemVer(s string) ([3]int, error)` — rejects strings without leading `v`
+- `CompareSemVer(a, b [3]int) int` — returns -1, 0, 1
+- No external dependencies (stdlib `strings` + `strconv` only)
+
+### Registry (`internal/metrics/registry.go`)
+
+```go
+type Registry struct {
+    providers  map[string]MetricProvider  // "namespace/name@v1.0.0" → provider
+    aliasIndex map[string][]string        // alias → []full keys
+    nameIndex  map[string][]string        // name  → []full keys
+    coreNS     string                     // "cryptospect"
+}
+```
+
+Global registry initialized as a package-level var (not lazy `sync.Once`) so `init()` calls from metric packages can register before `main()` runs:
+
+```go
+var globalRegistry = NewRegistry()
+func GlobalRegistry() *Registry { return globalRegistry }
+func MustRegister(p MetricProvider) { /* panics on error */ }
+```
+
+`Register()` rejects providers with empty `Name`, `Namespace`, or `Version`, or a `Version` that fails `ParseSemVer`. Returns `ErrDuplicateMetric` on duplicate full key.
+
+### Resolution (`bestProvider`)
+
+1. Gather candidates from `nameIndex[name]` or `aliasIndex[alias]`
+2. If any candidate has `namespace == "cryptospect"`, discard all non-core candidates
+3. Sort remaining with `slices.SortFunc`: SemVer descending, then namespace ascending (lexicographic) as tiebreaker
+4. Return index 0
+
+Fully deterministic regardless of registration order or map iteration. Forks never hijack core aliases by bumping version numbers.
+
+### Scaffold Pattern
+
+Each metric lives in `internal/metrics/<name>/v1/provider.go`:
+
+```go
+func init() { metrics.MustRegister(&Provider{}) }
+
+func (p *Provider) Compute(_ context.Context, _ map[string]json.RawMessage) (output.MetricResult, error) {
+    msg, _ := json.Marshal(map[string]string{"error": "metric not yet implemented: " + MetricName})
+    return output.MetricResult{
+        Metric:    MetricName,
+        Namespace: CoreNamespace,
+        Version:   MetricVersion,
+        Status:    "unavailable",
+        Data:      json.RawMessage(msg),
+    }, nil  // nil error — unavailability is expressed in the result, not as a Go error
+}
+```
+
+Non-nil error from `Compute` is reserved for catastrophic/unrecoverable failures only.
+
+### Generic Dispatcher (`cmd/cryptospect-cli/root.go`)
+
+```go
+for _, p := range reg.BestProviders() { // one provider per unique name
+    p := p
+    def := p.Def()
+    cmd := &cobra.Command{
+        Use:     def.Name,
+        Aliases: def.Aliases,
+        Short:   def.Description,
+        Long:    fmt.Sprintf("%s\n\nVersion: %s | Namespace: %s", def.Description, def.Version, def.Namespace),
+        RunE:    buildMetricRunE(p),
+    }
+    root.AddCommand(cmd)
+}
+```
+
+Full metric name is `Use`; shorthands (e.g. `lp`) are cobra `Aliases`. The existing `PersistentPreRunE` on rootCmd is sufficient — cobra propagates it to all dynamic subcommands.
+
+### Catalog (`cmd/cryptospect-cli/catalog.go`)
+
+Blank imports that trigger `init()` registration for all 6 core metrics:
+
+```go
+import (
+    _ "github.com/afshinator/cryptospect-cli/internal/metrics/liquiditypulse/v1"
+    _ "github.com/afshinator/cryptospect-cli/internal/metrics/stablecoinpower/v1"
+    // ...
+)
+```
+
+### Config Version Pinning
+
+`~/.cryptospect.yaml` can pin a specific metric version:
+
+```yaml
+metrics:
+  lp: "v1.2.0"               # exact version
+  mb: "fork-user/mb@v1.1.0"  # explicit namespace + version
+```
+
+This is a future-layer concern; Step 15 does not implement source substitution.
+
+### Acceptance Criteria
+- `cryptospect-cli list-metrics` shows all 6 metrics with `version` and `namespace`
+- `cryptospect-cli lp` returns valid JSON: outer `status: "ok"`, metric `status: "unavailable"`, `version` and `namespace` present
+- All existing tests pass with `-race`
+- `golangci-lint` passes
