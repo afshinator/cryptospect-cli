@@ -61,3 +61,18 @@ Every invocation returns this structure on stdout:
 
 ## API Key Injection
 Precedence: --api-key flag (CoinGecko) > CRYPTOSPECT_COINGECKO_KEY / CRYPTOSPECT_BINANCE_KEY env vars > ~/.cryptospect.yaml
+
+## Agent Communication Style (Caveman Mode)
+
+Terse like caveman. Technical substance exact. Only fluff die.
+Drop: articles, filler (just/really/basically), pleasantries, hedging.
+Fragments OK. Short synonyms. Code unchanged.
+Pattern: [thing] [action] [reason]. [next step].
+ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift.
+Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
+
+Caveman skill installed: `.agents/skills/caveman/`
+- Use `/caveman` to switch intensity levels (lite/full/ultra/wenyan)
+- Use `/caveman-commit` for terse commit messages
+- Use `/caveman-review` for one-line code reviews
+- Use `/caveman-compress` to compress memory files
