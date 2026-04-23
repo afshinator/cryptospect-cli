@@ -3,217 +3,164 @@ package metrics
 import (
 	"errors"
 	"fmt"
-	"sort"
-	"strings"
-	"sync"
-
-	"github.com/afshinator/cryptospect-cli/internal/api"
+	"slices"
 )
 
 var (
-	// ErrMetricNotFound is returned when a metric name is not registered.
-	ErrMetricNotFound = errors.New("metric not found")
-	// ErrDuplicateMetric is returned when trying to register a metric with a name that already exists.
+	ErrMetricNotFound  = errors.New("metric not found")
 	ErrDuplicateMetric = errors.New("metric already registered")
-	// ErrDuplicateAlias is returned when trying to register an alias that already exists.
-	ErrDuplicateAlias = errors.New("alias already registered")
+	ErrInvalidProvider = errors.New("invalid provider")
 )
 
-// MetricDef holds the definition of a metric.
-type MetricDef struct {
-	Name        string            `json:"name"`
-	Aliases     []string          `json:"aliases"`
-	Endpoints   []string          `json:"endpoints"`
-	Sources     map[string]string `json:"sources"`
-	Description string            `json:"description,omitempty"`
-}
-
-// Registry maintains a catalog of available metrics and their aliases.
+// Registry maps versioned metric providers by full key ("namespace/name@version").
 type Registry struct {
-	metrics     map[string]*MetricDef
-	aliasToName map[string]string
+	providers  map[string]MetricProvider // "namespace/name@version" → provider
+	aliasIndex map[string][]string       // alias → []full keys
+	nameIndex  map[string][]string       // name  → []full keys
 }
 
-// NewRegistry creates and returns a new empty Registry.
+// globalRegistry is initialized at package load time so metric packages can
+// call MustRegister from their init() functions before main() runs.
+var globalRegistry = NewRegistry()
+
+// GlobalRegistry returns the process-wide registry.
+func GlobalRegistry() *Registry { return globalRegistry }
+
+// MustRegister registers p in the global registry or panics.
+func MustRegister(p MetricProvider) {
+	if err := globalRegistry.Register(p); err != nil {
+		panic(fmt.Sprintf("metrics.MustRegister: %v", err))
+	}
+}
+
+// NewRegistry creates an empty Registry.
 func NewRegistry() *Registry {
 	return &Registry{
-		metrics:     make(map[string]*MetricDef),
-		aliasToName: make(map[string]string),
+		providers:  make(map[string]MetricProvider),
+		aliasIndex: make(map[string][]string),
+		nameIndex:  make(map[string][]string),
 	}
 }
 
-var (
-	globalRegistry     *Registry
-	globalRegistryOnce sync.Once
-)
-
-// GlobalRegistry returns the global singleton Registry with default metrics registered.
-// It is initialized once and shared across the process lifetime.
-// Tests that need to inspect or mutate registry state should use NewRegistry() +
-// RegisterDefaultMetrics() instead, to avoid cross-test pollution via the singleton.
-func GlobalRegistry() *Registry {
-	globalRegistryOnce.Do(func() {
-		globalRegistry = NewRegistry()
-		RegisterDefaultMetrics(globalRegistry)
-	})
-	return globalRegistry
+func fullKey(def MetricDef) string {
+	return fmt.Sprintf("%s/%s@%s", def.Namespace, def.Name, def.Version)
 }
 
-// RegisterDefaultMetrics registers the built‑in metrics (liquidity‑pulse, stablecoin‑power, etc.) into the given Registry.
-// Endpoint keys use api package constants to ensure compile‑time agreement with constants.go.
-func RegisterDefaultMetrics(reg *Registry) {
-	// Liquidity Pulse: ratio of 24h trading volume to market cap
-	_ = reg.Register("liquidity-pulse",
-		[]string{"lp"},
-		[]string{api.CoinGeckoGlobalMarket},
-		map[string]string{"global_market": api.CoinGeckoGlobalMarket},
-		"Measures the ratio of 24h trading volume to market cap.")
+// Register adds p to the registry.
+// Returns ErrInvalidProvider if Def() has empty Name/Namespace/Version or an invalid SemVer.
+// Returns ErrDuplicateMetric if the full key already exists.
+func (r *Registry) Register(p MetricProvider) error {
+	def := p.Def()
 
-	// Stablecoin Power: stablecoin dominance and flow strength
-	_ = reg.Register("stablecoin-power",
-		[]string{"sp"},
-		[]string{api.CoinGeckoGlobalMarket, api.CoinGeckoSPPStablesMarkets},
-		map[string]string{
-			"global_market":       api.CoinGeckoGlobalMarket,
-			"spp_stables_markets": api.CoinGeckoSPPStablesMarkets,
-		},
-		"Measures stablecoin dominance and flow strength.")
-
-	// Flow Tension: CVD-based market pressure indicator
-	_ = reg.Register("flow-tension",
-		[]string{"ft"},
-		[]string{api.BinanceSpotCVD_BTC_1h, api.CoinGeckoDerivatives},
-		map[string]string{
-			"spot_cvd":    api.BinanceSpotCVD_BTC_1h,
-			"derivatives": api.CoinGeckoDerivatives,
-		},
-		"CVD-based market pressure indicator.")
-
-	// Market Breadth: participation across top assets
-	_ = reg.Register("market-breadth",
-		[]string{"mb"},
-		[]string{api.CoinGeckoCoinMarketsBreadth},
-		map[string]string{"coin_markets_breadth": api.CoinGeckoCoinMarketsBreadth},
-		"Measures participation across top assets.")
-
-	// Momentum Divergence: RSI divergence patterns
-	_ = reg.Register("momentum-divergence",
-		[]string{"md"},
-		[]string{api.CoinGeckoCoinMarketsMomentum},
-		map[string]string{"coin_markets_momentum": api.CoinGeckoCoinMarketsMomentum},
-		"RSI divergence patterns across assets.")
-
-	// Market Regime: composite regime classification
-	_ = reg.Register("market-regime",
-		[]string{"mr"},
-		[]string{api.CoinGeckoGlobalMarket, api.CoinGeckoCoinMarketsBreadth},
-		map[string]string{
-			"global_market":        api.CoinGeckoGlobalMarket,
-			"coin_markets_breadth": api.CoinGeckoCoinMarketsBreadth,
-		},
-		"Composite regime classification using multiple signals.")
-}
-
-// Register adds a new metric definition to the registry.
-// It returns ErrDuplicateMetric if the name already exists, or ErrDuplicateAlias if any alias is already taken.
-func (r *Registry) Register(name string, aliases, endpoints []string, sources map[string]string, description string) error {
-	if _, exists := r.metrics[name]; exists {
-		return ErrDuplicateMetric
+	if def.Name == "" {
+		return fmt.Errorf("%w: empty Name", ErrInvalidProvider)
+	}
+	if def.Namespace == "" {
+		return fmt.Errorf("%w: empty Namespace", ErrInvalidProvider)
+	}
+	if def.Version == "" {
+		return fmt.Errorf("%w: empty Version", ErrInvalidProvider)
+	}
+	if _, err := ParseSemVer(def.Version); err != nil {
+		return fmt.Errorf("%w: invalid Version: %v", ErrInvalidProvider, err)
 	}
 
-	for _, alias := range aliases {
-		if _, exists := r.aliasToName[alias]; exists {
-			return ErrDuplicateAlias
-		}
+	key := fullKey(def)
+	if _, exists := r.providers[key]; exists {
+		return fmt.Errorf("%w: %s", ErrDuplicateMetric, key)
 	}
 
-	def := &MetricDef{
-		Name:        name,
-		Aliases:     aliases,
-		Endpoints:   endpoints,
-		Sources:     sources,
-		Description: description,
+	r.providers[key] = p
+	r.nameIndex[def.Name] = append(r.nameIndex[def.Name], key)
+	for _, alias := range def.Aliases {
+		r.aliasIndex[alias] = append(r.aliasIndex[alias], key)
 	}
-
-	r.metrics[name] = def
-	for _, alias := range aliases {
-		r.aliasToName[alias] = name
-	}
-
 	return nil
 }
 
-// Get returns the metric definition for the given name.
-// It returns ErrMetricNotFound if the metric is not registered.
-func (r *Registry) Get(name string) (*MetricDef, error) {
-	m, ok := r.metrics[name]
-	if !ok {
-		return nil, ErrMetricNotFound
+// bestProvider returns the highest-priority provider among the given full keys.
+// Core-namespace providers beat all others; among equals, highest SemVer wins.
+// Ties broken by namespace ascending (deterministic regardless of registration order).
+func (r *Registry) bestProvider(keys []string) MetricProvider {
+	if len(keys) == 0 {
+		return nil
 	}
-	return m, nil
-}
 
-// GetByAlias returns the metric definition for the given alias.
-// It returns ErrMetricNotFound if the alias is not registered.
-func (r *Registry) GetByAlias(alias string) (*MetricDef, error) {
-	name, ok := r.aliasToName[alias]
-	if !ok {
-		return nil, ErrMetricNotFound
+	candidates := keys
+	coreKeys := make([]string, 0, len(keys))
+	for _, k := range keys {
+		if p, ok := r.providers[k]; ok && p.Def().Namespace == CoreNamespace {
+			coreKeys = append(coreKeys, k)
+		}
 	}
-	return r.Get(name)
-}
+	if len(coreKeys) > 0 {
+		candidates = coreKeys
+	}
 
-// List returns all registered metric definitions, sorted by name.
-func (r *Registry) List() []*MetricDef {
-	list := make([]*MetricDef, 0, len(r.metrics))
-	for _, m := range r.metrics {
-		list = append(list, m)
-	}
-	sort.Slice(list, func(i, j int) bool {
-		return list[i].Name < list[j].Name
+	sorted := make([]string, len(candidates))
+	copy(sorted, candidates)
+	slices.SortFunc(sorted, func(a, b string) int {
+		pa, pb := r.providers[a], r.providers[b]
+		va, _ := ParseSemVer(pa.Def().Version)
+		vb, _ := ParseSemVer(pb.Def().Version)
+		if c := CompareSemVer(vb, va); c != 0 { // descending
+			return c
+		}
+		if pa.Def().Namespace < pb.Def().Namespace {
+			return -1
+		}
+		if pa.Def().Namespace > pb.Def().Namespace {
+			return 1
+		}
+		return 0
 	})
-	return list
+	return r.providers[sorted[0]]
 }
 
-// RequiredEndpoints returns the unique endpoint keys needed to compute the given metrics.
-func (r *Registry) RequiredEndpoints(metricNames []string) []string {
-	seen := make(map[string]bool)
-	var endpoints []string
-
-	for _, name := range metricNames {
-		m, err := r.Get(name)
-		if err != nil {
-			continue
-		}
-		for _, e := range m.Endpoints {
-			if !seen[e] {
-				seen[e] = true
-				endpoints = append(endpoints, e)
-			}
+// Resolve returns the best provider for the given name or alias.
+func (r *Registry) Resolve(nameOrAlias string) (MetricProvider, error) {
+	if keys, ok := r.nameIndex[nameOrAlias]; ok {
+		if p := r.bestProvider(keys); p != nil {
+			return p, nil
 		}
 	}
-
-	return endpoints
-}
-
-// Validate checks that each metric name is registered and returns a slice of errors for invalid names.
-func (r *Registry) Validate(metricNames []string) []error {
-	var errs []error
-	for _, name := range metricNames {
-		trimmed := strings.TrimSpace(name)
-		if trimmed == "" {
-			errs = append(errs, fmt.Errorf("empty metric name: '%s'", name))
-			continue
-		}
-		if _, err := r.Get(name); err != nil {
-			errs = append(errs, err)
+	if keys, ok := r.aliasIndex[nameOrAlias]; ok {
+		if p := r.bestProvider(keys); p != nil {
+			return p, nil
 		}
 	}
-	return errs
+	return nil, fmt.Errorf("%w: %q", ErrMetricNotFound, nameOrAlias)
 }
 
-// ValidateAlias checks that the given alias is registered.
-func (r *Registry) ValidateAlias(alias string) error {
-	_, err := r.GetByAlias(alias)
-	return err
+// BestProviders returns one provider per unique metric name (highest version,
+// core namespace preferred), sorted alphabetically by name.
+func (r *Registry) BestProviders() []MetricProvider {
+	seen := make(map[string]bool, len(r.providers))
+	names := make([]string, 0, len(r.providers))
+	for _, p := range r.providers {
+		name := p.Def().Name
+		if !seen[name] {
+			seen[name] = true
+			names = append(names, name)
+		}
+	}
+	slices.Sort(names)
+
+	out := make([]MetricProvider, 0, len(names))
+	for _, name := range names {
+		if p := r.bestProvider(r.nameIndex[name]); p != nil {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+// List returns MetricDef for each best provider, sorted by name.
+func (r *Registry) List() []MetricDef {
+	providers := r.BestProviders()
+	defs := make([]MetricDef, len(providers))
+	for i, p := range providers {
+		defs[i] = p.Def()
+	}
+	return defs
 }

@@ -51,18 +51,17 @@ func TestListMetricsCommand(t *testing.T) {
 	if len(list) != 6 {
 		t.Errorf("expected 6 metrics, got %d", len(list))
 	}
-	// Ensure each entry has at least "name" and "aliases"
+	// Ensure each entry has "name", "aliases", "namespace", "version"
 	for i, item := range list {
 		m, ok := item.(map[string]interface{})
 		if !ok {
 			t.Errorf("list entry %d is not an object", i)
 			continue
 		}
-		if _, ok := m["name"]; !ok {
-			t.Errorf("list entry %d missing 'name' field", i)
-		}
-		if _, ok := m["aliases"]; !ok {
-			t.Errorf("list entry %d missing 'aliases' field", i)
+		for _, field := range []string{"name", "aliases", "namespace", "version"} {
+			if _, ok := m[field]; !ok {
+				t.Errorf("list entry %d missing %q field", i, field)
+			}
 		}
 	}
 }

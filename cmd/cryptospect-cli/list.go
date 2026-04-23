@@ -14,15 +14,13 @@ func newListCommand() *cobra.Command {
 		Short: "List all available metrics and their aliases",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			reg := metrics.GlobalRegistry()
-			list := reg.List()
+			defs := reg.List()
 
-			// Convert to JSON data
-			data, err := json.Marshal(list)
+			data, err := json.Marshal(defs)
 			if err != nil {
 				return err
 			}
 
-			// Create a single MetricResult with metric name "list-metrics"
 			result := output.MetricResult{
 				Metric: "list-metrics",
 				Status: "ok",

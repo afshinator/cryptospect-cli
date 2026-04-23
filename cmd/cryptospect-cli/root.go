@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/afshinator/cryptospect-cli/internal/config"
+	"github.com/afshinator/cryptospect-cli/internal/metrics"
+	"github.com/afshinator/cryptospect-cli/internal/output"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -110,5 +112,29 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 	cmd.AddCommand(newListCommand())
 	cmd.AddCommand(newCacheClearCommand())
 
+	reg := metrics.GlobalRegistry()
+	for _, p := range reg.BestProviders() {
+		p := p
+		def := p.Def()
+		metricCmd := &cobra.Command{
+			Use:     def.Name,
+			Aliases: def.Aliases,
+			Short:   def.Description,
+			Long:    fmt.Sprintf("%s\n\nVersion: %s | Namespace: %s", def.Description, def.Version, def.Namespace),
+			RunE:    buildMetricRunE(p),
+		}
+		cmd.AddCommand(metricCmd)
+	}
+
 	return cmd
+}
+
+func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, _ []string) error {
+		result, err := p.Compute(cmd.Context(), nil)
+		if err != nil {
+			return err
+		}
+		return output.WriteSuccess([]output.MetricResult{result})
+	}
 }
