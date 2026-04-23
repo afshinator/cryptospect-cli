@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-04-21
+Last updated: 2026-04-23
 
 
 ## Step 1: Environment & Project Init
@@ -329,7 +329,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
 
 ### 1. Registry with Aliases
 - **Location:** `internal/metrics/registry.go`
-- **MetricDef fields:** `Name`, `Aliases` (lowercase), `Endpoints`, `Sources` (datapoint → endpoint‑key map), `Description`
+- **MetricDef fields:** `Name`, `Namespace`, `Version`, `Aliases`, `Endpoints`, `Description`
 - **Aliases:** `lp`, `sp`, `ft`, `mb`, `md`, `mr` (unique, lowercase)
 - **Purpose:** CLI `list‑metrics`, validation, foundation for future `get` command
 - **Compute wiring:** `cmd/root.go` uses generic dispatcher (`buildMetricRunE`) that iterates `BestProviders()` — this IS compute wiring. May evolve as metrics are implemented.
@@ -340,11 +340,12 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - **Metadata:** `MetaBasic` (cache_hit, ttl_remaining), `MetaExtended` (+ sources), `MetaFull` (+ thresholds, description)
 - **Envelope behavior:** Single‑metric commands return `Results` with one element. `--detail basic` → `Meta` omitted; `extended` → `MetaExtended`; `full` → `MetaFull`
 
-### 3. Metric‑Specific Conventions
-- **Types (`internal/metrics/<name>/types.go`):** `Data` struct with metric‑specific fields + `Classification` struct (per‑metric, typed fields) + `summary` string
-- **Compute function:** `func Compute(in Input) (Data, error)` (pure, no I/O)
-- **Classification:** Each metric defines a typed `Classification` struct (e.g., `TradeValidation`, `MarketCondition` fields). Classification values are package‑level constants; complete mapping table documented in LLM‑focused docs
-- **Constants:** Define classification values as package‑level constants
+### 3. Metrics Package Structure
+- **Location:** `internal/metrics/<name>/v1/`
+- **Files:** `provider.go` (MetricDef + Compute implementation)
+- **No types.go:** Skip — Data/Classification structs defined inline in provider.go
+- **MetricDef fields:** `Name`, `Namespace`, `Version`, `Aliases`, `Endpoints`, `Description`
+- **Version:** SemVer with "v" prefix (e.g., "v1.0.0")
 
 ### 4. CLI Command Wiring
 - Each metric command imports aliases from registry, uses Cobra’s `Aliases` field
