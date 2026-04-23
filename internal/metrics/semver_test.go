@@ -12,12 +12,12 @@ func TestParseSemVer(t *testing.T) {
 		{"v2.3.14", [3]int{2, 3, 14}, false},
 		{"v0.0.0", [3]int{0, 0, 0}, false},
 		{"v10.20.30", [3]int{10, 20, 30}, false},
-		{"1.0.0", [3]int{}, true},     // missing v prefix
-		{"v1.0", [3]int{}, true},      // only 2 parts
-		{"v1.0.0.0", [3]int{}, true},  // 4 parts
-		{"vx.y.z", [3]int{}, true},    // non-numeric
-		{"", [3]int{}, true},          // empty
-		{"v-1.0.0", [3]int{}, true},   // negative
+		{"1.0.0", [3]int{}, true},       // missing v prefix
+		{"v1.0", [3]int{}, true},        // only 2 parts
+		{"v1.0.0.0", [3]int{}, true},    // 4 parts
+		{"vx.y.z", [3]int{}, true},      // non-numeric
+		{"", [3]int{}, true},            // empty
+		{"v-1.0.0", [3]int{}, true},     // negative
 		{"v1.0.0-beta", [3]int{}, true}, // pre-release suffix not supported
 	}
 	for _, tc := range tests {
