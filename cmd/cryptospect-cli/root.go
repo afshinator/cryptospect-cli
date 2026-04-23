@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -14,15 +13,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-type contextKey string
-
-const configKey contextKey = "config"
-
-func configFromContext(ctx context.Context) (config.Config, bool) {
-	cfg, ok := ctx.Value(configKey).(config.Config)
-	return cfg, ok
-}
-
 func defaultConfigPath() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -34,7 +24,7 @@ func defaultConfigPath() string {
 func NewRootCommand() *cobra.Command {
 	var verbose bool
 	var detail string
-	var output string
+	var outputFmt string
 	var apiKey string
 	var configFile string
 
@@ -79,24 +69,22 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 
 			// Create viper instance and bind CLI flags
 			v := viper.New()
-			// Bind --api-key flag to config.APIs.CoinGecko.APIKey
 			if err := v.BindPFlag("apis.coingecko.api_key", cmd.Flags().Lookup("api-key")); err != nil {
 				return fmt.Errorf("binding api-key flag: %w", err)
 			}
-			// Bind --output flag to config.Output.Format
 			if err := v.BindPFlag("output.format", cmd.Flags().Lookup("output")); err != nil {
 				return fmt.Errorf("binding output flag: %w", err)
 			}
-			// --detail and --verbose are CLI-only flags (not configurable via env/config)
 
-			// Load configuration with viper (CLI flag → env var → config file)
+			// Load configuration
 			cfg, err := config.LoadWithViper(v, path)
 			if err != nil {
 				return fmt.Errorf("loading config: %w", err)
 			}
 
-			// Store config in context for subcommands
-			ctx := context.WithValue(cmd.Context(), configKey, cfg)
+			// Store config and detail in context for subcommands and providers
+			ctx := config.StoreInContext(cmd.Context(), cfg)
+			ctx = config.StoreDetailInContext(ctx, detail)
 			cmd.SetContext(ctx)
 
 			return nil
@@ -106,7 +94,7 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 	cmd.PersistentFlags().StringVar(&configFile, "config", "", "Config file (default $HOME/.cryptospect.yaml)")
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable debug logging on stderr")
 	cmd.PersistentFlags().StringVar(&detail, "detail", "basic", "Detail level: basic, extended, full")
-	cmd.PersistentFlags().StringVarP(&output, "output", "o", "json", "Output format (only json supported)")
+	cmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (only json supported)")
 	cmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key for authenticated endpoints (maps to CoinGecko)")
 
 	cmd.AddCommand(newListCommand())

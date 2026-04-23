@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -8,6 +9,56 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+func TestStoreAndFromContext(t *testing.T) {
+	cfg := Config{Output: OutputConfig{Format: "json"}}
+	ctx := StoreInContext(context.Background(), cfg)
+
+	got, ok := FromContext(ctx)
+	if !ok {
+		t.Fatal("FromContext returned ok=false")
+	}
+	if got.Output.Format != "json" {
+		t.Errorf("Format = %q, want json", got.Output.Format)
+	}
+}
+
+func TestFromContext_Missing(t *testing.T) {
+	_, ok := FromContext(context.Background())
+	if ok {
+		t.Error("FromContext on empty context should return ok=false")
+	}
+}
+
+func TestStoreAndDetailFromContext(t *testing.T) {
+	ctx := StoreDetailInContext(context.Background(), "extended")
+
+	got, ok := DetailFromContext(ctx)
+	if !ok {
+		t.Fatal("DetailFromContext returned ok=false")
+	}
+	if got != "extended" {
+		t.Errorf("detail = %q, want extended", got)
+	}
+}
+
+func TestDetailFromContext_Missing(t *testing.T) {
+	_, ok := DetailFromContext(context.Background())
+	if ok {
+		t.Error("DetailFromContext on empty context should return ok=false")
+	}
+}
+
+func TestDetailFromContext_DefaultOnEmpty(t *testing.T) {
+	ctx := StoreDetailInContext(context.Background(), "")
+	got, ok := DetailFromContext(ctx)
+	if !ok {
+		t.Fatal("expected ok=true even for empty string")
+	}
+	if got != "" {
+		t.Errorf("got %q, want empty string", got)
+	}
+}
 
 func TestDefaults(t *testing.T) {
 	cfg, err := Load("/nonexistent")

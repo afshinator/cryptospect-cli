@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,6 +9,35 @@ import (
 
 	"github.com/spf13/viper"
 )
+
+type contextKey int
+
+const (
+	configContextKey contextKey = iota
+	detailContextKey
+)
+
+// StoreInContext returns a new context carrying cfg.
+func StoreInContext(ctx context.Context, cfg Config) context.Context {
+	return context.WithValue(ctx, configContextKey, cfg)
+}
+
+// FromContext retrieves the Config stored by StoreInContext.
+func FromContext(ctx context.Context) (Config, bool) {
+	cfg, ok := ctx.Value(configContextKey).(Config)
+	return cfg, ok
+}
+
+// StoreDetailInContext returns a new context carrying the --detail flag value.
+func StoreDetailInContext(ctx context.Context, detail string) context.Context {
+	return context.WithValue(ctx, detailContextKey, detail)
+}
+
+// DetailFromContext retrieves the detail level stored by StoreDetailInContext.
+func DetailFromContext(ctx context.Context) (string, bool) {
+	detail, ok := ctx.Value(detailContextKey).(string)
+	return detail, ok
+}
 
 // resolveConfigPath returns the first existing file with .yaml or .yml extension,
 // preferring the given path if it exists. If neither exists, returns the given path.

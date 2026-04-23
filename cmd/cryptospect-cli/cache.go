@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/afshinator/cryptospect-cli/internal/cache"
+	"github.com/afshinator/cryptospect-cli/internal/config"
 	"github.com/afshinator/cryptospect-cli/internal/output"
 	"github.com/spf13/cobra"
 )
@@ -15,7 +16,7 @@ func newCacheClearCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Retrieve config from context (set by root command)
 			ctx := cmd.Context()
-			cfg, ok := configFromContext(ctx)
+			cfg, ok := config.FromContext(ctx)
 			if !ok {
 				return fmt.Errorf("config not found in context")
 			}
