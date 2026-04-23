@@ -6,6 +6,7 @@ import (
 	"slices"
 )
 
+// Sentinel errors returned by Registry operations.
 var (
 	ErrMetricNotFound  = errors.New("metric not found")
 	ErrDuplicateMetric = errors.New("metric already registered")
@@ -42,7 +43,7 @@ func NewRegistry() *Registry {
 	}
 }
 
-func fullKey(def MetricDef) string {
+func fullKey(def MetricDef) string { //nolint:gocritic // value copy is intentional; MetricDef is immutable after registration
 	return fmt.Sprintf("%s/%s@%s", def.Namespace, def.Name, def.Version)
 }
 
@@ -62,7 +63,7 @@ func (r *Registry) Register(p MetricProvider) error {
 		return fmt.Errorf("%w: empty Version", ErrInvalidProvider)
 	}
 	if _, err := ParseSemVer(def.Version); err != nil {
-		return fmt.Errorf("%w: invalid Version: %v", ErrInvalidProvider, err)
+		return fmt.Errorf("%w: invalid Version: %w", ErrInvalidProvider, err)
 	}
 
 	key := fullKey(def)

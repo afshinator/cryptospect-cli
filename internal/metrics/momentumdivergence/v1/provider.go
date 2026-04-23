@@ -9,6 +9,7 @@ import (
 	"github.com/afshinator/cryptospect-cli/internal/output"
 )
 
+// MetricName and MetricVersion identify this provider in the registry.
 const (
 	MetricName    = "momentum-divergence"
 	MetricVersion = "v1.0.0"
@@ -19,6 +20,7 @@ func init() { metrics.MustRegister(&Provider{}) }
 // Provider implements metrics.MetricProvider for momentum-divergence.
 type Provider struct{}
 
+// Def implements metrics.MetricProvider.
 func (p *Provider) Def() metrics.MetricDef {
 	return metrics.MetricDef{
 		Name:        MetricName,
@@ -30,6 +32,7 @@ func (p *Provider) Def() metrics.MetricDef {
 	}
 }
 
+// Compute implements metrics.MetricProvider.
 func (p *Provider) Compute(_ context.Context, _ map[string]json.RawMessage) (output.MetricResult, error) {
 	msg, _ := json.Marshal(map[string]string{"error": "metric not yet implemented: " + MetricName})
 	return output.MetricResult{

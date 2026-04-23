@@ -18,7 +18,7 @@ const (
 )
 
 // StoreInContext returns a new context carrying cfg.
-func StoreInContext(ctx context.Context, cfg Config) context.Context {
+func StoreInContext(ctx context.Context, cfg Config) context.Context { //nolint:gocritic // value copy is intentional; Config is an immutable snapshot
 	return context.WithValue(ctx, configContextKey, cfg)
 }
 

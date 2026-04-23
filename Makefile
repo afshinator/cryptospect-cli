@@ -8,8 +8,8 @@ build:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o bin/$(APP_NAME) ./cmd/cryptospect-cli
 
 fmt:
-	goimports -w .
-	gofumpt -w .
+	goimports -w cmd/ internal/
+	gofumpt -w cmd/ internal/
 
 lint:
 	golangci-lint run ./...
