@@ -1,5 +1,6 @@
 # {metric-name}
 
+**version:** `v{x.y.z}`
 **Alias:** `{alias}`  
 **Endpoints:** `{endpoint-key(s)}`
 
@@ -7,27 +8,31 @@
 
 Brief summary of what this metric measures (derived from Long Description).
 
-## Formula
+## Formula (or how to compute)
 
 ```
 {mathematical formula}
 ```
 
-## Interpretation
+## Interpretation (ranges, domain of computed results)
 
 What different values mean for trading decisions.
 
-## Classification
+
+## Classification (might be simply same as interpretation)
 
 | Condition | Threshold | Meaning |
 |-----------|-----------|---------|
 | `{Label}` | `{>= or <= value}` | `{explanation}` |
 
-## Data Source
+
+## Data Source(s)
 
 - **Primary API:** `{provider}`
 - **Endpoint:** `{endpoint-key}`
 - **Fields used:** `{field1}`, `{field2}`
+- **Other API's:** `{provider}` ...
+
 
 ## Cross-Source Verification
 
@@ -38,11 +43,11 @@ This metric uses the **Primary with Anchor-Asset Validation** pattern.
 | Primary | `{primary-provider}` | Main metric computation |
 | Validator | `{validator-provider}` | Anchor-asset volume check |
 
-**Anchor asset:** `{BTC or other}`
+**Anchor asset:** (if applicable) `{BTC or other}`
 
-**Discrepancy threshold:** `{default: 20}%`
+**Discrepancy threshold:** (if applicable) `{default: 20}%`
 
-**Behavior on mismatch:** `{description of what happens}`
+**Behavior on mismatch:** (if applicable) `{description of what happens}`
 
 If no cross-source verification: "No cross-source verification in v1."
 
@@ -54,16 +59,38 @@ If no cross-source verification: "No cross-source verification in v1."
 
 If the metric has no CLI flags: "This metric has no CLI flags."
 
+
 ## Output Schema
 
-**Base fields** (always present):
 ```json
 {
-  "data": {
-    "{field}": "{type}",
-    "classification": "string",
-    "summary": "string"
-  }
+    "metric":  "string",      // canonical metric name
+    "version": "v{x.y.z}",   // SemVer with "v" prefix
+    "status":  "string",      // "ok" / "degraded" / "unavailable"
+
+    "data": {
+        "{field}": "{type}",
+        "classification": {
+            "label":       "string",  // categorical label, e.g. "high" / "normal" / "low"
+            "description": "string"   // threshold explanation, e.g. "Strong short-term conviction"
+        },
+        "summary": "string"           // NL sentence combining key fields + classification
+    },
+
+    "meta": {
+        // Omitted when --detail basic.
+        // Present when --detail extended or full:
+        "cache_hit":          "bool",
+        "ttl_remaining_sec":  "int",
+        "primary_source":     "string",  // e.g. "coingecko"
+        "validator_source":   "string",  // present if cross-source validation applies
+        "discrepancy_detected": "bool",  // present if cross-source validation applies
+        "discrepancy_note":   "string",  // only if discrepancy_detected == true
+        "confidence":         "string"   // "high" / "medium" / "low"
+        // Additionally when --detail full:
+        // "thresholds": { ... }
+        // "description": "string"
+    }
 }
 ```
 
@@ -113,3 +140,5 @@ cryptospect-cli {metric-name} --{flag-name}
 **Implementation Compromises:** (if applicable) — known limitations or simplifications
 
 **Future Enhancements:** (if applicable) — planned but not yet implemented
+
+**Agentic Logic (strategic notes)** (if applicable) - What an LLM or agent calls this tool, what should it look for.

@@ -48,7 +48,7 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 ## Metric Conventions
 - **Types:** `Data` struct with metric‑specific fields + typed `Classification` struct (per‑metric fields) + `summary` string
 - **Compute:** `func Compute(in Input) (Data, error)` (pure, no I/O)
-- **Classification:** Per‑metric typed struct with package‑level constants for categorical values (e.g., `TradeValidationNormal`)
+- **Classification:** Per‑metric typed struct; serializes to `{"label": "string", "description": "string"}` in JSON. Package‑level string constants for label values (e.g., `ClassificationHigh = "high"`).
 - **Aliases:** Each metric has a lowercase 2‑letter alias (e.g., `lp` for `liquidity‑pulse`)
 - **Registry:** Single source of truth for metric names, aliases, endpoints, source mapping, descriptions
 - **Status detection:** `DetectStatus(confidence, thinData)` helper sets metric status (`"ok"`, `"degraded"`, `"unavailable"`)

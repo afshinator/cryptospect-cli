@@ -344,6 +344,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - **Location:** `internal/metrics/<name>/v1/`
 - **Files:** `provider.go` (MetricDef + Compute implementation)
 - **No types.go:** Skip — Data/Classification structs defined inline in provider.go
+- **Classification JSON shape:** `{"label": "string", "description": "string"}` — label holds the categorical value (e.g. `"high"`), description is the short threshold explanation. Package‑level string constants for label values (e.g. `ClassificationHigh = "high"`).
 - **MetricDef fields:** `Name`, `Namespace`, `Version`, `Aliases`, `Endpoints`, `Description`
 - **Version:** SemVer with "v" prefix (e.g., "v1.0.0")
 
