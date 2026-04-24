@@ -130,7 +130,7 @@ func TestCLIResponse_UnmarshalJSON(t *testing.T) {
 }
 
 func TestMetricResult_MarshalJSON(t *testing.T) {
-tests := []struct {
+	tests := []struct {
 		name   string
 		result MetricResult
 		want   string

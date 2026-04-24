@@ -38,7 +38,7 @@ func (p *Provider) Compute(_ context.Context, _ map[string]json.RawMessage) (out
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
-		Status: "unavailable",
-		Data:   json.RawMessage(msg),
+		Status:  "unavailable",
+		Data:    json.RawMessage(msg),
 	}, nil
 }

@@ -22,7 +22,7 @@ Last updated: 2026-04-21
 - github.com/afshinator/cryptospect-cli
 
 ### Files Created
-- go.mod (with toolchain go1.25.9)
+- go.mod (go 1.25.9 — in Go 1.25+, the go line serves as toolchain spec)
 - .go-version (contains "1.25.9")
 
 
@@ -46,7 +46,7 @@ Last updated: 2026-04-21
 - fmt: runs goimports -w . then gofumpt -w .
 - lint: golangci-lint run ./...
 - vet: go vet ./...
-- test: go test -race -cover ./...
+- test: GOMODCACHE=$(PWD)/.gomodcache GOCACHE=$(PWD)/.cache/go go test -race -cover ./...
 - clean: rm -rf bin/ dist/
 - release: goreleaser release --clean
 - Version injection via ldflags: -X main.version=$(VERSION)
@@ -268,7 +268,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
   3. Format check (goimports -l, gofumpt -l — fails if any output)
   4. Lint (golangci/golangci-lint-action@v7, v2.11.4)
   5. Vet (go vet ./...)
-  6. Test (go test -race -cover ./...)
+  6. Test (GOMODCACHE=$(PWD)/.gomodcache GOCACHE=$(PWD)/.cache/go go test -race -cover ./...)
   7. Build (go build to /dev/null — proves it compiles)
 - Format check technique: Excludes cache directories (.cache/, .gomodcache/, .go/, vendor/) using find command
   - Command: find . -name "*.go" -not -path "./.cache/*" -not -path "./.gomodcache/*" -not -path "./.go/*" -not -path "./vendor/*" -exec goimports -l {} \;

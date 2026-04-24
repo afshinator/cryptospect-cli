@@ -21,12 +21,12 @@ func newListCommand() *cobra.Command {
 				return err
 			}
 
-result := output.MetricResult{
-			Metric:  "list-metrics",
-			Version: "v1.0.0",
-			Status: "ok",
-			Data:   json.RawMessage(data),
-		}
+			result := output.MetricResult{
+				Metric:  "list-metrics",
+				Version: "v1.0.0",
+				Status:  "ok",
+				Data:    json.RawMessage(data),
+			}
 
 			return output.WriteSuccess([]output.MetricResult{result})
 		},
