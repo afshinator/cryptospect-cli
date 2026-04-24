@@ -1,7 +1,7 @@
 # liquidity-pulse
 
 **Alias:** `lp`  
-**Endpoints:** `coingecko.global_market`, `binance_us.spot_cvd_btc_1h`
+**Endpoints:** main: `coingecko.global_market`, supplementary: `binance_us.spot_cvd_btc_1h`
 
 ## Overview
 

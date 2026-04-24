@@ -350,7 +350,14 @@ They are preserved here for reference; do not treat them as current v1 output sh
 ### 4. CLI Command Wiring
 - Each metric command imports aliases from registry, uses Cobra’s `Aliases` field
 - `--detail` flag inherited from root (global flag)
-- Builds `MetricResult` with appropriate `Meta` based on `--detail`
+- `buildMetricRunE` dispatcher fetches endpoint data via the cache-first fetcher, then calls `Compute`
+- `Compute` signature (defined in `internal/metrics/provider.go`):
+  ```go
+  Compute(ctx context.Context, data map[string]json.RawMessage) (output.MetricResult, error)
+  ```
+  - `data` keys are the endpoint keys from `Def().Endpoints` (e.g., `"coingecko.global_market"`)
+  - Returns a fully-formed `MetricResult` (not a bare Data struct)
+  - Non-nil error reserved for catastrophic/unrecoverable failures only; unavailability expressed via `MetricResult.Status = "unavailable"`
 - Calls `output.WriteSuccess([]output.MetricResult{…})`
 
 ### 5. Documentation
