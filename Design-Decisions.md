@@ -332,7 +332,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - **MetricDef fields:** `Name`, `Aliases` (lowercase), `Endpoints`, `Sources` (datapoint → endpoint‑key map), `Description`
 - **Aliases:** `lp`, `sp`, `ft`, `mb`, `md`, `mr` (unique, lowercase)
 - **Purpose:** CLI `list‑metrics`, validation, foundation for future `get` command
-- **No compute wiring** in v1 — each standalone command calls its own compute directly
+- **Compute wiring:** `cmd/root.go` uses generic dispatcher (`buildMetricRunE`) that iterates `BestProviders()` — this IS compute wiring. May evolve as metrics are implemented.
 
 ### 2. Output Envelope (JSON)
 - **Top‑level:** `CLIResponse { status, ts, results[], error? }`
@@ -480,8 +480,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
 
 ## Build Order (Step 18 – Completed)
 
-✅ **Steps 1‑18 implemented and tested.**  
-⏳ **Step 15 (Plugin Architecture) in progress.**
+✅ **Steps 1‑18 and Step 15 (Plugin Architecture) implemented and tested.**
 
 1. `internal/output/envelope.go` — `CLIResponse`, `MetricResult`, `CLIError`
 2. `internal/output/meta.go` — `MetaBasic`, `MetaExtended`, `MetaFull`, `SourceMeta`
