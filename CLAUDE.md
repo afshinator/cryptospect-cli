@@ -62,7 +62,6 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 ## Documentation
 - **Source‑truth:** `docs/metrics/<metric>.md` (Overview, Formula, Output Schema, Interpretation, Data Source)
-- **LLM‑focused:** `docs/llm/<metric>.md` (command, example JSON, classification table)
 
 ## Orchestration (for agents calling this tool)
 1. Run `regime` first to establish macro context (future)

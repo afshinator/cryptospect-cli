@@ -351,9 +351,8 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - Calls `output.WriteSuccess([]output.MetricResult{…})`
 
 ### 5. Documentation
-- **Source‑truth (`docs/metrics/<metric>.md`):** Copy original structure (Overview, Formula, Output Schema, Interpretation, Data Source, Usage, Calibration)
-- **LLM‑focused (`docs/llm/<metric>.md`):** Concise, includes command, example JSON, complete classification table
-- **Directory structure:** `docs/metrics/` + `docs/llm/`
+- **Source‑truth (`docs/metrics/<metric>.md`):** Overview, Formula, Output Schema, Interpretation, Data Source, Usage, Calibration
+- **Directory structure:** `docs/metrics/`
 
 ### 6. Testing Conventions
 - Table‑driven tests for each `Compute` function
