@@ -19,7 +19,7 @@ Last updated: 2026-04-21
   1.25 drops out of support.
 
 ### Module Path
-- github.com/<you>/cryptospect-cli
+- github.com/afshinator/cryptospect-cli
 
 ### Files Created
 - go.mod (with toolchain go1.25.9)
