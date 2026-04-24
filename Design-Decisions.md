@@ -404,6 +404,67 @@ They are preserved here for reference; do not treat them as current v1 output sh
 
 **Rationale:** Manual sync is error‑prone but manageable with this table. A future script could diff sections and auto‑update, but for v1, this table + checklist suffices.
 
+---
+
+## Step 14: Cross-Source Verification (2026-04-23)
+
+### Pattern: Primary with Anchor-Asset Validation
+
+**Problem:** Raw volume numbers from any single source are unreliable (wash-trading, exchange quality variance). Comparing "total global volume" across sources is apples-to-oranges.
+
+**Solution:** Use one source as primary, validate via an **Anchor Asset** (typically BTC) on a secondary source. BTC is liquid enough on major exchanges that its volume is relatively trustworthy.
+
+### How It Works
+
+1. **Primary source** provides the main metric calculation (e.g., CoinGecko global market data)
+2. **Validator source** is queried for anchor-asset volume (e.g., Binance US spot CVD for BTC)
+3. If anchor volumes differ significantly (>20% or configurable threshold), flag a discrepancy
+4. Metric value is still computed from primary source — validator never overrides
+
+### Output Metadata
+
+When validation runs, `meta` includes:
+
+```go
+type ValidationMeta struct {
+    PrimarySource       string  `json:"primary_source"`        // e.g., "coingecko"
+    ValidatorSource    string  `json:"validator_source"`      // e.g., "binance_us"
+    DiscrepancyDetected bool    `json:"discrepancy_detected"`
+    DiscrepancyNote     string  `json:"discrepancy_note,omitempty"`  // human-readable explanation
+    Confidence          string  `json:"confidence"`            // "high", "medium", "low"
+}
+```
+
+### Confidence Levels
+
+| Scenario | Confidence |
+|----------|------------|
+| No discrepancy detected | `high` |
+| Discrepancy <20% | `medium` |
+| Discrepancy >=20% | `low` |
+
+### Discrepancy Note Format
+
+```
+"{ValidatorSource} reported anchor volume ({vol}) is {pct}% {direction} than {PrimarySource}'s indexed volume for {asset}."
+```
+
+Example: `"Binance-US reported BTC volume is 22% lower than CoinGecko's indexed volume for top pairs."`
+
+### Not All Metrics Need Validation
+
+- Metrics using CoinGecko's `/global` endpoint: validate with anchor asset
+- Metrics using single-exchange CVD data: inherently exchange-specific, no cross-validation
+- Metrics using index-based endpoints (breadth, momentum): defer validation to future when comparable indices exist
+
+### Implementation Notes
+
+- Validator fetches run **in parallel** with primary (both use the cache-first fetcher)
+- Validation failure (network error, no data) does not fail the metric — status remains `ok`, confidence defaults to `medium`
+- Threshold is configurable per-metric in the metric's provider
+
+---
+
 ## Code Review & Critical Fixes (2026‑04‑16)
 
 **Review summary:** Agency‑agents engineering‑code‑reviewer performed thorough review of infrastructure (Steps 1‑14). Score: **9/10** – exceptional foundation with minor but important fixes needed.
