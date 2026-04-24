@@ -19,10 +19,8 @@ type CLIResponse struct {
 type MetricResult struct {
 	// Metric is the canonical metric name, e.g., "liquidity-pulse".
 	Metric string `json:"metric"`
-	// Namespace identifies the provider origin, e.g., "cryptospect".
-	Namespace string `json:"namespace,omitempty"`
 	// Version is the SemVer of the provider, e.g., "v1.0.0".
-	Version string `json:"version,omitempty"`
+	Version string `json:"version"`
 	// Status is "ok", "degraded", or "unavailable" for this specific metric.
 	Status string `json:"status"`
 	// Data contains the metric-specific payload as raw JSON.

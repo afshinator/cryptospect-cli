@@ -39,10 +39,9 @@ func (p *Provider) Def() metrics.MetricDef {
 func (p *Provider) Compute(_ context.Context, _ map[string]json.RawMessage) (output.MetricResult, error) {
 	msg, _ := json.Marshal(map[string]string{"error": "metric not yet implemented: " + MetricName})
 	return output.MetricResult{
-		Metric:    MetricName,
-		Namespace: metrics.CoreNamespace,
-		Version:   MetricVersion,
-		Status:    "unavailable",
-		Data:      json.RawMessage(msg),
+		Metric:  MetricName,
+		Version: MetricVersion,
+		Status: "unavailable",
+		Data:   json.RawMessage(msg),
 	}, nil
 }

@@ -14,9 +14,6 @@ func TestProvider_Def(t *testing.T) {
 	if def.Name != MetricName {
 		t.Errorf("Name = %q, want %q", def.Name, MetricName)
 	}
-	if def.Namespace != metrics.CoreNamespace {
-		t.Errorf("Namespace = %q, want %q", def.Namespace, metrics.CoreNamespace)
-	}
 	if def.Version != MetricVersion {
 		t.Errorf("Version = %q, want %q", def.Version, MetricVersion)
 	}
@@ -39,9 +36,6 @@ func TestProvider_Compute_ReturnsUnavailable(t *testing.T) {
 	}
 	if result.Metric != MetricName {
 		t.Errorf("Metric = %q, want %q", result.Metric, MetricName)
-	}
-	if result.Namespace != metrics.CoreNamespace {
-		t.Errorf("Namespace = %q, want %q", result.Namespace, metrics.CoreNamespace)
 	}
 	if result.Version != MetricVersion {
 		t.Errorf("Version = %q, want %q", result.Version, MetricVersion)

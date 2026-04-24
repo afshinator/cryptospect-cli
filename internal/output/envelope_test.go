@@ -130,7 +130,7 @@ func TestCLIResponse_UnmarshalJSON(t *testing.T) {
 }
 
 func TestMetricResult_MarshalJSON(t *testing.T) {
-	tests := []struct {
+tests := []struct {
 		name   string
 		result MetricResult
 		want   string
@@ -138,21 +138,23 @@ func TestMetricResult_MarshalJSON(t *testing.T) {
 		{
 			name: "without meta",
 			result: MetricResult{
-				Metric: "liquidity-pulse",
-				Status: "ok",
-				Data:   json.RawMessage(`{"score":0.85}`),
+				Metric:  "liquidity-pulse",
+				Version: "v1.0.0",
+				Status:  "ok",
+				Data:    json.RawMessage(`{"score":0.85}`),
 			},
-			want: `{"metric":"liquidity-pulse","status":"ok","data":{"score":0.85}}`,
+			want: `{"metric":"liquidity-pulse","version":"v1.0.0","status":"ok","data":{"score":0.85}}`,
 		},
 		{
 			name: "with meta",
 			result: MetricResult{
-				Metric: "market-breadth",
-				Status: "degraded",
-				Data:   json.RawMessage(`{"participation":0.65}`),
-				Meta:   json.RawMessage(`{"cache_hit":true}`),
+				Metric:  "market-breadth",
+				Version: "v1.0.0",
+				Status:  "degraded",
+				Data:    json.RawMessage(`{"participation":0.65}`),
+				Meta:    json.RawMessage(`{"cache_hit":true}`),
 			},
-			want: `{"metric":"market-breadth","status":"degraded","data":{"participation":0.65},"meta":{"cache_hit":true}}`,
+			want: `{"metric":"market-breadth","version":"v1.0.0","status":"degraded","data":{"participation":0.65},"meta":{"cache_hit":true}}`,
 		},
 	}
 

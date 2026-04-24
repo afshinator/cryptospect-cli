@@ -216,9 +216,11 @@ NOTE: These schemas are likely to change as development progresses.
         meta       <varies>      // metadata, omitted when --detail basic
     }
 
-    NOTE: namespace and version are mandatory identity fields — non-pointer plain strings,
-    never omitted regardless of --detail level. A provider registering with empty namespace
-    or version is rejected at registration time.
+    NOTE: version is a mandatory identity field — non-pointer plain string,
+    never omitted regardless of --detail level. A provider registering with empty
+    version is rejected at registration time.
+    NOTE: namespace was removed in the fix for issue 4 — it was redundant
+    (all core metrics use namespace "cryptospect").
 
     CLIError {
         code             int       // HTTP status or custom code

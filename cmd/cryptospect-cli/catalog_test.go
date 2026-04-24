@@ -33,9 +33,6 @@ func TestCatalog_AllProvidersRegistered(t *testing.T) {
 			continue
 		}
 		def := p.Def()
-		if def.Namespace != metrics.CoreNamespace {
-			t.Errorf("%s: Namespace = %q, want %q", w.name, def.Namespace, metrics.CoreNamespace)
-		}
 		if def.Version != w.version {
 			t.Errorf("%s: Version = %q, want %q", w.name, def.Version, w.version)
 		}
