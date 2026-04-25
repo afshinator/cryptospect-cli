@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 
+	"github.com/afshinator/cryptospect-cli/internal/api"
 	"github.com/afshinator/cryptospect-cli/internal/config"
 	"github.com/afshinator/cryptospect-cli/internal/metrics"
 	"github.com/afshinator/cryptospect-cli/internal/output"
@@ -119,7 +121,30 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 
 func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, _ []string) error {
-		result, err := p.Compute(cmd.Context(), nil)
+		cfg, ok := config.FromContext(cmd.Context())
+		if !ok {
+			return fmt.Errorf("config not found in context")
+		}
+
+		fetcher, err := api.New(cfg.CacheDir(), &cfg)
+		if err != nil {
+			return fmt.Errorf("creating fetcher: %w", err)
+		}
+
+		def := p.Def()
+		data := make(map[string]json.RawMessage)
+
+		for _, endpointKey := range def.Endpoints {
+			fetched, _, err := fetcher.Fetch(cmd.Context(), endpointKey)
+			if err != nil {
+				slog.Debug("endpoint fetch failed, using unavailable", "endpoint", endpointKey, "error", err)
+				data[endpointKey] = nil
+				continue
+			}
+			data[endpointKey] = fetched
+		}
+
+		result, err := p.Compute(cmd.Context(), data)
 		if err != nil {
 			return err
 		}
