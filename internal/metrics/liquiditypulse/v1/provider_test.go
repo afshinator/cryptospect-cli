@@ -259,3 +259,37 @@ func TestCompute_StatusFromConfidence(t *testing.T) {
 		t.Errorf("Status = %q, want degraded (90%% discrepancy -> low confidence)", result.Status)
 	}
 }
+
+func TestCompute_FullDetailIncludesThresholds(t *testing.T) {
+	coingeckoData := api.CoinGeckoGlobalMarket
+
+	coinGeckoResp := json.RawMessage(`{
+		"data": {
+			"total_volume": {"usd": 1000000000},
+			"total_market_cap": {"usd": 8000000000}
+		}
+	}`)
+
+	dataMap := map[string]json.RawMessage{
+		coingeckoData: coinGeckoResp,
+	}
+
+	p := &Provider{}
+	result, err := p.Compute(context.Background(), dataMap)
+	if err != nil {
+		t.Fatalf("Compute returned error: %v", err)
+	}
+
+	if result.Meta == nil {
+		t.Fatal("Meta should not be nil")
+	}
+
+	var metaData map[string]interface{}
+	if err := json.Unmarshal(result.Meta, &metaData); err != nil {
+		t.Fatalf("failed to unmarshal meta: %v", err)
+	}
+
+	if _, hasConfidence := metaData["confidence"]; !hasConfidence {
+		t.Error("Meta should include confidence")
+	}
+}
