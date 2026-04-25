@@ -241,7 +241,7 @@ func TestCompute_StatusFromConfidence(t *testing.T) {
 		}
 	}`)
 
-	largeDiffResp := json.RawMessage(`[[0, "0", "0", "0", "0", "100000000", "0", "0", "0", "50000", "0", "0"]]`) // 90% diff -> low confidence
+	largeDiffResp := json.RawMessage(`[[0, "0", "0", "0", "0", "100000000", "0", "0", "0", "50000", "0", "0"]]`)
 
 	dataMap := map[string]json.RawMessage{
 		coingeckoData: coinGeckoResp,
@@ -254,7 +254,6 @@ func TestCompute_StatusFromConfidence(t *testing.T) {
 		t.Fatalf("Compute returned error: %v", err)
 	}
 
-	// With ~90% discrepancy, confidence should be "low" -> status should be "degraded"
 	if result.Status == "ok" {
 		t.Errorf("Status = %q, want degraded (90%% discrepancy -> low confidence)", result.Status)
 	}

@@ -13,22 +13,26 @@ import (
 	"github.com/afshinator/cryptospect-cli/internal/output"
 )
 
-const (
-	MetricName    = "liquidity-pulse"
-	MetricVersion = "v1.0.0"
-)
+// MetricName is the canonical name for this metric.
+const MetricName = "liquidity-pulse"
 
+// MetricVersion is the SemVer version of this metric provider.
+const MetricVersion = "v1.0.0"
+
+// Classification labels for the liquidity pulse metric.
 const (
 	ClassificationHigh   = "high"
 	ClassificationNormal = "normal"
 	ClassificationLow    = "low"
 )
 
+// Classification holds the categorical classification of the liquidity pulse metric.
 type Classification struct {
 	Label       string `json:"label"`
 	Description string `json:"description"`
 }
 
+// Data holds the computed liquidity pulse data.
 type Data struct {
 	VolumeToMcapRatio float64        `json:"volume_to_mcap_ratio"`
 	VolumeUSD         float64        `json:"volume_usd"`
@@ -56,6 +60,7 @@ func confidenceToFloat(conf string) float64 {
 	}
 }
 
+// Meta holds metadata about the metric computation.
 type Meta struct {
 	PrimarySource       string `json:"primary_source"`
 	ValidatorSource     string `json:"validator_source,omitempty"`
@@ -81,8 +86,10 @@ func summary(ratio float64, label string) string {
 
 func init() { metrics.MustRegister(&Provider{}) }
 
+// Provider implements metrics.MetricProvider for liquidity-pulse.
 type Provider struct{}
 
+// Def implements metrics.MetricProvider.
 func (p *Provider) Def() metrics.MetricDef {
 	return metrics.MetricDef{
 		Name:        MetricName,
@@ -94,6 +101,7 @@ func (p *Provider) Def() metrics.MetricDef {
 	}
 }
 
+// Compute implements metrics.MetricProvider.
 func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
 	globalData, ok := data[api.CoinGeckoGlobalMarket]
 	if !ok || len(globalData) == 0 {
