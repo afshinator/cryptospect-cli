@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/afshinator/cryptospect-cli/internal/api"
+	"github.com/afshinator/cryptospect-cli/internal/api/binance"
 	"github.com/afshinator/cryptospect-cli/internal/api/coingecko"
 	"github.com/afshinator/cryptospect-cli/internal/metrics"
 	"github.com/afshinator/cryptospect-cli/internal/output"
@@ -40,9 +42,18 @@ type Data struct {
 }
 
 const (
-	thresholdHigh   = 0.15
-	thresholdLow  = 0.05
+	thresholdHigh    = 0.15
+	thresholdLow    = 0.05
+	validationThreshold = 0.20
 )
+
+type Meta struct {
+	PrimarySource       string `json:"primary_source"`
+	ValidatorSource    string `json:"validator_source,omitempty"`
+	DiscrepancyDetected bool   `json:"discrepancy_detected,omitempty"`
+	DiscrepancyNote    string `json:"discrepancy_note,omitempty"`
+	Confidence         string `json:"confidence"`
+}
 
 func classify(ratio float64) Classification {
 	switch {
@@ -113,11 +124,39 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 		return p.unavailable(fmt.Sprintf("marshaling data: %v", err))
 	}
 
+	meta := Meta{
+		PrimarySource: "coingecko",
+		Confidence:    "high",
+	}
+
+	binanceData, hasValidator := data[api.BinanceSpotCVD_BTC_1h]
+	if hasValidator && len(binanceData) > 0 {
+		meta.ValidatorSource = "binance_us"
+		binanceVol, err := binance.ParseKlinesResponse(binanceData)
+		if err == nil && binanceVol.TotalVolume > 0 && volumeUSD > 0 {
+			discrepancy := math.Abs(binanceVol.TotalVolume-volumeUSD) / volumeUSD
+			if discrepancy > validationThreshold {
+				meta.DiscrepancyDetected = true
+				meta.DiscrepancyNote = fmt.Sprintf("Binance-US reported %.0f vs CoinGecko %.0f (%.0f%% different)",
+					binanceVol.TotalVolume, volumeUSD, discrepancy*100)
+				meta.Confidence = "low"
+			} else if discrepancy > validationThreshold/2 {
+				meta.Confidence = "medium"
+			}
+		}
+	}
+
+	metaJSON, err := json.Marshal(meta)
+	if err != nil {
+		return p.unavailable(fmt.Sprintf("marshaling meta: %v", err))
+	}
+
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
 		Status: "ok",
 		Data:   json.RawMessage(dJSON),
+		Meta:   json.RawMessage(metaJSON),
 	}, nil
 }
 

@@ -200,3 +200,32 @@ func TestCompute_ClassificationLow(t *testing.T) {
 			d.Classification.Label, ClassificationLow)
 	}
 }
+
+func TestCompute_WithValidator(t *testing.T) {
+	coingeckoData := api.CoinGeckoGlobalMarket
+	binanceData := api.BinanceSpotCVD_BTC_1h
+
+	coinGeckoResp := json.RawMessage(`{
+		"data": {
+			"total_volume": {"usd": 1000000000},
+			"total_market_cap": {"usd": 8000000000}
+		}
+	}`)
+
+	binanceResp := json.RawMessage(`[[0, "0", "0", "0", "0", "900000000", "0", "0", "0", "450000000", "0", "0"]]`)
+
+	dataMap := map[string]json.RawMessage{
+		coingeckoData: coinGeckoResp,
+		binanceData:  binanceResp,
+	}
+
+	p := &Provider{}
+	result, err := p.Compute(context.Background(), dataMap)
+	if err != nil {
+		t.Fatalf("Compute returned error: %v", err)
+	}
+
+	if result.Meta == nil {
+		t.Error("Meta should be present when validator data is provided")
+	}
+}
