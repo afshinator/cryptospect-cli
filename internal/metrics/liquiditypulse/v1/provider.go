@@ -13,46 +13,55 @@ import (
 	"github.com/afshinator/cryptospect-cli/internal/output"
 )
 
-// MetricName and MetricVersion identify this provider in the registry.
 const (
 	MetricName    = "liquidity-pulse"
 	MetricVersion = "v1.0.0"
 )
 
-// Classification labels for the liquidity pulse metric.
 const (
 	ClassificationHigh   = "high"
 	ClassificationNormal = "normal"
 	ClassificationLow    = "low"
 )
 
-// Classification holds the categorical classification of the liquidity pulse metric.
 type Classification struct {
 	Label       string `json:"label"`
 	Description string `json:"description"`
 }
 
-// Data holds the computed liquidity pulse data.
 type Data struct {
-	VolumeToMcapRatio float64        `json:"volume_to_mcap_ratio"`
-	VolumeUSD         float64        `json:"volume_usd"`
-	MarketCapUSD      float64        `json:"market_cap_usd"`
-	Classification    Classification `json:"classification"`
-	Summary           string         `json:"summary"`
+	VolumeToMcapRatio float64       `json:"volume_to_mcap_ratio"`
+	VolumeUSD         float64       `json:"volume_usd"`
+	MarketCapUSD     float64       `json:"market_cap_usd"`
+	Classification   Classification `json:"classification"`
+	Summary          string        `json:"summary"`
 }
 
 const (
-	thresholdHigh    = 0.15
-	thresholdLow    = 0.05
-	validationThreshold = 0.20
+	thresholdHigh        = 0.15
+	thresholdLow          = 0.05
+	validationThreshold  = 0.20
 )
+
+func confidenceToFloat(conf string) float64 {
+	switch conf {
+	case "high":
+		return 0.9
+	case "medium":
+		return 0.6
+	case "low":
+		return 0.3
+	default:
+		return 0.0
+	}
+}
 
 type Meta struct {
 	PrimarySource       string `json:"primary_source"`
-	ValidatorSource    string `json:"validator_source,omitempty"`
+	ValidatorSource  string `json:"validator_source,omitempty"`
 	DiscrepancyDetected bool   `json:"discrepancy_detected,omitempty"`
-	DiscrepancyNote    string `json:"discrepancy_note,omitempty"`
-	Confidence         string `json:"confidence"`
+	DiscrepancyNote  string `json:"discrepancy_note,omitempty"`
+	Confidence       string `json:"confidence"`
 }
 
 func classify(ratio float64) Classification {
@@ -72,10 +81,8 @@ func summary(ratio float64, label string) string {
 
 func init() { metrics.MustRegister(&Provider{}) }
 
-// Provider implements metrics.MetricProvider for liquidity-pulse.
 type Provider struct{}
 
-// Def implements metrics.MetricProvider.
 func (p *Provider) Def() metrics.MetricDef {
 	return metrics.MetricDef{
 		Name:        MetricName,
@@ -87,7 +94,6 @@ func (p *Provider) Def() metrics.MetricDef {
 	}
 }
 
-// Compute implements metrics.MetricProvider.
 func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
 	globalData, ok := data[api.CoinGeckoGlobalMarket]
 	if !ok || len(globalData) == 0 {
@@ -126,7 +132,7 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 
 	meta := Meta{
 		PrimarySource: "coingecko",
-		Confidence:    "high",
+		Confidence:   "high",
 	}
 
 	binanceData, hasValidator := data[api.BinanceSpotCVD_BTC_1h]
@@ -151,10 +157,13 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 		return p.unavailable(fmt.Sprintf("marshaling meta: %v", err))
 	}
 
+	thinData := marketCapUSD < 1e12
+	status := metrics.DetectStatus(confidenceToFloat(meta.Confidence), thinData)
+
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
-		Status: "ok",
+		Status: status,
 		Data:   json.RawMessage(dJSON),
 		Meta:   json.RawMessage(metaJSON),
 	}, nil

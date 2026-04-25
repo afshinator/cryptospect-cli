@@ -229,3 +229,33 @@ func TestCompute_WithValidator(t *testing.T) {
 		t.Error("Meta should be present when validator data is provided")
 	}
 }
+
+func TestCompute_StatusFromConfidence(t *testing.T) {
+	coingeckoData := api.CoinGeckoGlobalMarket
+	binanceData := api.BinanceSpotCVD_BTC_1h
+
+	coinGeckoResp := json.RawMessage(`{
+		"data": {
+			"total_volume": {"usd": 1000000000},
+			"total_market_cap": {"usd": 8000000000}
+		}
+	}`)
+
+	largeDiffResp := json.RawMessage(`[[0, "0", "0", "0", "0", "100000000", "0", "0", "0", "50000", "0", "0"]]`) // 90% diff -> low confidence
+
+	dataMap := map[string]json.RawMessage{
+		coingeckoData: coinGeckoResp,
+		binanceData:  largeDiffResp,
+	}
+
+	p := &Provider{}
+	result, err := p.Compute(context.Background(), dataMap)
+	if err != nil {
+		t.Fatalf("Compute returned error: %v", err)
+	}
+
+	// With ~90% discrepancy, confidence should be "low" -> status should be "degraded"
+	if result.Status == "ok" {
+		t.Errorf("Status = %q, want degraded (90%% discrepancy -> low confidence)", result.Status)
+	}
+}
