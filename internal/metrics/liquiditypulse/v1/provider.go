@@ -30,17 +30,17 @@ type Classification struct {
 }
 
 type Data struct {
-	VolumeToMcapRatio float64       `json:"volume_to_mcap_ratio"`
-	VolumeUSD         float64       `json:"volume_usd"`
-	MarketCapUSD     float64       `json:"market_cap_usd"`
-	Classification   Classification `json:"classification"`
-	Summary          string        `json:"summary"`
+	VolumeToMcapRatio float64        `json:"volume_to_mcap_ratio"`
+	VolumeUSD         float64        `json:"volume_usd"`
+	MarketCapUSD      float64        `json:"market_cap_usd"`
+	Classification    Classification `json:"classification"`
+	Summary           string         `json:"summary"`
 }
 
 const (
-	thresholdHigh        = 0.15
-	thresholdLow          = 0.05
-	validationThreshold  = 0.20
+	thresholdHigh       = 0.15
+	thresholdLow        = 0.05
+	validationThreshold = 0.20
 )
 
 func confidenceToFloat(conf string) float64 {
@@ -58,10 +58,10 @@ func confidenceToFloat(conf string) float64 {
 
 type Meta struct {
 	PrimarySource       string `json:"primary_source"`
-	ValidatorSource  string `json:"validator_source,omitempty"`
+	ValidatorSource     string `json:"validator_source,omitempty"`
 	DiscrepancyDetected bool   `json:"discrepancy_detected,omitempty"`
-	DiscrepancyNote  string `json:"discrepancy_note,omitempty"`
-	Confidence       string `json:"confidence"`
+	DiscrepancyNote     string `json:"discrepancy_note,omitempty"`
+	Confidence          string `json:"confidence"`
 }
 
 func classify(ratio float64) Classification {
@@ -122,8 +122,8 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 		VolumeToMcapRatio: ratio,
 		VolumeUSD:         volumeUSD,
 		MarketCapUSD:      marketCapUSD,
-		Classification:   classification,
-		Summary:          summaryStr,
+		Classification:    classification,
+		Summary:           summaryStr,
 	}
 	dJSON, err := json.Marshal(d)
 	if err != nil {
@@ -132,7 +132,7 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 
 	meta := Meta{
 		PrimarySource: "coingecko",
-		Confidence:   "high",
+		Confidence:    "high",
 	}
 
 	binanceData, hasValidator := data[api.BinanceSpotCVD_BTC_1h]
@@ -163,9 +163,9 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
-		Status: status,
-		Data:   json.RawMessage(dJSON),
-		Meta:   json.RawMessage(metaJSON),
+		Status:  status,
+		Data:    json.RawMessage(dJSON),
+		Meta:    json.RawMessage(metaJSON),
 	}, nil
 }
 
@@ -174,7 +174,7 @@ func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
-		Status: "unavailable",
-		Data:   json.RawMessage(errMsg),
+		Status:  "unavailable",
+		Data:    json.RawMessage(errMsg),
 	}, nil
 }

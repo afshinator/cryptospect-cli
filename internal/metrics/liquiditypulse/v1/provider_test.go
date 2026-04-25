@@ -216,7 +216,7 @@ func TestCompute_WithValidator(t *testing.T) {
 
 	dataMap := map[string]json.RawMessage{
 		coingeckoData: coinGeckoResp,
-		binanceData:  binanceResp,
+		binanceData:   binanceResp,
 	}
 
 	p := &Provider{}
@@ -245,7 +245,7 @@ func TestCompute_StatusFromConfidence(t *testing.T) {
 
 	dataMap := map[string]json.RawMessage{
 		coingeckoData: coinGeckoResp,
-		binanceData:  largeDiffResp,
+		binanceData:   largeDiffResp,
 	}
 
 	p := &Provider{}
