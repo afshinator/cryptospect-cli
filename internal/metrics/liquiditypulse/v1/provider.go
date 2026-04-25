@@ -49,7 +49,7 @@ func (p *Provider) Def() metrics.MetricDef {
 		Namespace:   metrics.CoreNamespace,
 		Version:     MetricVersion,
 		Aliases:     []string{"lp"},
-		Endpoints:   []string{api.CoinGeckoGlobalMarket},
+		Endpoints:   []string{api.CoinGeckoGlobalMarket, api.BinanceSpotCVD_BTC_1h},
 		Description: "Measures the ratio of 24h trading volume to market cap.",
 	}
 }

@@ -23,6 +23,9 @@ func TestProvider_Def(t *testing.T) {
 	if len(def.Endpoints) == 0 {
 		t.Error("Endpoints must not be empty")
 	}
+	if len(def.Endpoints) != 2 {
+		t.Errorf("Endpoints len = %d, want 2 (primary + validator)", len(def.Endpoints))
+	}
 }
 
 func TestProvider_Compute_ReturnsUnavailable(t *testing.T) {
