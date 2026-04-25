@@ -15,6 +15,28 @@ const (
 	MetricVersion = "v1.0.0"
 )
 
+// Classification labels for the liquidity pulse metric.
+const (
+	ClassificationHigh   = "high"
+	ClassificationNormal = "normal"
+	ClassificationLow    = "low"
+)
+
+// Classification holds the categorical classification of the liquidity pulse metric.
+type Classification struct {
+	Label       string `json:"label"`
+	Description string `json:"description"`
+}
+
+// Data holds the computed liquidity pulse data.
+type Data struct {
+	VolumeToMcapRatio float64        `json:"volume_to_mcap_ratio"`
+	VolumeUSD         float64        `json:"volume_usd"`
+	MarketCapUSD      float64        `json:"market_cap_usd"`
+	Classification    Classification `json:"classification"`
+	Summary           string         `json:"summary"`
+}
+
 func init() { metrics.MustRegister(&Provider{}) }
 
 // Provider implements metrics.MetricProvider for liquidity-pulse.

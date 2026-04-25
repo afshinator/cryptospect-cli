@@ -52,3 +52,43 @@ func TestProvider_RegisteredOnInit(t *testing.T) {
 		t.Errorf("Name = %q, want %q", p.Def().Name, MetricName)
 	}
 }
+
+func TestClassification_Labels(t *testing.T) {
+	if ClassificationHigh != "high" {
+		t.Errorf("ClassificationHigh = %q, want %q", ClassificationHigh, "high")
+	}
+	if ClassificationNormal != "normal" {
+		t.Errorf("ClassificationNormal = %q, want %q", ClassificationNormal, "normal")
+	}
+	if ClassificationLow != "low" {
+		t.Errorf("ClassificationLow = %q, want %q", ClassificationLow, "low")
+	}
+}
+
+func TestData_Fields(t *testing.T) {
+	d := Data{
+		VolumeToMcapRatio: 0.123,
+		VolumeUSD:         1_000_000_000,
+		MarketCapUSD:      8_000_000_000,
+		Classification: Classification{
+			Label:       ClassificationNormal,
+			Description: "Healthy market",
+		},
+		Summary: "test summary",
+	}
+	if d.VolumeToMcapRatio != 0.123 {
+		t.Errorf("VolumeToMcapRatio = %v, want 0.123", d.VolumeToMcapRatio)
+	}
+	if d.VolumeUSD != 1_000_000_000 {
+		t.Errorf("VolumeUSD = %v, want 1_000_000_000", d.VolumeUSD)
+	}
+	if d.MarketCapUSD != 8_000_000_000 {
+		t.Errorf("MarketCapUSD = %v, want 8_000_000_000", d.MarketCapUSD)
+	}
+	if d.Classification.Label != ClassificationNormal {
+		t.Errorf("Classification.Label = %q, want %q", d.Classification.Label, ClassificationNormal)
+	}
+	if d.Summary != "test summary" {
+		t.Errorf("Summary = %q, want %q", d.Summary, "test summary")
+	}
+}
