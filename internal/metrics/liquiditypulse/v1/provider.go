@@ -34,11 +34,11 @@ type Classification struct {
 
 // Data holds the computed liquidity pulse data.
 type Data struct {
-	VolumeToMcapRatio float64        `json:"volume_to_mcap_ratio"`
-	VolumeUSD         float64        `json:"volume_usd"`
-	MarketCapUSD      float64        `json:"market_cap_usd"`
-	Classification    Classification `json:"classification"`
-	Summary           string         `json:"summary"`
+	VolumeToMcapRatio metrics.MetricFloat `json:"volume_to_mcap_ratio"`
+	VolumeUSD         metrics.MetricFloat `json:"volume_usd"`
+	MarketCapUSD      metrics.MetricFloat `json:"market_cap_usd"`
+	Classification    Classification      `json:"classification"`
+	Summary           string              `json:"summary"`
 }
 
 const (
@@ -127,9 +127,9 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 	summaryStr := summary(ratio, classification.Label)
 
 	d := Data{
-		VolumeToMcapRatio: ratio,
-		VolumeUSD:         volumeUSD,
-		MarketCapUSD:      marketCapUSD,
+		VolumeToMcapRatio: metrics.Ratio(ratio),
+		VolumeUSD:         metrics.Currency(volumeUSD),
+		MarketCapUSD:      metrics.Currency(marketCapUSD),
 		Classification:    classification,
 		Summary:           summaryStr,
 	}
@@ -147,15 +147,29 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 	if hasValidator && len(binanceData) > 0 {
 		meta.ValidatorSource = "binance_us"
 		binanceVol, err := binance.ParseKlinesResponse(binanceData)
-		if err == nil && binanceVol.TotalVolume > 0 && volumeUSD > 0 {
-			discrepancy := math.Abs(binanceVol.TotalVolume-volumeUSD) / volumeUSD
-			if discrepancy > validationThreshold {
-				meta.DiscrepancyDetected = true
-				meta.DiscrepancyNote = fmt.Sprintf("Binance-US reported %.0f vs CoinGecko %.0f (%.0f%% different)",
-					binanceVol.TotalVolume, volumeUSD, discrepancy*100)
-				meta.Confidence = "low"
-			} else if discrepancy > validationThreshold/2 {
-				meta.Confidence = "medium"
+		switch {
+		case err != nil:
+			meta.DiscrepancyDetected = true
+			meta.DiscrepancyNote = fmt.Sprintf("failed to parse Binance response: %v", err)
+			meta.Confidence = "medium"
+		case binanceVol.TotalVolume == 0:
+			meta.DiscrepancyNote = "Binance kline just opened, no volume yet"
+			meta.Confidence = "high"
+		case binanceVol.TotalVolume < 1.0:
+			meta.DiscrepancyNote = "Binance kline just opened, no significant volume"
+			meta.Confidence = "high"
+		default:
+			if volumeUSD > 0 {
+				discrepancy := math.Abs(binanceVol.TotalVolume-volumeUSD) / volumeUSD
+				switch {
+				case discrepancy > validationThreshold:
+					meta.DiscrepancyDetected = true
+					meta.DiscrepancyNote = fmt.Sprintf("Binance-US reported %.0f vs CoinGecko %.0f (%.0f%% different)",
+						binanceVol.TotalVolume, volumeUSD, discrepancy*100)
+					meta.Confidence = "low"
+				case discrepancy > validationThreshold/2:
+					meta.Confidence = "medium"
+				}
 			}
 		}
 	}

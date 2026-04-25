@@ -72,23 +72,23 @@ func TestClassification_Labels(t *testing.T) {
 
 func TestData_Fields(t *testing.T) {
 	d := Data{
-		VolumeToMcapRatio: 0.123,
-		VolumeUSD:         1_000_000_000,
-		MarketCapUSD:      8_000_000_000,
+		VolumeToMcapRatio: metrics.Ratio(0.123),
+		VolumeUSD:         metrics.Currency(1_000_000_000),
+		MarketCapUSD:      metrics.Currency(8_000_000_000),
 		Classification: Classification{
 			Label:       ClassificationNormal,
 			Description: "Healthy market",
 		},
 		Summary: "test summary",
 	}
-	if d.VolumeToMcapRatio != 0.123 {
-		t.Errorf("VolumeToMcapRatio = %v, want 0.123", d.VolumeToMcapRatio)
+	if d.VolumeToMcapRatio.Value() != 0.123 {
+		t.Errorf("VolumeToMcapRatio = %v, want 0.123", d.VolumeToMcapRatio.Value())
 	}
-	if d.VolumeUSD != 1_000_000_000 {
-		t.Errorf("VolumeUSD = %v, want 1_000_000_000", d.VolumeUSD)
+	if d.VolumeUSD.Value() != 1_000_000_000 {
+		t.Errorf("VolumeUSD = %v, want 1_000_000_000", d.VolumeUSD.Value())
 	}
-	if d.MarketCapUSD != 8_000_000_000 {
-		t.Errorf("MarketCapUSD = %v, want 8_000_000_000", d.MarketCapUSD)
+	if d.MarketCapUSD.Value() != 8_000_000_000 {
+		t.Errorf("MarketCapUSD = %v, want 8_000_000_000", d.MarketCapUSD.Value())
 	}
 	if d.Classification.Label != ClassificationNormal {
 		t.Errorf("Classification.Label = %q, want %q", d.Classification.Label, ClassificationNormal)
@@ -125,15 +125,15 @@ func TestCompute_RatioAndClassification(t *testing.T) {
 		t.Fatalf("failed to unmarshal Data: %v", err)
 	}
 
-	expectedRatio := 0.125
-	if d.VolumeToMcapRatio != expectedRatio {
-		t.Errorf("VolumeToMcapRatio = %v, want %v", d.VolumeToMcapRatio, expectedRatio)
+	expectedRatio := metrics.Ratio(0.125)
+	if d.VolumeToMcapRatio.Value() != expectedRatio.Value() {
+		t.Errorf("VolumeToMcapRatio = %v, want %v", d.VolumeToMcapRatio.Value(), expectedRatio.Value())
 	}
-	if d.VolumeUSD != 1_000_000_000 {
-		t.Errorf("VolumeUSD = %v, want 1000000000", d.VolumeUSD)
+	if d.VolumeUSD.Value() != 1_000_000_000 {
+		t.Errorf("VolumeUSD = %v, want 1000000000", d.VolumeUSD.Value())
 	}
-	if d.MarketCapUSD != 8_000_000_000 {
-		t.Errorf("MarketCapUSD = %v, want 8000000000", d.MarketCapUSD)
+	if d.MarketCapUSD.Value() != 8_000_000_000 {
+		t.Errorf("MarketCapUSD = %v, want 8000000000", d.MarketCapUSD.Value())
 	}
 	if d.Classification.Label != ClassificationNormal {
 		t.Errorf("Classification.Label = %q, want %q (0.125 is in normal range 0.05-0.15)",
