@@ -3,8 +3,10 @@ package v1
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/afshinator/cryptospect-cli/internal/api"
+	"github.com/afshinator/cryptospect-cli/internal/api/coingecko"
 	"github.com/afshinator/cryptospect-cli/internal/metrics"
 	"github.com/afshinator/cryptospect-cli/internal/output"
 )
@@ -37,6 +39,26 @@ type Data struct {
 	Summary           string         `json:"summary"`
 }
 
+const (
+	thresholdHigh   = 0.15
+	thresholdLow  = 0.05
+)
+
+func classify(ratio float64) Classification {
+	switch {
+	case ratio >= thresholdHigh:
+		return Classification{Label: ClassificationHigh, Description: "Strong short-term conviction"}
+	case ratio >= thresholdLow:
+		return Classification{Label: ClassificationNormal, Description: "Healthy market"}
+	default:
+		return Classification{Label: ClassificationLow, Description: "Low conviction"}
+	}
+}
+
+func summary(ratio float64, label string) string {
+	return fmt.Sprintf("Volume/MCap: %05.2f%% | Conviction: %s", ratio*100, label)
+}
+
 func init() { metrics.MustRegister(&Provider{}) }
 
 // Provider implements metrics.MetricProvider for liquidity-pulse.
@@ -55,12 +77,56 @@ func (p *Provider) Def() metrics.MetricDef {
 }
 
 // Compute implements metrics.MetricProvider.
-func (p *Provider) Compute(_ context.Context, _ map[string]json.RawMessage) (output.MetricResult, error) {
-	msg, _ := json.Marshal(map[string]string{"error": "metric not yet implemented: " + MetricName})
+func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
+	globalData, ok := data[api.CoinGeckoGlobalMarket]
+	if !ok || len(globalData) == 0 {
+		return p.unavailable("missing primary endpoint data")
+	}
+
+	parsed, err := coingecko.ParseGlobalResponse(globalData)
+	if err != nil {
+		return p.unavailable(fmt.Sprintf("parsing primary data: %v", err))
+	}
+
+	volumeUSD, ok := parsed.GetVolumeUSD()
+	if !ok {
+		return p.unavailable("volume usd not in response")
+	}
+	marketCapUSD, ok := parsed.GetMarketCapUSD()
+	if !ok || marketCapUSD == 0 {
+		return p.unavailable("market_cap usd not in response or zero")
+	}
+
+	ratio := volumeUSD / marketCapUSD
+	classification := classify(ratio)
+	summaryStr := summary(ratio, classification.Label)
+
+	d := Data{
+		VolumeToMcapRatio: ratio,
+		VolumeUSD:         volumeUSD,
+		MarketCapUSD:      marketCapUSD,
+		Classification:   classification,
+		Summary:          summaryStr,
+	}
+	dJSON, err := json.Marshal(d)
+	if err != nil {
+		return p.unavailable(fmt.Sprintf("marshaling data: %v", err))
+	}
+
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
-		Status:  "unavailable",
-		Data:    json.RawMessage(msg),
+		Status: "ok",
+		Data:   json.RawMessage(dJSON),
+	}, nil
+}
+
+func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
+	errMsg, _ := json.Marshal(map[string]string{"error": msg})
+	return output.MetricResult{
+		Metric:  MetricName,
+		Version: MetricVersion,
+		Status: "unavailable",
+		Data:   json.RawMessage(errMsg),
 	}, nil
 }

@@ -2,8 +2,10 @@ package v1
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
+	"github.com/afshinator/cryptospect-cli/internal/api"
 	"github.com/afshinator/cryptospect-cli/internal/metrics"
 )
 
@@ -93,5 +95,108 @@ func TestData_Fields(t *testing.T) {
 	}
 	if d.Summary != "test summary" {
 		t.Errorf("Summary = %q, want %q", d.Summary, "test summary")
+	}
+}
+
+func TestCompute_RatioAndClassification(t *testing.T) {
+	coingeckoData := api.CoinGeckoGlobalMarket
+	coinGeckoResp := json.RawMessage(`{
+		"data": {
+			"total_volume": {"usd": 1000000000},
+			"total_market_cap": {"usd": 8000000000}
+		}
+	}`)
+
+	dataMap := map[string]json.RawMessage{
+		coingeckoData: coinGeckoResp,
+	}
+
+	p := &Provider{}
+	result, err := p.Compute(context.Background(), dataMap)
+	if err != nil {
+		t.Fatalf("Compute returned unexpected error: %v", err)
+	}
+	if result.Status == "unavailable" {
+		t.Error("Compute should return data, not unavailable")
+	}
+
+	var d Data
+	if err := json.Unmarshal(result.Data, &d); err != nil {
+		t.Fatalf("failed to unmarshal Data: %v", err)
+	}
+
+	expectedRatio := 0.125
+	if d.VolumeToMcapRatio != expectedRatio {
+		t.Errorf("VolumeToMcapRatio = %v, want %v", d.VolumeToMcapRatio, expectedRatio)
+	}
+	if d.VolumeUSD != 1_000_000_000 {
+		t.Errorf("VolumeUSD = %v, want 1000000000", d.VolumeUSD)
+	}
+	if d.MarketCapUSD != 8_000_000_000 {
+		t.Errorf("MarketCapUSD = %v, want 8000000000", d.MarketCapUSD)
+	}
+	if d.Classification.Label != ClassificationNormal {
+		t.Errorf("Classification.Label = %q, want %q (0.125 is in normal range 0.05-0.15)",
+			d.Classification.Label, ClassificationNormal)
+	}
+}
+
+func TestCompute_ClassificationHigh(t *testing.T) {
+	coingeckoData := api.CoinGeckoGlobalMarket
+	highVolResp := json.RawMessage(`{
+		"data": {
+			"total_volume": {"usd": 1600000000},
+			"total_market_cap": {"usd": 8000000000}
+		}
+	}`)
+
+	dataMap := map[string]json.RawMessage{
+		coingeckoData: highVolResp,
+	}
+
+	p := &Provider{}
+	result, err := p.Compute(context.Background(), dataMap)
+	if err != nil {
+		t.Fatalf("Compute returned error: %v", err)
+	}
+
+	var d Data
+	if err := json.Unmarshal(result.Data, &d); err != nil {
+		t.Fatalf("failed to unmarshal Data: %v", err)
+	}
+
+	if d.Classification.Label != ClassificationHigh {
+		t.Errorf("Classification.Label = %q, want %q (0.20 >= 0.15 is high)",
+			d.Classification.Label, ClassificationHigh)
+	}
+}
+
+func TestCompute_ClassificationLow(t *testing.T) {
+	coingeckoData := api.CoinGeckoGlobalMarket
+	lowVolResp := json.RawMessage(`{
+		"data": {
+			"total_volume": {"usd": 300000000},
+			"total_market_cap": {"usd": 8000000000}
+		}
+	}`)
+
+	dataMap := map[string]json.RawMessage{
+		coingeckoData: lowVolResp,
+	}
+
+	p := &Provider{}
+	result, err := p.Compute(context.Background(), dataMap)
+	if err != nil {
+		t.Fatalf("Compute returned error: %v", err)
+	}
+
+	var d Data
+	if err := json.Unmarshal(result.Data, &d); err != nil {
+		t.Fatalf("failed to unmarshal Data: %v", err)
+	}
+
+	if d.Classification.Label != ClassificationLow {
+		t.Errorf("Classification.Label = %q, want %q (0.0375 < 0.05 is low)",
+			d.Classification.Label, ClassificationLow)
 	}
 }
