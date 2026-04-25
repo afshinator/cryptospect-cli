@@ -338,7 +338,29 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - **Top‑level:** `CLIResponse { status, ts, results[], error? }`
 - **Per‑metric:** `MetricResult { metric, status, data, meta? }`
 - **Metadata:** `MetaBasic` (cache_hit, ttl_remaining), `MetaExtended` (+ sources), `MetaFull` (+ thresholds, description)
-- **Envelope behavior:** Single‑metric commands return `Results` with one element. `--detail basic` → `Meta` omitted; `extended` → `MetaExtended`; `full` → `MetaFull`
+- **Envelope behavior:** Single‑metric commands return `Results` with one element.
+
+### Detail Level Standard
+
+| Level | Meta Fields | Description |
+|-------|-----------|-------------|
+| `basic` | (omitted) | Minimal response |
+| `extended` | primary_source, validator_source, confidence, discrepancy_note | Essential validation info |
+| `full` | + thresholds, description | Full context for calibration |
+
+**Field definitions:**
+- `primary_source`: API used for primary metric computation
+- `validator_source`: Optional secondary API used for validation
+- `confidence`: Metric confidence level ("high", "medium", "low")
+- `discrepancy_note`: Note about validation mismatches
+- `thresholds`: Map of threshold values used (e.g., {"high": 0.15, "low": 0.05})
+- `description`: Human-readable description of methodology
+
+**Override rule:** Metrics may include additional fields or deviate from this standard when necessary. Document inline with comment explaining deviation.
+
+- **--detail basic** → `Meta` omitted entirely
+- **--detail extended** → `MetaExtended` (primary + validation + confidence)
+- **--detail full** → `MetaFull` (+ thresholds + description)
 
 ### 3. Metrics Package Structure
 - **Location:** `internal/metrics/<name>/v1/`

@@ -62,11 +62,13 @@ func confidenceToFloat(conf string) float64 {
 
 // Meta holds metadata about the metric computation.
 type Meta struct {
-	PrimarySource       string `json:"primary_source"`
-	ValidatorSource     string `json:"validator_source,omitempty"`
-	DiscrepancyDetected bool   `json:"discrepancy_detected,omitempty"`
-	DiscrepancyNote     string `json:"discrepancy_note,omitempty"`
-	Confidence          string `json:"confidence"`
+	PrimarySource       string             `json:"primary_source"`
+	ValidatorSource     string             `json:"validator_source,omitempty"`
+	DiscrepancyDetected bool               `json:"discrepancy_detected,omitempty"`
+	DiscrepancyNote     string             `json:"discrepancy_note,omitempty"`
+	Confidence          string             `json:"confidence"`
+	Thresholds          map[string]float64 `json:"thresholds,omitempty"`
+	Description         string             `json:"description,omitempty"`
 }
 
 func classify(ratio float64) Classification {
@@ -173,6 +175,15 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 			}
 		}
 	}
+
+	// Add thresholds and description for full detail level
+	meta.Thresholds = map[string]float64{
+		"high": thresholdHigh,
+		"low":  thresholdLow,
+	}
+	meta.Description = "Liquidity pulse measures 24h trading volume as ratio of total market cap. " +
+		"High values (>15%) indicate strong short-term conviction; " +
+		"Low values (<5%) suggest accumulation phase or low conviction."
 
 	metaJSON, err := json.Marshal(meta)
 	if err != nil {

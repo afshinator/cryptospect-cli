@@ -160,6 +160,26 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 		if err != nil {
 			return err
 		}
+
+		// Filter meta based on detail level
+		detailLevel, _ := config.DetailFromContext(cmd.Context())
+		switch detailLevel {
+		case "basic":
+			result.Meta = nil
+		case "extended":
+			// Filter out thresholds and description for extended level
+			if result.Meta != nil {
+				var meta map[string]interface{}
+				if err := json.Unmarshal(result.Meta, &meta); err == nil {
+					// Remove full-detail fields
+					delete(meta, "thresholds")
+					delete(meta, "description")
+					filtered, _ := json.Marshal(meta)
+					result.Meta = filtered
+				}
+			}
+		}
+
 		return output.WriteSuccess([]output.MetricResult{result})
 	}
 }
