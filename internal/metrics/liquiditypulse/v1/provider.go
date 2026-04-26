@@ -83,7 +83,7 @@ func classify(ratio float64) Classification {
 }
 
 func summary(ratio float64, label string) string {
-	return fmt.Sprintf("Volume/MCap: %05.2f%% | Conviction: %s", ratio*100, label)
+	return fmt.Sprintf("Volume/MCap: %5.2f%% | Conviction: %s", ratio*100, label)
 }
 
 func init() { metrics.MustRegister(&Provider{}) }
