@@ -14,16 +14,15 @@ Brief summary of what this metric measures (derived from Long Description).
 {mathematical formula}
 ```
 
-## Interpretation (ranges, domain of computed results)
+## Interpretation
 
-What different values mean for trading decisions.
+What different values mean for trading decisions. This section provides context for how agents should use the metric in trading logic.
 
+## Classification
 
-## Classification (might be simply same as interpretation)
-
-| Condition | Threshold | Meaning |
-|-----------|-----------|---------|
-| `{Label}` | `{>= or <= value}` | `{explanation}` |
+| Condition | Threshold |
+|-----------|-----------|
+| `{Label}` | `{>= or <= value}` |
 
 
 ## Data Source(s)

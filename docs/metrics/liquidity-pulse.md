@@ -22,11 +22,11 @@ liquidity_pulse = total_volume_usd / total_market_cap_usd
 
 ## Classification
 
-| Condition | Threshold | Meaning |
-|-----------|-----------|---------|
-| High | >= 0.15 | Strong short-term conviction |
-| Normal | 0.05 - 0.15 | Healthy market |
-| Low | < 0.05 | Low conviction / accumulation |
+| Condition | Threshold |
+|-----------|-----------|
+| High | >= 0.15 |
+| Normal | 0.05 - 0.15 |
+| Low | < 0.05 |
 
 ## Data Source
 
