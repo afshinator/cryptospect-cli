@@ -27,6 +27,7 @@ func TestResolveURL(t *testing.T) {
 		{CoinGeckoCoinMarketsBreadth, false},
 		{CoinGeckoCoinMarketsMomentum, false},
 		{BinanceSpotCVD_BTC_1h, false},
+		{DefiLlamaStablecoins, false},
 		{CoinDeskAssetTopList, true},
 		{CoinMetricsCommunity, true},
 		{"unknown.provider", true},
@@ -61,6 +62,7 @@ func TestResolveTTL(t *testing.T) {
 			TTL: map[string]int{
 				"coingecko_global_market": 123,
 				"binance_spot_cvd_btc_1h": 456,
+				"defillama_stablecoins":   3600,
 			},
 		},
 	}
@@ -76,6 +78,7 @@ func TestResolveTTL(t *testing.T) {
 		{CoinGeckoCoinMarketsBreadth, 300},  // default
 		{CoinGeckoCoinMarketsMomentum, 300}, // default
 		{BinanceSpotCVD_BTC_1h, 456},        // underscore key matches config
+		{DefiLlamaStablecoins, 3600},        // explicit config value (see below)
 		{CoinDeskAssetTopList, 300},         // default
 		{CoinMetricsCommunity, 300},         // default
 		{"unknown.provider", 300},           // default

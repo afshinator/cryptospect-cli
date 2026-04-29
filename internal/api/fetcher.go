@@ -11,6 +11,7 @@ import (
 
 	"github.com/afshinator/cryptospect-cli/internal/api/binance"
 	"github.com/afshinator/cryptospect-cli/internal/api/coingecko"
+	"github.com/afshinator/cryptospect-cli/internal/api/defillama"
 	"github.com/afshinator/cryptospect-cli/internal/cache"
 	"github.com/afshinator/cryptospect-cli/internal/config"
 	"github.com/afshinator/cryptospect-cli/internal/httpclient"
@@ -211,6 +212,8 @@ func (f *Fetcher) resolveURL(endpointKey string) (string, error) {
 		return coingecko.CoinMarketsMomentumURL(250), nil
 	case BinanceSpotCVD_BTC_1h:
 		return binance.KlinesURL("BTCUSDT", "1h", 1), nil
+	case DefiLlamaStablecoins:
+		return defillama.StablecoinsURL(), nil
 	case CoinDeskAssetTopList:
 		return "", fmt.Errorf("coindesk client not yet implemented")
 	case CoinMetricsCommunity:
@@ -250,6 +253,8 @@ func (f *Fetcher) apiKey(provider string) string {
 		return f.config.APIs.CoinGecko.APIKey
 	case "binance":
 		return f.config.APIs.Binance.APIKey
+	case "defillama":
+		return "" // keyless — no API key required
 	default:
 		return ""
 	}

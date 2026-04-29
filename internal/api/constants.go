@@ -20,6 +20,10 @@ const (
 
 	// CoinMetricsCommunity is the endpoint key for CoinMetrics community data.
 	CoinMetricsCommunity = "coinmetrics.community"
+
+	// DefiLlamaStablecoins is the endpoint key for the DefiLlama stablecoins snapshot.
+	// Returns per-asset circulating supply (current + prev week) for all tracked stablecoins.
+	DefiLlamaStablecoins = "defillama.stablecoins"
 )
 
 // AllEndpoints returns a slice of all known endpoint keys.
@@ -33,5 +37,6 @@ func AllEndpoints() []string {
 		BinanceSpotCVD_BTC_1h,
 		CoinDeskAssetTopList,
 		CoinMetricsCommunity,
+		DefiLlamaStablecoins,
 	}
 }
