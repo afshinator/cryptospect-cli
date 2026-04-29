@@ -15,6 +15,7 @@ type contextKey int
 const (
 	configContextKey contextKey = iota
 	detailContextKey
+	topNContextKey
 )
 
 // StoreInContext returns a new context carrying cfg.
@@ -37,6 +38,19 @@ func StoreDetailInContext(ctx context.Context, detail string) context.Context {
 func DetailFromContext(ctx context.Context) (string, bool) {
 	detail, ok := ctx.Value(detailContextKey).(string)
 	return detail, ok
+}
+
+// StoreTopNInContext returns a new context carrying the --top flag value for
+// metrics that accept a per-invocation count (e.g. stablecoin-power --top N).
+func StoreTopNInContext(ctx context.Context, n int) context.Context {
+	return context.WithValue(ctx, topNContextKey, n)
+}
+
+// TopNFromContext retrieves the top-N value stored by StoreTopNInContext.
+// Returns (0, false) when no value has been stored.
+func TopNFromContext(ctx context.Context) (int, bool) {
+	n, ok := ctx.Value(topNContextKey).(int)
+	return n, ok
 }
 
 // resolveConfigPath returns the first existing file with .yaml or .yml extension,
@@ -66,7 +80,21 @@ type Config struct {
 	APIs            APIsConfig        `mapstructure:"apis"`
 	Cache           CacheConfig       `mapstructure:"cache"`
 	Output          OutputConfig      `mapstructure:"output"`
+	Metrics         MetricsConfig     `mapstructure:"metrics"`
 	SourceOverrides map[string]string `mapstructure:"source_overrides"`
+}
+
+// MetricsConfig holds per-metric configuration overrides.
+type MetricsConfig struct {
+	StablecoinPower StablecoinPowerConfig `mapstructure:"stablecoin_power"`
+}
+
+// StablecoinPowerConfig holds configuration specific to the stablecoin-power metric.
+type StablecoinPowerConfig struct {
+	// StablecoinIDs is the ordered list of CoinGecko coin IDs included in the
+	// stablecoin supply numerator. When empty, the provider falls back to the
+	// built-in SPPStableIDs list in the coingecko package.
+	StablecoinIDs []string `mapstructure:"stablecoin_ids"`
 }
 
 // APIsConfig holds API key configuration for each provider.
@@ -222,6 +250,22 @@ cache:
 output:
   format: "json" # only "json" supported
   pretty: false  # pretty-print JSON
+
+# Per-metric configuration
+metrics:
+  stablecoin_power:
+    # stablecoin_ids: list of CoinGecko coin IDs included in the stable supply numerator.
+    # Default (when omitted): built-in list of top-18 stablecoins by market cap.
+    # Override to track a custom set or add newly launched stablecoins.
+    # stablecoin_ids:
+    #   - tether
+    #   - usd-coin
+    #   - usds
+    #   - ethena-usde
+    #   - dai
+    #   - paypal-usd
+    #   - usd1-wlfi
+    #   - falcon-finance
 
 # Source mapping overrides
 source_overrides:

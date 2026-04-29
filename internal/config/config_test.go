@@ -341,6 +341,78 @@ func TestLoadWithViperFlagPrecedence(t *testing.T) {
 	}
 }
 
+// --- TopN context helpers (sp-4) ---
+
+func TestStoreAndTopNFromContext(t *testing.T) {
+	ctx := StoreTopNInContext(context.Background(), 12)
+	got, ok := TopNFromContext(ctx)
+	if !ok {
+		t.Fatal("TopNFromContext returned ok=false")
+	}
+	if got != 12 {
+		t.Errorf("TopN = %d, want 12", got)
+	}
+}
+
+func TestTopNFromContext_Missing(t *testing.T) {
+	_, ok := TopNFromContext(context.Background())
+	if ok {
+		t.Error("TopNFromContext on empty context should return ok=false")
+	}
+}
+
+func TestTopNFromContext_Zero(t *testing.T) {
+	// Zero is a valid stored value (distinguishable from missing via ok).
+	ctx := StoreTopNInContext(context.Background(), 0)
+	got, ok := TopNFromContext(ctx)
+	if !ok {
+		t.Fatal("TopNFromContext returned ok=false for stored zero")
+	}
+	if got != 0 {
+		t.Errorf("TopN = %d, want 0", got)
+	}
+}
+
+// --- Metrics config (sp-4) ---
+
+func TestLoadStablecoinPowerIDs(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	content := `
+metrics:
+  stablecoin_power:
+    stablecoin_ids:
+      - tether
+      - usd-coin
+      - dai
+`
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	ids := cfg.Metrics.StablecoinPower.StablecoinIDs
+	if len(ids) != 3 {
+		t.Fatalf("StablecoinIDs: want 3, got %d: %v", len(ids), ids)
+	}
+	if ids[0] != "tether" || ids[1] != "usd-coin" || ids[2] != "dai" {
+		t.Errorf("StablecoinIDs = %v, want [tether usd-coin dai]", ids)
+	}
+}
+
+func TestDefaultStablecoinPowerIDs(t *testing.T) {
+	// When not set, StablecoinIDs should be nil/empty (provider falls back to hardcoded list).
+	cfg, err := Load("/nonexistent")
+	if err != nil {
+		t.Fatalf("Load failed: %v", err)
+	}
+	if len(cfg.Metrics.StablecoinPower.StablecoinIDs) != 0 {
+		t.Errorf("default StablecoinIDs should be empty, got %v", cfg.Metrics.StablecoinPower.StablecoinIDs)
+	}
+}
+
 func TestWrite(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yaml")

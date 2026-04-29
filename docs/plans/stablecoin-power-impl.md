@@ -63,8 +63,8 @@
 | sp-1 | Add `DefiLlamaStablecoins` constant to `internal/api/constants.go` | ✅ done 2026-04-29 |
 | sp-2 | Create `internal/api/defillama/client.go` + tests (TDD) | ✅ done 2026-04-29 |
 | sp-3 | Wire DefiLlama into fetcher (URL resolver + apiKey) | ✅ done 2026-04-29 |
-| sp-4 | Config: add `StablecoinPower.StablecoinIDs`; add `StoreTopNInContext`/`TopNFromContext` | todo |
-| sp-5 | root.go: `flagRegistrar` dispatch + read `--top` in `buildMetricRunE` | todo |
+| sp-4 | Config: add `StablecoinPower.StablecoinIDs`; add `StoreTopNInContext`/`TopNFromContext` | ✅ done 2026-04-29 |
+| sp-5 | root.go: `flagRegistrar` dispatch + read `--top` in `buildMetricRunE` | ✅ done 2026-04-29 |
 | sp-6 | Implement `Compute()` + `RegisterFlags()` in stablecoinpower provider | todo |
 | sp-7 | E2E integration test (`stablecoin-power_e2e_test.go`) | todo |
 

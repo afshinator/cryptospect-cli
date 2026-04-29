@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/afshinator/cryptospect-cli/internal/api"
 	"github.com/afshinator/cryptospect-cli/internal/config"
@@ -14,6 +15,13 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+// flagRegistrar is an optional interface that metric providers may implement
+// to register command-specific flags (e.g. --top for stablecoin-power).
+// It is intentionally unexported: cobra stays out of the metrics package.
+type flagRegistrar interface {
+	RegisterFlags(cmd *cobra.Command)
+}
 
 func defaultConfigPath() string {
 	home, err := os.UserHomeDir()
@@ -125,6 +133,9 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 			Long:    fmt.Sprintf("%s\n\nVersion: %s | Namespace: %s", def.Description, def.Version, def.Namespace),
 			RunE:    buildMetricRunE(p),
 		}
+		if fr, ok := p.(flagRegistrar); ok {
+			fr.RegisterFlags(metricCmd)
+		}
 		cmd.AddCommand(metricCmd)
 	}
 
@@ -138,6 +149,15 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 			return fmt.Errorf("config not found in context")
 		}
 
+		// Propagate provider-specific flags into context so Compute can read them
+		// without the MetricProvider interface depending on cobra.
+		ctx := cmd.Context()
+		if f := cmd.Flags().Lookup("top"); f != nil {
+			if n, err := strconv.Atoi(f.Value.String()); err == nil {
+				ctx = config.StoreTopNInContext(ctx, n)
+			}
+		}
+
 		fetcher, err := api.New(cfg.CacheDir(), &cfg)
 		if err != nil {
 			return fmt.Errorf("creating fetcher: %w", err)
@@ -147,7 +167,7 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 		data := make(map[string]json.RawMessage)
 
 		for _, endpointKey := range def.Endpoints {
-			fetched, _, err := fetcher.Fetch(cmd.Context(), endpointKey)
+			fetched, _, err := fetcher.Fetch(ctx, endpointKey)
 			if err != nil {
 				slog.Debug("endpoint fetch failed, using unavailable", "endpoint", endpointKey, "error", err)
 				data[endpointKey] = nil
@@ -156,13 +176,13 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 			data[endpointKey] = fetched
 		}
 
-		result, err := p.Compute(cmd.Context(), data)
+		result, err := p.Compute(ctx, data)
 		if err != nil {
 			return err
 		}
 
 		// Filter meta based on detail level
-		detailLevel, _ := config.DetailFromContext(cmd.Context())
+		detailLevel, _ := config.DetailFromContext(ctx)
 		switch detailLevel {
 		case "basic":
 			result.Meta = nil
@@ -171,9 +191,10 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 			if result.Meta != nil {
 				var meta map[string]interface{}
 				if err := json.Unmarshal(result.Meta, &meta); err == nil {
-					// Remove full-detail fields
+					// Remove full-detail-only fields (harmless no-op for metrics that lack them).
 					delete(meta, "thresholds")
 					delete(meta, "description")
+					delete(meta, "top_n_stablecoins")
 					filtered, _ := json.Marshal(meta)
 					result.Meta = filtered
 				}
