@@ -4,18 +4,12 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 **Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
-## Project Status (2026‑04‑17)
-- **Infrastructure through CLI complete:** Steps 1‑18 of the build order are implemented and tested.
-- **API clients:** CoinGecko (global, stables markets, derivatives, coin markets) and Binance US (spot CVD) fully implemented with tests.
-- **Placeholder clients:** CoinDesk and CoinMetrics (stubs) satisfy build order.
-- **Cache‑first fetcher:** `internal/api/fetcher.go` implements memory → file cache → HTTP API → stale fallback; comprehensive test suite passes with `‑race`.
-- **Go 1.25 caching patterns:** Sharded maps (16 shards) eliminate lock contention for concurrent endpoint fetches; `unique.Handle` provides zero‑allocation keying. Concurrent test verifies parallelism.
-- **Code review completed:** Agency‑agents engineering‑code‑reviewer scored infrastructure **9/10**. Critical blockers (security, context propagation, race condition) fixed.
-- **Endpoint parameterization complete:** Distinct constants for breadth/momentum endpoints, Binance CVD with explicit parameters.
-- **CLI command infrastructure complete:** Cobra root with viper config precedence, cache‑clear and list‑metrics subcommands, command‑level integration tests.
-- **Linting & CI fixes:** 71 golangci‑lint errors resolved, CI pipeline passes with zero warnings; format check excludes cache directories; Node.js 24 compatibility enabled.
-- **Code review suggestions addressed (2026‑04‑17):** Dead code removed (`GetWithKey` from httpclient), double `os.Stat` eliminated in config loader, `TestStaleEntry` now uses TTL=0 (no sleep), `config.Write()` and `resolveTTL` bounds fully tested. All tests pass with `-race`.
-- **Ready for:** First metric template implementation (liquidity‑pulse).
+## Project Status (2026‑04‑25)
+- **liquidity-pulse complete:** lp-1 through lp-7 all done
+- **Detail filtering working:** basic=null, extended=validation, full=all fields
+- **Float formatting:** internal/metrics/float.go with MetricFloat type
+- **--version flag added**
+- **Post-mortem fixes applied** to float precision, version, Binance guard
 
 ## Stack
 - Go 1.25, single static binary (CGO_ENABLED=0)
@@ -27,6 +21,8 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 - `make test` — run tests with race detector
 - `make lint` — golangci-lint v2
 - `make fmt` — goimports + gofumpt
+
+**Remember:** After code changes, must REBUILD: `go build -o ./cryptospect-cli ./cmd/cryptospect-cli/`
 
 ## Architecture (v1)
 - `cmd/cryptospect-cli/` — main entrypoint, cobra root command
