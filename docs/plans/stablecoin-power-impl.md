@@ -65,8 +65,8 @@
 | sp-3 | Wire DefiLlama into fetcher (URL resolver + apiKey) | ✅ done 2026-04-29 |
 | sp-4 | Config: add `StablecoinPower.StablecoinIDs`; add `StoreTopNInContext`/`TopNFromContext` | ✅ done 2026-04-29 |
 | sp-5 | root.go: `flagRegistrar` dispatch + read `--top` in `buildMetricRunE` | ✅ done 2026-04-29 |
-| sp-6 | Implement `Compute()` + `RegisterFlags()` in stablecoinpower provider | todo |
-| sp-7 | E2E integration test (`stablecoin-power_e2e_test.go`) | todo |
+| sp-6 | Implement `Compute()` + `RegisterFlags()` in stablecoinpower provider | ✅ done 2026-04-29 |
+| sp-7 | E2E integration test (`stablecoin-power_e2e_test.go`) | ✅ done 2026-04-29 |
 
 ---
 
