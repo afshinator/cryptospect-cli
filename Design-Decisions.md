@@ -727,3 +727,45 @@ This is a future-layer concern; Step 15 does not implement source substitution.
 - `cryptospect-cli lp` returns valid JSON: outer `status: "ok"`, metric `status: "unavailable"`, `version` and `namespace` present
 - All existing tests pass with `-race`
 - `golangci-lint` passes
+
+---
+
+## Metric Implementation Log
+
+### Step 16: liquidity-pulse (lp) — Implemented 2026-04-24
+**Files:** `internal/metrics/liquiditypulse/v1/{provider,provider_test}.go`
+**Status:** Complete (lp-1 through lp-7)
+**Design:** CoinGecko global volume/mcap primary, Binance US BTC CVD as validator. Single composite ratio with High/Normal/Low classification.
+
+### Step 17: stablecoin-power (sp) — Implemented 2026-04-29/30
+**Files:** `internal/metrics/stablecoinpower/v1/{provider,provider_test}.go` + E2E
+**Status:** Complete (sp-1 through sp-7)
+**Design:** CoinGecko global mcap + stablecoin markets primary, DefiLlama supply cross-check. Multi-source verification pattern. `--top` flag with minimum-8 clamp.
+
+### Step 18: flow-tension (ft) — Implemented 2026-04-30
+**Files:**
+```
+internal/metrics/flowtension/v1/
+├── types.go          — Input, Data, Signals, SignalCVD/OI/FR, Meta
+├── compute.go        — CVD ratio, funding hook, OI 24h change, 7 narrative verdicts
+├── compute_test.go   — 20 table-driven tests
+├── provider.go       — MetricProvider with fetch-or-use + OI cache
+├── provider_test.go  — 9 mock-injection tests
+cmd/cryptospect-cli/
+└── flow_tension_e2e_test.go — 4 E2E tests
+```
+**Status:** Complete (ft-1 through ft-9)
+**Key design decisions:**
+- All 3 signals (CVD, OI, Funding) from **keyless public APIs** — no API key required
+- OI aggregated across 145+ exchanges via CoinGecko public `/derivatives` endpoint (sum of `open_interest` for all BTC perpetual entries)
+- Funding rate from Binance Futures BTC perpetual entry in same response
+- OI 24h change via file cache (cold-start: first run shows no change, hook defaults to `"stable"`)
+- No degraded mode for key limitation — eliminated the original spec's primary complexity
+- Status: `"ok"` (both APIs), `"degraded"` (CoinGecko transient failure), `"unavailable"` (Binance fail)
+- Thin-candle guard (<10 trades): CVD hook → `"low_confidence"`; OI/funding still valid
+- **Divergence from LP/SP pattern:** No single composite score — 3 co-equal signals with independent hooks. `confidence` in Meta reflects signal completeness, not cross-source discrepancy.
+
+### Remaining metrics (scaffolds only)
+- `market-breadth` (mb)
+- `momentum-divergence` (md)
+- `market-regime` (mr)
