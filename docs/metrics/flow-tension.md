@@ -2,13 +2,13 @@
 
 **version:** `v1.0.0`
 **Alias:** `ft`
-**Endpoints:** main: `binance_us.spot_klines_btc_1h`, supplementary: `coingecko_pro.derivatives_btc_oi`, `coingecko_pro.derivatives_btc_funding`
+**Endpoints:** main: `binance.spot_cvd_btc_1h`, `coingecko.derivatives`
 
 ## Overview
 
 Measures the kinetic energy of the market — how aggressively traders are using leverage and moving assets onto exchanges to trade. While `stablecoin-power` shows potential energy (dry powder available), `flow-tension` shows whether that powder is actually igniting. It tracks three distinct signals: taker aggression in spot markets (CVD), leverage accumulation or unwinding (Open Interest), and the cost of holding leveraged positions (Funding Rate). Together, these reveal whether price moves are conviction-driven or fragile, and whether the current regime favors longs or shorts.
 
-This metric operates in two modes depending on API key availability: **full mode** (all three signals) and **degraded mode** (CVD only, no API key required).
+All three signals are sourced from keyless public APIs — no API key required. This is a deliberate design improvement over the original implementation which required CoinGecko Pro for OI and funding data.
 
 ## Formula (or how to compute)
 
@@ -21,19 +21,20 @@ cvd_ratio = (taker_buy_volume - taker_sell_volume) / (taker_buy_volume + taker_s
 Result is a normalized ratio in [-1, 1]. Positive = net buyer aggression; negative = net seller aggression.
 Source: Binance-US BTC/USDT 1h spot klines. Keyless.
 
-**Signal 2 — Open Interest 24h Change**
+**Signal 2 — Open Interest (current + 24h change)**
 ```
-oi_change_pct = (oi_current - oi_24h_ago) / oi_24h_ago
+oi_current = sum of open_interest across all BTC perpetual entries in /derivatives response
+oi_change_pct = (oi_current - oi_cached) / oi_cached
 ```
-Result is a percentage change. Positive = leverage building; negative = leverage unwinding.
-Source: CoinGecko Pro derivatives endpoint. Requires API key.
+Current OI is reported directly from CoinGecko. 24h change is computed against a cached value from a prior fetch (persisted via the file cache). Positive = leverage building; negative = leverage unwinding.
+Source: CoinGecko public `/derivatives` endpoint (keyless). OI is aggregated across all exchanges (179+ BTC perpetual entries) for a global picture.
 
 **Signal 3 — Funding Rate (current 8h cycle)**
 ```
 funding_rate = raw funding rate for BTC perpetual (decimal per 8h cycle)
 ```
 Reported as a decimal (e.g., 0.0003 = 0.03% per 8h). Sign indicates direction: positive = longs paying shorts; negative = shorts paying longs.
-Source: CoinGecko Pro derivatives endpoint. Requires API key.
+Source: CoinGecko public `/derivatives` endpoint (keyless). Uses Binance Futures BTC perpetual funding rate as the primary signal (most liquid exchange).
 
 ## Interpretation
 
@@ -75,15 +76,16 @@ Flow Tension does not use a single composite classification label. Each signal h
 | `aggressive_sell` | cvd_ratio < -0.10 |
 | `low_confidence` | fewer than 10 trades in sample window |
 
-**OI Hook** *(requires API key; `null` in degraded mode)*
+**OI Hook**
 
 | Label | Threshold |
 |-------|-----------|
 | `building` | oi_change_pct > +5% |
 | `stable` | -5% ≤ oi_change_pct ≤ +5% |
 | `unwinding` | oi_change_pct < -5% |
+| *no cache history* | `stable` (default until 24h comparison available) |
 
-**Funding Hook** *(requires API key; `null` in degraded mode)*
+**Funding Hook**
 
 | Label | Threshold |
 |-------|-----------|
@@ -96,27 +98,32 @@ Flow Tension does not use a single composite classification label. Each signal h
 
 ## Data Source(s)
 
-- **Primary API (keyless):** Binance-US
-  - **Endpoint:** `/api/v3/klines` (BTC/USDT, 1h interval)
-  - **Fields used:** `takerBuyBaseAssetVolume`, computed taker sell volume (total volume minus taker buy volume), `numberOfTrades`
-  - **Instrument:** BTC/USDT spot
+Data source selection is guided by two principles: **(1)** all signals must be available from keyless public APIs, and **(2)** where possible, avoid introducing new API clients.
 
-- **Primary API (keyed):** CoinGecko Pro
-  - **Endpoint:** `/derivatives/exchanges` or equivalent derivatives endpoint
-  - **Fields used:** BTC perpetual `open_interest_usd` (current + 24h prior), `funding_rate`
-  - **Requires:** `CRYPTOSPECT_COINGECKO_KEY` environment variable
+| Role | Source | Endpoint | Key | Fields Used |
+|------|--------|----------|-----|-------------|
+| CVD | Binance-US (spot) | `/api/v3/klines` (BTC/USDT, 1h) | ❌ Keyless | `takerBuyBaseAssetVolume`, `volume`, `numberOfTrades` |
+| OI | CoinGecko (public) | `/derivatives` | ❌ Keyless | `open_interest` (aggregated across all BTC perpetual entries) |
+| Funding Rate | CoinGecko (public) | `/derivatives` | ❌ Keyless | `funding_rate` from Binance Futures BTC perpetual entry |
 
-**Why CoinGecko Pro over Binance Futures for OI and Funding Rate:**
-CoinGecko Pro aggregates OI and funding data across multiple derivatives exchanges, not just Binance. This produces a more representative picture of the global perp market. Binance Futures is a single-exchange view and is subject to Binance-specific dynamics (e.g., Binance liquidation cascades that don't reflect aggregate market health). Rate-limit budget is also a factor: since CoinGecko is already the primary source for macro metrics (`liquidity-pulse`, `stablecoin-power`), routing derivatives data through CoinGecko Pro consolidates API key usage and rate-limit headroom into a single provider relationship.
+**Why the same API for OI and Funding?** CoinGecko's `/derivatives` endpoint returns both `open_interest` and `funding_rate` per exchange per ticker in a single response. This is a public, keyless endpoint — no CoinGecko Pro subscription needed. It covers 179+ BTC perpetual entries across all major exchanges. OI is summed across all entries for a global aggregate picture; funding rate is taken from Binance Futures (the most liquid exchange) as the canonical signal.
 
-**Why Binance-US for CVD (rather than CoinGecko Pro):**
-CVD requires raw trade-level kline data (taker buy vs. sell volume per candle). CoinGecko does not expose this granularity — it provides aggregate volume, not taker-side breakdown. Binance-US klines are the most accessible source of taker-disaggregated spot volume without an API key, making them the correct source for the keyless CVD signal.
+**Why CoinGecko public `/derivatives` over OKX or Bybit APIs for OI/Funding:**
+- Already have the CoinGecko client integrated — no new API client needed
+- Broadcasting endpoint: one call retrieves OI and funding for all 179+ exchanges simultaneously
+- OI aggregation across all exchanges gives a genuinely global picture, better than any single-exchange source
+- Binance Futures (`fapi.binance.com`) was evaluated but is geo-restricted from some regions
+
+**Why Binance-US for CVD (rather than using CoinGecko):**
+CVD requires raw trade-level kline data (taker buy vs. sell volume per candle). CoinGecko does not expose this granularity — it provides aggregate volume, not taker-side breakdown. Binance-US klines are the most accessible source of taker-disaggregated spot volume without an API key, making them the correct source for the CVD signal.
 
 ## Cross-Source Verification
 
 No cross-source verification in v1.
 
-Each of the three signals originates from a genuinely distinct data type (spot kline taker volume, aggregate derivatives OI, perpetual funding rate). There is no second source that exposes all three with compatible methodology and scope. Comparing Binance-US CVD to another exchange's CVD would measure exchange-specific differences rather than validate data quality. Comparing CoinGecko Pro OI to a single exchange's OI would be structurally misleading (aggregate vs. point source).
+Each of the three signals originates from a genuinely distinct data type (spot kline taker volume, aggregate derivatives OI, perpetual funding rate). There is no second source that exposes all three with compatible methodology and scope. Comparing Binance-US CVD to another exchange's CVD would measure exchange-specific differences rather than validate data quality.
+
+However, the OI signal has a natural self-validator: the `/derivatives` response returns per-exchange OI values. Significant divergence between Binance Futures OI and the sum of all other exchanges' OI could indicate exchange-specific anomalies. This is noted as a future enhancement — for v1, the aggregated OI sum is used directly without per-exchange validation.
 
 Cross-source validation is noted as a future enhancement; see Future Enhancements.
 
@@ -124,9 +131,7 @@ Cross-source validation is noted as a future enhancement; see Future Enhancement
 
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
-| `--instrument` | `string` | `btc` | Target instrument for all three signals. Only `btc` is supported in v1; passing any other value returns an error. Reserved for future multi-asset support. |
-
-**Note on `--instrument`:** BTC-only is a calibration constraint, not an arbitrary limitation. The classification thresholds for funding rate and OI change are calibrated specifically against BTC perpetual historical data. Applying these thresholds to ETH or SOL perps without re-calibration would produce unreliable hooks. Multi-asset support requires per-asset threshold calibration and is queued as a future enhancement.
+No per-metric CLI flags in v1. `--instrument btc` is the only supported scope and is implicit — no flag is exposed. The classification thresholds for funding rate and OI change are calibrated specifically against BTC perpetual historical data; multi-asset support requires per-asset threshold calibration and is queued as a future enhancement.
 
 ## Output Schema
 
@@ -135,7 +140,7 @@ Cross-source validation is noted as a future enhancement; see Future Enhancement
     "metric":  "flow-tension",
     "version": "v1.0.0",
     "status":  "string",  // "ok" / "degraded" / "unavailable"
-                          // "degraded" = CoinGecko Pro key absent; CVD computed, OI/funding null
+                          // "degraded" = transient API failure (OI/funding fetch failed); CVD still reported
                           // "unavailable" = Binance-US fetch failed; no signals available
 
     "data": {
@@ -145,17 +150,18 @@ Cross-source validation is noted as a future enhancement; see Future Enhancement
                 "hook":   "string"    // "aggressive_buy" / "neutral" / "aggressive_sell" / "low_confidence"
             },
             "open_interest": {
-                "change_pct_24h": "float64 | null",  // null in degraded mode
-                "hook":           "string | null"     // "building" / "stable" / "unwinding" / null
+                "current_usd":  "float64",        // current aggregated OI across all exchanges
+                "change_pct_24h": "float64?",      // percentage change vs cached value; omitted on first run
+                "hook":         "string"           // "building" / "stable" / "unwinding"
+                                                     // defaults to "stable" when no cache history
             },
             "funding_rate": {
-                "rate":  "float64 | null",  // decimal per 8h cycle; null in degraded mode
-                "hook":  "string | null"    // "overheated" / "positive" / "neutral" / "negative" / null
+                "rate":  "float64",  // decimal per 8h cycle (Binance Futures)
+                "hook":  "string"    // "overheated" / "positive" / "neutral" / "negative"
             }
         },
-        "summary": "string"  // NL verdict combining active signals, e.g.:
+        "summary": "string"  // NL verdict combining all three signals, e.g.:
                              // "BTC perp: aggressive buying (CVD +0.14), OI building (+7.2%), funding positive (0.045%/8h) — Building Tension with bullish lean."
-                             // In degraded mode: "BTC spot: neutral taker flow (CVD +0.02). OI and funding unavailable — API key required for full signal set."
     },
 
     "meta": {
@@ -163,12 +169,11 @@ Cross-source validation is noted as a future enhancement; see Future Enhancement
         // Present when --detail extended or full:
         "cache_hit":         "bool",
         "ttl_remaining_sec": "int",        // 3600s (1h) — tactical staleness budget
-        "primary_sources":   ["binance_us", "coingecko_pro"],  // coingecko_pro omitted in degraded mode
-        "keyed_signals":     "bool",       // true if OI + funding were computed; false in degraded mode
-        "api_key_env_var":   "string",     // "CRYPTOSPECT_COINGECKO_KEY" — documents which key unlocks full mode
+        "primary_sources":   ["binance_us", "coingecko"],
         "instrument":        "string",     // "btc" (always in v1)
         "cvd_sample_trades": "int",        // number of trades in CVD sample; < 10 triggers low_confidence hook
-        "confidence":        "string"      // "high" (all signals present) / "degraded" (CVD only)
+        "oi_exchanges_count": "int",        // number of exchanges aggregated for OI
+        "confidence":        "string"      // "high" (all signals present) / "degraded" (CVD only, OI/funding transient failure)
                                            // Note: no discrepancy detection in v1; confidence reflects signal completeness
         // Additionally when --detail full:
         // "thresholds": {
@@ -181,40 +186,30 @@ Cross-source validation is noted as a future enhancement; see Future Enhancement
 }
 ```
 
-**Note on `confidence` field:** For this metric, `confidence` reflects signal completeness rather than cross-source discrepancy (no cross-source validation exists in v1). `"high"` means all three signals were computed. `"degraded"` means only CVD was available. This is a semantic divergence from the other metrics where `confidence` reflects validator agreement — documented here to prevent agent misinterpretation.
+**Note on `confidence` field:** For this metric, `confidence` reflects signal completeness rather than cross-source discrepancy (no cross-source validation exists in v1). `"high"` means all three signals were computed. `"degraded"` means only CVD was available due to a transient CoinGecko API failure. This is a semantic divergence from the other metrics where `confidence` reflects validator agreement — documented here to prevent agent misinterpretation.
 
 **Enhancements** (conditional — present when specific conditions are met):
 
 | Field | Condition | Description |
 |-------|-----------|-------------|
 | `cvd.hook: "low_confidence"` | `cvd_sample_trades < 10` | Thin-candle guard: fewer than 10 trades in the sample window means CVD ratio is statistically unreliable. Hook is overridden to `low_confidence` regardless of ratio value. |
-| `open_interest.*: null` | API key absent (`status: "degraded"`) | OI fields are present in schema but set to `null`. Agent should check `keyed_signals` in meta to determine cause. |
-| `funding_rate.*: null` | API key absent (`status: "degraded"`) | Funding rate fields are present in schema but set to `null`. Same cause as OI nulls. |
-| `delta_24h` (not yet implemented) | Prior cache data exists | Percentage change in CVD ratio from 24h prior. Planned for v1.1 when historical cache is available. |
+| `open_interest.change_pct_24h` omitted | First run (no cache history) | OI 24h change requires a cached prior value. On first run, current OI is reported but no change percentage is available. Hook defaults to `"stable"`. |
+| `delta_24h` on CVD (not yet implemented) | Prior cache data exists | Percentage change in CVD ratio from 24h prior. Planned for v1.1 when historical cache is available. |
 
 ## Usage
 
 ```bash
-# Basic (keyless — CVD only, OI and funding null)
+# All signals available — no API key needed
 cryptospect-cli flow-tension
 
 # With alias
 cryptospect-cli ft
 
-# Full detail (requires CRYPTOSPECT_COINGECKO_KEY for complete signal set)
+# Full detail (thresholds, description, exchange count)
 cryptospect-cli flow-tension --detail full
 
 # Extended detail
 cryptospect-cli flow-tension --detail extended
-
-# Instrument flag (v1: btc only)
-cryptospect-cli flow-tension --instrument btc
-```
-
-**Setting the API key for full mode:**
-```bash
-export CRYPTOSPECT_COINGECKO_KEY=your_key_here
-cryptospect-cli flow-tension
 ```
 
 ## Long Description
@@ -238,11 +233,11 @@ The metric does not collapse these into a single score because their combination
 **CVD computation:**
 Binance-US BTC/USDT 1h klines expose `takerBuyBaseAssetVolume`. Taker sell volume is computed as `totalVolume - takerBuyBaseAssetVolume`. The ratio is `(buy - sell) / (buy + sell)`, normalized to [-1, 1]. A thin-candle guard rejects candles with fewer than 10 trades (`numberOfTrades < 10`) and overrides the hook to `low_confidence`, preventing noise from low-activity periods from producing misleading signals.
 
-**OI change computation:**
-CoinGecko Pro returns current BTC perpetual OI in USD. The 24h change is computed against the prior cached value or a secondary API call for the prior value. Result is expressed as a percentage change.
+**OI computation:**
+CoinGecko's public `/derivatives` endpoint returns per-exchange OI for each BTC perpetual entry. OI is aggregated by summing `open_interest` across all entries in the response (179+ exchanges). The 24h change is computed against a cached value from a prior successful fetch, stored via the existing file cache infrastructure. On first run (no cache history), current OI is reported but no change percentage is available — the OI hook defaults to `"stable"` until a 24h comparison window exists.
 
 **Funding rate:**
-CoinGecko Pro returns the current funding rate for BTC perpetual as a decimal per 8h cycle. No transformation is applied — the raw value is reported alongside its hook classification.
+CoinGecko's public `/derivatives` endpoint returns `funding_rate` per exchange per ticker. The metric uses Binance Futures BTC perpetual funding rate as the canonical signal (most liquid exchange). No transformation is applied — the raw decimal value is reported alongside its hook classification.
 
 **TTL:** 3600 seconds (1 hour). This is a tactical-signals metric. Unlike macro metrics (`stablecoin-power`, `liquidity-pulse`) which operate on 24h+ data rhythms, funding rate and OI are meaningful at the 1h resolution. A 4–6h TTL would risk serving stale tactical signals.
 
@@ -263,24 +258,24 @@ Funding overheated (> +0.30%) with CVD fading or turning negative. Longs are pay
 **"Deleveraging"**
 OI falling > -5% with negative CVD. Positions are being force-closed or voluntarily unwound while sellers are aggressive. Typically a flush in progress — can be a cleansing event or the start of a deeper move depending on `stablecoin-power`.
 
-**Degraded mode verdicts:**
-In degraded mode (CVD only), the `summary` will produce CVD-only verdicts ("Aggressive buying," "Neutral flow," "Aggressive selling," "Low confidence — thin candle") without OI or funding context. The `summary` string will explicitly note that OI and funding are unavailable and reference the API key requirement.
+**Transient degraded mode:**
+If CoinGecko's `/derivatives` endpoint fails transiently (e.g., rate limit, timeout), CVD is still reported from Binance with OI and funding set to their raw values but the metric status set to `"degraded"`. This is a runtime-operational concern, not a permanent mode — retry will restore full signals.
 
 ### Other details
 
-**CLI Flags:**
-`--instrument btc` is the only valid value in v1 and is the default. The flag is exposed to establish the interface for future multi-asset support, not because it does anything different from the default. Passing any non-`btc` value returns a validation error with a message explaining that only BTC is calibrated in v1.
+**No per-metric CLI flags in v1.** `--instrument btc` is the only supported scope and is implicit. The classification thresholds are calibrated against BTC perpetual data only; multi-asset support requires per-asset re-calibration and is queued as a future enhancement.
 
 **Enhancements:**
 - `cvd.hook: "low_confidence"` is a data-quality guard, not a signal. Agents should treat it as a null equivalent for CVD and rely only on OI and funding if those are available.
 - `delta_24h` on CVD is planned for v1.1. Percentage change form preferred over absolute difference — a CVD shift from -0.05 to +0.08 is more meaningful as a directional regime change than as an absolute +0.13 difference.
 
 **Cross-Source Verification:**
-No cross-source verification in v1. The three signals are sourced from different APIs because no single API exposes all three with appropriate granularity. The absence of a validator means `confidence` reflects signal completeness (all signals present vs. degraded) rather than inter-source agreement. This is explicitly noted in the schema.
+No cross-source verification in v1. All three signals are sourced from two APIs (Binance-US for CVD, CoinGecko for OI/Funding). The per-exchange breakdown in `/derivatives` provides an internal consistency check (e.g., Binance Futures OI vs aggregate OI) but is not validated against an independent source in v1.
 
 **Implementation Compromises:**
 - **CVD is a proxy, not true net flow.** Binance-US spot klines measure taker aggression within a single exchange. This is not the same as global exchange net inflow (coins moving from cold wallets to exchange hot wallets). A full exchange net flow signal would require on-chain data (e.g., Glassnode). The CVD proxy is a reasonable substitute at the tactical timeframe but should not be described to agents as "coins moving onto exchanges" — it is taker buy/sell imbalance within existing on-exchange liquidity.
-- **OI is BTC perpetual aggregate, not spot-specific.** Derivatives OI reflects the leveraged market's positioning, which can diverge from spot market dynamics. A large derivatives position can exist independently of spot buying pressure.
+- **OI is aggregated across all exchanges, not per-exchange.** The `/derivatives` endpoint returns OI per exchange; the metric sums them for a global picture. This gives a broader view than any single exchange but loses exchange-specific granularity (e.g., a spike in Binance OI alone could be masked by flat OI elsewhere).
+- **OI 24h change has a cold-start delay.** On first run, no cached value exists for 24h comparison. The OI hook defaults to `"stable"` and change is omitted from output until a second successful fetch confirms the window. Agents should not rely on OI change on initial calls.
 - **Funding rate is current 8h cycle only.** The metric does not track funding rate trend (whether it is rising or falling toward the overheated zone). A funding rate of +0.25% that was +0.05% yesterday is a very different situation from one that was +0.28% yesterday. Trend tracking is a future enhancement.
 - **No stablecoin-pair filtering for CVD.** Binance-US BTC/USDT klines include USDT as the quote currency. USDT-specific events (e.g., a USDT de-peg scare) could influence CVD without reflecting genuine BTC sentiment. This is an accepted approximation for v1.
 
@@ -289,15 +284,18 @@ No cross-source verification in v1. The three signals are sourced from different
 - **Funding rate trend (`funding_trend_1h`):** Direction of funding rate change over the past 1–4 hours. Rising-toward-overheated is a different signal from falling-from-overheated. Percentage change or slope preferred over absolute value for trend.
 - **`delta_24h` on CVD ratio:** Requires historical cache. Percentage change form preferred.
 - **True exchange net flow:** Replace CVD proxy with on-chain exchange inflow/outflow data (Glassnode or equivalent). Materially more accurate for the "assets moving to exchanges" interpretation but requires an additional API and likely an API key.
-- **Cross-source OI validation:** Compare CoinGecko Pro aggregate OI against a second derivatives data provider (e.g., Coinalyze or CoinGlass) to detect data anomalies. Low priority in v1 given CoinGecko Pro's multi-exchange aggregation already reduces single-source risk.
+- **Cross-source OI validation:** Compare CoinGecko aggregate OI against a second source (e.g., OKX public API or CoinGlass) to detect data anomalies.
+- **Per-exchange OI breakdown in meta:** Report individual exchange OI values (Binance, Bybit, OKX, etc.) in full detail for debugging and advanced analysis.
 
 **Agentic Logic (Strategic Notes)**
 
 When an LLM or agent calls this tool, it should apply the following heuristics:
 
-- **Check `status` first.** If `status: "degraded"`, only CVD is available. OI and funding hooks will be `null`. A CVD-only verdict has lower confidence — it should inform but not drive a trading decision without corroboration from other metrics.
+- **Check `status` first.** All three signals are always available under normal conditions (no API key needed). If `status: "degraded"`, a transient CoinGecko failure means OI/funding may be stale — check `cvd_sample_trades` to confirm CVD reliability.
 
-- **Check `cvd.hook` for `"low_confidence"`.** If the thin-candle guard triggered, treat CVD as unavailable. This typically occurs during off-hours or very low-activity windows. Do not act on a `low_confidence` CVD.
+- **Check `cvd.hook` for `"low_confidence"`.** If the thin-candle guard triggered, treat CVD as unavailable. This typically occurs during off-hours or very low-activity windows. Do not act on a `low_confidence` CVD — OI and funding are still valid but cannot triangulate with CVD.
+
+- **Check `open_interest.change_pct_24h` for omission.** On first run, no 24h change is available. The OI hook defaults to `"stable"` which may understate the true state. Make a second call after 1h+ for a populated OI change.
 
 - **`confidence` means signal completeness here, not data agreement.** Unlike `liquidity-pulse` and `stablecoin-power` where `confidence` reflects cross-source validator agreement, here `confidence: "high"` means all three signals were computed — not that they agree with each other. The signals can and do diverge; that divergence is itself informative.
 

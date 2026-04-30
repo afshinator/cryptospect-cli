@@ -4,12 +4,17 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 **Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
-## Project Status (2026‑04‑25)
+## Project Status (2026‑04‑30)
 - **liquidity-pulse complete:** lp-1 through lp-7 all done
+- **stablecoin-power complete:** sp-1 through sp-7 all done
+- **flow-tension complete:** ft-1 through ft-9 all done. All 3 signals from keyless public APIs (Binance spot + CoinGecko `/derivatives`). No API key required. 28 unit tests + 4 E2E tests passing.
 - **Detail filtering working:** basic=null, extended=validation, full=all fields
 - **Float formatting:** internal/metrics/float.go with MetricFloat type
 - **--version flag added**
 - **Post-mortem fixes applied** to float precision, version, Binance guard
+- **DefiLlama client added:** internal/api/defillama/ (stablecoins endpoint)
+- **--top flag pattern:** flagRegistrar interface in root.go for per-metric cobra flags
+- **TopN context helpers:** config.StoreTopNInContext / TopNFromContext
 
 ## Stack
 - Go 1.25, single static binary (CGO_ENABLED=0)

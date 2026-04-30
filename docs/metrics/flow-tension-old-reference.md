@@ -1,20 +1,26 @@
 # Flow-Tension Reference (from Original Implementation)
 
-**Source:** `cryptospect-cli-original` project  
-**Purpose:** Reference material for porting flow-tension to the new plugin architecture  
-**Status:** This is documentation only — not the new implementation
+> ⚠️ **Design change (2026-04-30):** The new implementation diverges significantly from this reference.
+> **Key difference:** OI and Funding are now sourced from **CoinGecko public `/derivatives`** (keyless)
+> instead of CoinGecko Pro (keyed). This eliminates degraded mode entirely — all 3 signals are
+> always available. See `docs/plans/flow-tension-impl.md` for the current plan and
+> `docs/metrics/flow-tension.md` for the updated spec.
+
+**Source:** `cryptospect-cli-original` project
+**Purpose:** Original reference material (kept for historical context)
+**Status:** Superseded — see updated spec doc
 
 ---
 
 ## Metric Identity
 
-**Name:** `flow-tension` (alias: `ft`)  
-**Original description:** *"The 'Transmission' metric of the suite. While Stablecoin Power shows **potential** energy, Flow Tension shows **kinetic** energy — how aggressively traders are using leverage and moving assets onto exchanges to trade."*
+**Name:** `flow-tension` (alias: `ft`)
+**Original description:** *"The 'Transmission' metric of the suite. While Stablecoin Power shows **potential** energy, Flow Tension shows **kinetic** energy - how aggressively traders are using leverage and moving assets onto exchanges to trade."*
 
 **What it actually measures (3 signals):**
-1. **Exchange Net Flow** (CVD proxy) — taker buy vs sell aggression from Binance US spot klines
-2. **Open Interest** — leverage building/unwinding (requires API key)
-3. **Funding Rate** — perp sentiment, longs vs shorts (requires API key)
+1. **Exchange Net Flow** (CVD proxy) - taker buy vs sell aggression from Binance US spot klines
+2. **Open Interest** - leverage building/unwinding (requires API key)
+3. **Funding Rate** - perp sentiment, longs vs shorts (requires API key)
 
 **Status behavior:** Runs in `degraded` mode without API key (only CVD available). Full signals require `CRYPTOSPECT_COINGECKO_KEY` (CoinGecko Pro) or `CRYPTOSPECT_BINANCE_KEY` (Binance Futures).
 
@@ -120,14 +126,14 @@ type Data struct {
 
 | Funding | Open Interest | Flow | Summary |
 |---------|-----------------|------|---------|
-| `negative_funding` | `oi_building` | any | "Shorts paying longs while leverage builds — early bull phase, sellers exhausted." |
-| `overheated_funding` | `oi_building` | any | "Leverage building with overheated longs — elevated liquidation risk." |
-| any | `oi_building` | `buyers_aggressive` | "Leverage building with aggressive buying — tension coiling, breakout likely." |
-| any | `oi_stable` | `sellers_aggressive` | "Assets staged on exchanges with aggressive selling — supply shock / top warning." |
-| `oi_unwinding` | any | any | "Leverage unwinding — deleveraging in progress, likely post-liquidation." |
-| `neutral_funding` | `oi_stable` | `flow_neutral` | "Flow tension neutral — no directional conviction." |
-| degraded mode (funding/oi unavailable) | | | "Partial data — OI and funding rate unavailable without API key. Aggressive [buying/selling] detected." |
-| `low_confidence` (thin candle) | | | "Thin candle — insufficient trades for reliable CVD signal. Flow direction unreliable." |
+| `negative_funding` | `oi_building` | any | "Shorts paying longs while leverage builds - early bull phase, sellers exhausted." |
+| `overheated_funding` | `oi_building` | any | "Leverage building with overheated longs - elevated liquidation risk." |
+| any | `oi_building` | `buyers_aggressive` | "Leverage building with aggressive buying - tension coiling, breakout likely." |
+| any | `oi_stable` | `sellers_aggressive` | "Assets staged on exchanges with aggressive selling - supply shock / top warning." |
+| `oi_unwinding` | any | any | "Leverage unwinding - deleveraging in progress, likely post-liquidation." |
+| `neutral_funding` | `oi_stable` | `flow_neutral` | "Flow tension neutral - no directional conviction." |
+| degraded mode (funding/oi unavailable) | | | "Partial data - OI and funding rate unavailable without API key. Aggressive [buying/selling] detected." |
+| `low_confidence` (thin candle) | | | "Thin candle - insufficient trades for reliable CVD signal. Flow direction unreliable." |
 
 ---
 
@@ -166,7 +172,7 @@ type Data struct {
       "openInterest": "oi_building",
       "flow": "buyers_aggressive"
     },
-    "summary": "Leverage building with aggressive buying — tension coiling, breakout likely."
+    "summary": "Leverage building with aggressive buying - tension coiling, breakout likely."
   },
   "meta": { "cacheHit": false, "ttl_remaining_sec": 3600 }
 }
@@ -204,11 +210,11 @@ type Data struct {
 
 ## Calibration Notes (from original docs)
 
-1. **BTC perpetual only** — most liquid, least manipulable instrument. Not coin-specific.
+1. **BTC perpetual only** - most liquid, least manipulable instrument. Not coin-specific.
 2. **Funding rate thresholds calibrated** against real CoinGecko data (range: -0.29% to +0.85%).
 3. **Thin-candle guard** (`numTrades < 10`) prevents noise from low-activity periods.
-4. **TTL = 3600s** — tactical signals, short staleness budget vs macro metrics.
-5. **CVD is a proxy** — measures taker aggression within exchange, not true on-chain net flow.
+4. **TTL = 3600s** - tactical signals, short staleness budget vs macro metrics.
+5. **CVD is a proxy** - measures taker aggression within exchange, not true on-chain net flow.
 6. **CoinGecko Pro preferred** over Binance Futures (broader market view, aggregated across exchanges).
 
 ---
@@ -227,7 +233,7 @@ type Data struct {
 5. Build `output.MetricResult` with `DetectStatus(confidence, thinData)` for status
 6. Set `MetricResult.Data = json.Marshal(computedData)`
 
-**Confidence calculation:** Use original logic — discrepancy detection not needed for this metric (single-exchange CVD primary, no cross-source validation in v1).
+**Confidence calculation:** Use original logic - discrepancy detection not needed for this metric (single-exchange CVD primary, no cross-source validation in v1).
 
 ---
 
