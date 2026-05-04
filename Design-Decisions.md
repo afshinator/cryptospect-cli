@@ -765,7 +765,31 @@ cmd/cryptospect-cli/
 - Thin-candle guard (<10 trades): CVD hook → `"low_confidence"`; OI/funding still valid
 - **Divergence from LP/SP pattern:** No single composite score — 3 co-equal signals with independent hooks. `confidence` in Meta reflects signal completeness, not cross-source discrepancy.
 
+### Step 19: market-breadth (mb) — Implemented 2026-05-04
+**Files:**
+```
+internal/metrics/marketbreadth/v1/
+├── types.go          — Input, ComputeResult, Meta, Classification structs + constants
+├── compute.go        — pure Compute function: weighted composite, classification, divergence, discrepancy
+├── compute_test.go   — 11 table-driven tests
+├── provider.go       — MetricProvider with RegisterFlags for --top
+├── provider_test.go  — 6 mock-injection tests
+cmd/cryptospect-cli/
+└── market_breadth_e2e_test.go — 8 E2E tests
+```
+**Status:** Complete (mb-1 through mb-9)
+**Key design decisions:**
+- Multi-timeframe breadth proxy (1h/24h/7d/30d) with null-exclusion per timeframe — denominator never uses len(coins)
+- Recency-biased weights (10/30/40/20) with proportional redistribution when timeframes drop below 50-coin floor
+- Ghost Rally divergence: BTC >2% AND breadth <40% flags fragile rally
+- Binance directional consensus validator (sign(close-open) vs sign(CoinGecko 24h change))
+- Three-tier confidence: high (directions agree), medium (directional disagreement), low (stale/zero-close/parse-failure)
+- Staleness guard: >90min candle → validator skipped, confidence "low"
+- Generic `--top` flag via existing flagRegistrar interface, clamped [50, 250]
+- Status vs confidence as independent axes (status = data availability, confidence = validator quality)
+- **Coverage:** 92.6% — 11 compute + 6 provider + 8 E2E tests
+- **Parser changes:** KlinesData extended with Close/Open/OpenTime (additive, FT/LP unaffected); CoinMarketsBreadthData restructured to per-timeframe counts with BTCReference
+
 ### Remaining metrics (scaffolds only)
-- `market-breadth` (mb)
 - `momentum-divergence` (md)
 - `market-regime` (mr)
