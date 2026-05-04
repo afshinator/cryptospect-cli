@@ -174,14 +174,25 @@ func ParseDerivativesResponse(body []byte) (DerivativesData, error) {
 	return data, nil
 }
 
-// CoinMarketsBreadthData holds the computed breadth fractions from the
-// CoinGecko /coins/markets endpoint response.
+// TimeframeMetric holds raw green and total counts for a single timeframe.
+type TimeframeMetric struct {
+	GreenCount int `json:"green"`
+	TotalCount int `json:"total"`
+}
+
+// BTCReference holds the BTC 24h price change extracted from the response.
+type BTCReference struct {
+	PriceChange24h float64 `json:"price_change_24h_pct"`
+	Available      bool    `json:"-"`
+}
+
+// CoinMarketsBreadthData holds per-timeframe counts and BTC reference
+// from the CoinGecko /coins/markets response.
 type CoinMarketsBreadthData struct {
-	Green1h   float64 // fraction of coins with positive 1h change
-	Green24h  float64 // fraction of coins with positive 24h change
-	Green7d   float64 // fraction of coins with positive 7d change
-	Green30d  float64 // fraction of coins with positive 30d change
-	CoinCount int     // total coins in the response
+	TimeframeCounts map[string]TimeframeMetric `json:"timeframe_counts"`
+	CoinCount       int                        `json:"coin_count"`
+	CoinsWithData   int                        `json:"-"`
+	BTCReference    BTCReference               `json:"btc_reference"`
 }
 
 // CoinMarketsBreadthEntry is a single coin entry from /coins/markets with
@@ -206,10 +217,11 @@ func CoinMarketsBreadthURL(perPage int) string {
 }
 
 // ParseCoinMarketsBreadthResponse parses the CoinGecko /coins/markets response
-// and computes the fraction of coins that are "green" (positive price change)
-// for each of the four timeframes: 1h, 24h, 7d, 30d.
+// and computes per‑timeframe green coin counts and related data.
 //
-// Null price change values are treated as not green (conservative).
+// Each timeframe has its own denominator (coins with non‑null values for that
+// timeframe). Null price change values are excluded from that timeframe's total.
+// BTC reference data is extracted from the response if present.
 func ParseCoinMarketsBreadthResponse(body []byte) (CoinMarketsBreadthData, error) {
 	if len(body) == 0 {
 		return CoinMarketsBreadthData{}, fmt.Errorf("empty response body")
@@ -223,29 +235,68 @@ func ParseCoinMarketsBreadthResponse(body []byte) (CoinMarketsBreadthData, error
 		return CoinMarketsBreadthData{}, fmt.Errorf("no coins in response")
 	}
 
-	var green1h, green24h, green7d, green30d int
+	counts := map[string]*TimeframeMetric{
+		"1h":  {},
+		"24h": {},
+		"7d":  {},
+		"30d": {},
+	}
+
+	var coinsWithData int
+	var btcRef BTCReference
+
 	for _, e := range entries {
-		if e.Change1h != nil && *e.Change1h > 0 {
-			green1h++
+		hasData := false
+
+		if e.Change1h != nil {
+			counts["1h"].TotalCount++
+			if *e.Change1h > 0 {
+				counts["1h"].GreenCount++
+			}
+			hasData = true
 		}
-		if e.Change24h != nil && *e.Change24h > 0 {
-			green24h++
+		if e.Change24h != nil {
+			counts["24h"].TotalCount++
+			if *e.Change24h > 0 {
+				counts["24h"].GreenCount++
+			}
+			hasData = true
 		}
-		if e.Change7d != nil && *e.Change7d > 0 {
-			green7d++
+		if e.Change7d != nil {
+			counts["7d"].TotalCount++
+			if *e.Change7d > 0 {
+				counts["7d"].GreenCount++
+			}
+			hasData = true
 		}
-		if e.Change30d != nil && *e.Change30d > 0 {
-			green30d++
+		if e.Change30d != nil {
+			counts["30d"].TotalCount++
+			if *e.Change30d > 0 {
+				counts["30d"].GreenCount++
+			}
+			hasData = true
+		}
+
+		if hasData {
+			coinsWithData++
+		}
+
+		if e.ID == "bitcoin" && e.Change24h != nil {
+			btcRef.PriceChange24h = *e.Change24h
+			btcRef.Available = true
 		}
 	}
 
-	n := float64(len(entries))
+	tfCounts := make(map[string]TimeframeMetric, len(counts))
+	for k, v := range counts {
+		tfCounts[k] = *v
+	}
+
 	return CoinMarketsBreadthData{
-		Green1h:   float64(green1h) / n,
-		Green24h:  float64(green24h) / n,
-		Green7d:   float64(green7d) / n,
-		Green30d:  float64(green30d) / n,
-		CoinCount: len(entries),
+		TimeframeCounts: tfCounts,
+		CoinCount:       len(entries),
+		CoinsWithData:   coinsWithData,
+		BTCReference:    btcRef,
 	}, nil
 }
 

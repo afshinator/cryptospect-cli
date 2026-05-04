@@ -42,6 +42,9 @@ func TestParseCoinMarketsBreadthResponse_Valid(t *testing.T) {
 	if result.CoinCount != 5 {
 		t.Errorf("CoinCount: got %d, want 5", result.CoinCount)
 	}
+	if result.TimeframeCounts == nil {
+		t.Error("TimeframeCounts should not be nil")
+	}
 }
 
 func TestParseCoinMarketsBreadthResponse_GreenFractions(t *testing.T) {
@@ -49,21 +52,24 @@ func TestParseCoinMarketsBreadthResponse_GreenFractions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	// 1h: btc(+), tether(+), sol(+) = 3/5 = 0.60
-	if abs(result.Green1h-0.60) > 0.001 {
-		t.Errorf("Green1h: got %v, want 0.60", result.Green1h)
+
+	tc := result.TimeframeCounts
+
+	// 1h: btc(+2.5), tether(+0.01), sol(+5.0) → 3 green, 5 total
+	if tc["1h"].GreenCount != 3 || tc["1h"].TotalCount != 5 {
+		t.Errorf("1h: got green=%d total=%d, want green=3 total=5", tc["1h"].GreenCount, tc["1h"].TotalCount)
 	}
-	// 24h: btc(+), eth(+), tether(≈0, negative) = 2/5 = 0.40
-	if abs(result.Green24h-0.40) > 0.001 {
-		t.Errorf("Green24h: got %v, want 0.40", result.Green24h)
+	// 24h: btc(+1.0), eth(+3.0) → 2 green, 5 total (tether -0.02 is NOT green)
+	if tc["24h"].GreenCount != 2 || tc["24h"].TotalCount != 5 {
+		t.Errorf("24h: got green=%d total=%d, want green=2 total=5", tc["24h"].GreenCount, tc["24h"].TotalCount)
 	}
-	// 7d: eth(+), sol(+) = 2/5 = 0.40
-	if abs(result.Green7d-0.40) > 0.001 {
-		t.Errorf("Green7d: got %v, want 0.40", result.Green7d)
+	// 7d: eth(+2.0), sol(+10.0) → 2 green, 5 total
+	if tc["7d"].GreenCount != 2 || tc["7d"].TotalCount != 5 {
+		t.Errorf("7d: got green=%d total=%d, want green=2 total=5", tc["7d"].GreenCount, tc["7d"].TotalCount)
 	}
-	// 30d: btc(+), tether(+), sol(+) = 3/5 = 0.60
-	if abs(result.Green30d-0.60) > 0.001 {
-		t.Errorf("Green30d: got %v, want 0.60", result.Green30d)
+	// 30d: btc(+5.0), tether(+0.01), sol(+20.0) → 3 green, 5 total
+	if tc["30d"].GreenCount != 3 || tc["30d"].TotalCount != 5 {
+		t.Errorf("30d: got green=%d total=%d, want green=3 total=5", tc["30d"].GreenCount, tc["30d"].TotalCount)
 	}
 }
 
@@ -89,7 +95,6 @@ func TestParseCoinMarketsBreadthResponse_EmptyArray(t *testing.T) {
 }
 
 func TestParseCoinMarketsBreadthResponse_NullChanges(t *testing.T) {
-	// Some coins may have null price change values — should be treated as not green
 	fixture := `[
   {"id":"bitcoin","symbol":"btc","price_change_percentage_1h_in_currency":2.5,"price_change_percentage_24h_in_currency":null,"price_change_percentage_7d_in_currency":1.0,"price_change_percentage_30d_in_currency":1.0},
   {"id":"ethereum","symbol":"eth","price_change_percentage_1h_in_currency":-1.0,"price_change_percentage_24h_in_currency":3.0,"price_change_percentage_7d_in_currency":-2.0,"price_change_percentage_30d_in_currency":-2.0}
@@ -98,13 +103,50 @@ func TestParseCoinMarketsBreadthResponse_NullChanges(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	// 1h: btc(+) = 1/2 = 0.50
-	if abs(result.Green1h-0.50) > 0.001 {
-		t.Errorf("Green1h with null: got %v, want 0.50", result.Green1h)
+
+	tc := result.TimeframeCounts
+
+	// 1h: btc(+2.5)=green, eth(-1.0)=not green → total=2, green=1
+	if tc["1h"].GreenCount != 1 || tc["1h"].TotalCount != 2 {
+		t.Errorf("1h: got green=%d total=%d, want green=1 total=2", tc["1h"].GreenCount, tc["1h"].TotalCount)
 	}
-	// 24h: eth(+) = 1/2 = 0.50 (btc null counts as not green)
-	if abs(result.Green24h-0.50) > 0.001 {
-		t.Errorf("Green24h with null: got %v, want 0.50", result.Green24h)
+	// 24h: btc=null (excluded), eth(+3.0)=green → total=1, green=1
+	if tc["24h"].GreenCount != 1 || tc["24h"].TotalCount != 1 {
+		t.Errorf("24h: got green=%d total=%d, want green=1 total=1", tc["24h"].GreenCount, tc["24h"].TotalCount)
+	}
+	// 7d: btc(+1.0)=green, eth(-2.0)=not green → total=2, green=1
+	if tc["7d"].GreenCount != 1 || tc["7d"].TotalCount != 2 {
+		t.Errorf("7d: got green=%d total=%d, want green=1 total=2", tc["7d"].GreenCount, tc["7d"].TotalCount)
+	}
+	// 30d: btc(+1.0)=green, eth(-2.0)=not green → total=2, green=1
+	if tc["30d"].GreenCount != 1 || tc["30d"].TotalCount != 2 {
+		t.Errorf("30d: got green=%d total=%d, want green=1 total=2", tc["30d"].GreenCount, tc["30d"].TotalCount)
+	}
+}
+
+func TestParseCoinMarketsBreadthResponse_BTCReference(t *testing.T) {
+	result, err := ParseCoinMarketsBreadthResponse([]byte(coinMarketsFixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !result.BTCReference.Available {
+		t.Error("BTCReference.Available should be true")
+	}
+	if result.BTCReference.PriceChange24h != 1.0 {
+		t.Errorf("BTCReference.PriceChange24h: got %v, want 1.0", result.BTCReference.PriceChange24h)
+	}
+}
+
+func TestParseCoinMarketsBreadthResponse_BTCReferenceAbsent(t *testing.T) {
+	fixture := `[
+  {"id":"ethereum","symbol":"eth","price_change_percentage_1h_in_currency":-1.0,"price_change_percentage_24h_in_currency":3.0,"price_change_percentage_7d_in_currency":2.0,"price_change_percentage_30d_in_currency":-2.0}
+]`
+	result, err := ParseCoinMarketsBreadthResponse([]byte(fixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.BTCReference.Available {
+		t.Error("BTCReference.Available should be false when bitcoin is absent")
 	}
 }
 
