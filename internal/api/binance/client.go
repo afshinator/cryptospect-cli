@@ -15,9 +15,11 @@ import (
 // BaseURL is the Binance US public spot API base URL.
 const BaseURL = "https://api.binance.us/api/v3"
 
-// KlinesData holds the parsed fields from a single kline (candlestick) relevant
-// to the flow_tension CVD proxy calculation.
+// KlinesData holds the parsed fields from a single kline (candlestick).
 type KlinesData struct {
+	Close           float64 // close price (index 4)
+	Open            float64 // open price (index 1)
+	OpenTime        int64   // candle open time in milliseconds (index 0)
 	TotalVolume     float64 // base asset volume for the interval (index 5)
 	TakerBuyVolume  float64 // taker buy base asset volume (index 9)
 	TakerSellVolume float64 // derived: TotalVolume - TakerBuyVolume
@@ -66,6 +68,21 @@ func ParseKlinesResponse(body []byte) (KlinesData, error) {
 		return KlinesData{}, fmt.Errorf("kline has %d fields, expected at least 11", len(kline))
 	}
 
+	var openTime int64
+	if err := json.Unmarshal(kline[0], &openTime); err != nil {
+		return KlinesData{}, fmt.Errorf("parsing openTime (index 0): %w", err)
+	}
+
+	open, err := parseStringFloat(kline[1])
+	if err != nil {
+		return KlinesData{}, fmt.Errorf("parsing open (index 1): %w", err)
+	}
+
+	close, err := parseStringFloat(kline[4])
+	if err != nil {
+		return KlinesData{}, fmt.Errorf("parsing close (index 4): %w", err)
+	}
+
 	totalVolume, err := parseStringFloat(kline[5])
 	if err != nil {
 		return KlinesData{}, fmt.Errorf("parsing volume (index 5): %w", err)
@@ -82,6 +99,9 @@ func ParseKlinesResponse(body []byte) (KlinesData, error) {
 	}
 
 	return KlinesData{
+		Close:           close,
+		Open:            open,
+		OpenTime:        openTime,
 		TotalVolume:     totalVolume,
 		TakerBuyVolume:  takerBuyVol,
 		TakerSellVolume: totalVolume - takerBuyVol,

@@ -54,6 +54,39 @@ func TestParseKlinesResponse_CorrectValues(t *testing.T) {
 	}
 }
 
+func TestParseKlinesResponse_Close(t *testing.T) {
+	result, err := ParseKlinesResponse([]byte(klinesFixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	wantClose := 68304.58
+	if abs(result.Close-wantClose) > 1e-8 {
+		t.Errorf("Close: expected %.5f, got %.5f", wantClose, result.Close)
+	}
+}
+
+func TestParseKlinesResponse_Open(t *testing.T) {
+	result, err := ParseKlinesResponse([]byte(klinesFixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	wantOpen := 68114.37
+	if abs(result.Open-wantOpen) > 1e-8 {
+		t.Errorf("Open: expected %.5f, got %.5f", wantOpen, result.Open)
+	}
+}
+
+func TestParseKlinesResponse_OpenTime(t *testing.T) {
+	result, err := ParseKlinesResponse([]byte(klinesFixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	wantOpenTime := int64(1775088000000)
+	if result.OpenTime != wantOpenTime {
+		t.Errorf("OpenTime: expected %d, got %d", wantOpenTime, result.OpenTime)
+	}
+}
+
 func TestParseKlinesResponse_Empty(t *testing.T) {
 	_, err := ParseKlinesResponse([]byte(klinesEmptyFixture))
 	if err == nil {
