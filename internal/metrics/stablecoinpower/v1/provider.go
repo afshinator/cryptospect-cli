@@ -169,7 +169,8 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 			topClamped = true
 			topClampedReason = fmt.Sprintf(
 				"Minimum %d stablecoins required for metric integrity. Value adjusted from %d to %d.",
-				minTopN, n, minTopN)
+				minTopN, n, minTopN,
+			)
 		} else {
 			topN = n
 		}
@@ -208,13 +209,15 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 					discrepancyDetected = true
 					discrepancyNote = fmt.Sprintf(
 						"Coverage scope difference: %.1f%% delta between CoinGecko top-%d and DefiLlama aggregate supply.",
-						discPct*100, len(topStables))
+						discPct*100, len(topStables),
+					)
 				case discPct >= discrepancyMediumThreshold:
 					confidence = "medium"
 					discrepancyDetected = true
 					discrepancyNote = fmt.Sprintf(
 						"Coverage scope difference: %.1f%% delta between CoinGecko top-%d and DefiLlama aggregate supply.",
-						discPct*100, len(topStables))
+						discPct*100, len(topStables),
+					)
 				}
 			}
 		}

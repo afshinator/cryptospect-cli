@@ -19,6 +19,7 @@ coverage.html
 
 # Local cache
 .cache/
+.gocache/
 .gomodcache/
 .go/
 .tempcache/
