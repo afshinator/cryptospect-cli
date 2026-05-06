@@ -225,3 +225,104 @@ func TestParseCoinMarketsMomentumResponse_EmptyArray(t *testing.T) {
 		t.Error("expected error for empty array")
 	}
 }
+
+// --- Ranked Response Parser (momentum-divergence) ---
+
+const coinMarketsRankedFixture = `[
+  {"id":"bitcoin","symbol":"btc","market_cap_rank":1,"price_change_percentage_24h_in_currency":2.10},
+  {"id":"ethereum","symbol":"eth","market_cap_rank":2,"price_change_percentage_24h_in_currency":-1.20},
+  {"id":"tether","symbol":"usdt","market_cap_rank":3,"price_change_percentage_24h_in_currency":0.01},
+  {"id":"solana","symbol":"sol","market_cap_rank":4,"price_change_percentage_24h_in_currency":5.50},
+  {"id":"bnb","symbol":"bnb","market_cap_rank":5,"price_change_percentage_24h_in_currency":null}
+]`
+
+func TestParseCoinMarketsRankedResponse_Valid(t *testing.T) {
+	result, err := ParseCoinMarketsRankedResponse([]byte(coinMarketsRankedFixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.CoinCount != 5 {
+		t.Errorf("CoinCount: got %d, want 5", result.CoinCount)
+	}
+	if len(result.Coins) != 5 {
+		t.Errorf("Coins length: got %d, want 5", len(result.Coins))
+	}
+
+	// bitcoin: rank 1, +2.10
+	if result.Coins[0].ID != "bitcoin" {
+		t.Errorf("Coins[0].ID: got %q, want bitcoin", result.Coins[0].ID)
+	}
+	if result.Coins[0].MarketCapRank != 1 {
+		t.Errorf("Coins[0].MarketCapRank: got %d, want 1", result.Coins[0].MarketCapRank)
+	}
+	if result.Coins[0].Change24h == nil || *result.Coins[0].Change24h != 2.10 {
+		t.Errorf("Coins[0].Change24h: got %v, want 2.10", result.Coins[0].Change24h)
+	}
+
+	// bnb: rank 5, null change
+	if result.Coins[4].ID != "bnb" {
+		t.Errorf("Coins[4].ID: got %q, want bnb", result.Coins[4].ID)
+	}
+	if result.Coins[4].Change24h != nil {
+		t.Errorf("Coins[4].Change24h: expected nil for null JSON value")
+	}
+}
+
+func TestParseCoinMarketsRankedResponse_NullRankExcluded(t *testing.T) {
+	fixture := `[
+		{"id":"bitcoin","symbol":"btc","market_cap_rank":1,"price_change_percentage_24h_in_currency":2.0},
+		{"id":"ethereum","symbol":"eth","price_change_percentage_24h_in_currency":3.0},
+		{"id":"tether","symbol":"usdt","market_cap_rank":3,"price_change_percentage_24h_in_currency":0.0}
+	]`
+	result, err := ParseCoinMarketsRankedResponse([]byte(fixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(result.Coins) != 2 {
+		t.Errorf("expected 2 coins (ethereum excluded for nil rank), got %d", len(result.Coins))
+	}
+	if result.Coins[0].ID != "bitcoin" {
+		t.Errorf("first coin: got %q, want bitcoin", result.Coins[0].ID)
+	}
+	if result.Coins[1].ID != "tether" {
+		t.Errorf("second coin: got %q, want tether", result.Coins[1].ID)
+	}
+}
+
+func TestParseCoinMarketsRankedResponse_AllNullRank(t *testing.T) {
+	fixture := `[
+		{"id":"bitcoin","symbol":"btc","price_change_percentage_24h_in_currency":2.0},
+		{"id":"ethereum","symbol":"eth","price_change_percentage_24h_in_currency":3.0}
+	]`
+	result, err := ParseCoinMarketsRankedResponse([]byte(fixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(result.Coins) != 0 {
+		t.Errorf("expected 0 coins when all ranks are nil, got %d", len(result.Coins))
+	}
+	if result.CoinCount != 2 {
+		t.Errorf("CoinCount should still be 2 (raw count), got %d", result.CoinCount)
+	}
+}
+
+func TestParseCoinMarketsRankedResponse_EmptyBody(t *testing.T) {
+	_, err := ParseCoinMarketsRankedResponse([]byte{})
+	if err == nil {
+		t.Error("expected error for empty body")
+	}
+}
+
+func TestParseCoinMarketsRankedResponse_InvalidJSON(t *testing.T) {
+	_, err := ParseCoinMarketsRankedResponse([]byte("not json"))
+	if err == nil {
+		t.Error("expected error for invalid JSON")
+	}
+}
+
+func TestParseCoinMarketsRankedResponse_EmptyArray(t *testing.T) {
+	_, err := ParseCoinMarketsRankedResponse([]byte("[]"))
+	if err == nil {
+		t.Error("expected error for empty array")
+	}
+}

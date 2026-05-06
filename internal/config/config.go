@@ -16,6 +16,7 @@ const (
 	configContextKey contextKey = iota
 	detailContextKey
 	topNContextKey
+	segmentsContextKey
 )
 
 // StoreInContext returns a new context carrying cfg.
@@ -51,6 +52,19 @@ func StoreTopNInContext(ctx context.Context, n int) context.Context {
 func TopNFromContext(ctx context.Context) (int, bool) {
 	n, ok := ctx.Value(topNContextKey).(int)
 	return n, ok
+}
+
+// StoreSegmentsInContext returns a new context carrying the --segments flag value
+// for momentum-divergence tier boundary configuration.
+func StoreSegmentsInContext(ctx context.Context, segments string) context.Context {
+	return context.WithValue(ctx, segmentsContextKey, segments)
+}
+
+// SegmentsFromContext retrieves the segments value stored by StoreSegmentsInContext.
+// Returns (default, false) when no value has been stored.
+func SegmentsFromContext(ctx context.Context) (string, bool) {
+	s, ok := ctx.Value(segmentsContextKey).(string)
+	return s, ok
 }
 
 // resolveConfigPath returns the first existing file with .yaml or .yml extension,

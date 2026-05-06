@@ -157,6 +157,9 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 				ctx = config.StoreTopNInContext(ctx, n)
 			}
 		}
+		if f := cmd.Flags().Lookup("segments"); f != nil {
+			ctx = config.StoreSegmentsInContext(ctx, f.Value.String())
+		}
 
 		fetcher, err := api.New(cfg.CacheDir(), &cfg)
 		if err != nil {

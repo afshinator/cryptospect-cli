@@ -198,12 +198,13 @@ type CoinMarketsBreadthData struct {
 // CoinMarketsBreadthEntry is a single coin entry from /coins/markets with
 // multi‑timeframe price change percentages.
 type CoinMarketsBreadthEntry struct {
-	ID        string   `json:"id"`
-	Symbol    string   `json:"symbol"`
-	Change1h  *float64 `json:"price_change_percentage_1h_in_currency"`
-	Change24h *float64 `json:"price_change_percentage_24h_in_currency"`
-	Change7d  *float64 `json:"price_change_percentage_7d_in_currency"`
-	Change30d *float64 `json:"price_change_percentage_30d_in_currency"`
+	ID            string   `json:"id"`
+	Symbol        string   `json:"symbol"`
+	MarketCapRank *int     `json:"market_cap_rank"`
+	Change1h      *float64 `json:"price_change_percentage_1h_in_currency"`
+	Change24h     *float64 `json:"price_change_percentage_24h_in_currency"`
+	Change7d      *float64 `json:"price_change_percentage_7d_in_currency"`
+	Change30d     *float64 `json:"price_change_percentage_30d_in_currency"`
 }
 
 // CoinMarketsBreadthURL returns the URL for the CoinGecko /coins/markets
@@ -419,4 +420,58 @@ func median(vals []float64) float64 {
 		return vals[n/2]
 	}
 	return (vals[n/2-1] + vals[n/2]) / 2
+}
+
+// CoinMarketsRankedData holds per‑coin data extracted from the /coins/markets
+// response for momentum‑divergence tier analysis. Coins without a valid
+// market_cap_rank are excluded.
+type CoinMarketsRankedData struct {
+	Coins     []CoinMarketsRankedCoin `json:"coins"`
+	CoinCount int                     `json:"coin_count"`
+}
+
+// CoinMarketsRankedCoin is a single coin with rank and 24h price change.
+// Change24h is nil when the API returns null for the price change field.
+type CoinMarketsRankedCoin struct {
+	ID            string   `json:"id"`
+	Symbol        string   `json:"symbol"`
+	MarketCapRank int      `json:"market_cap_rank"`
+	Change24h     *float64 `json:"price_change_24h"`
+}
+
+// ParseCoinMarketsRankedResponse parses the CoinGecko /coins/markets response
+// and returns CoinMarketsRankedData with per‑coin rank and 24h price change
+// data. Coins with a nil market_cap_rank are excluded (no positional fallback).
+// Coins with a nil price_change_percentage_24h_in_currency are included with
+// Change24h = nil.
+func ParseCoinMarketsRankedResponse(body []byte) (CoinMarketsRankedData, error) {
+	if len(body) == 0 {
+		return CoinMarketsRankedData{}, fmt.Errorf("empty response body")
+	}
+
+	var entries []CoinMarketsBreadthEntry
+	if err := json.Unmarshal(body, &entries); err != nil {
+		return CoinMarketsRankedData{}, fmt.Errorf("parsing coin markets ranked response: %w", err)
+	}
+	if len(entries) == 0 {
+		return CoinMarketsRankedData{}, fmt.Errorf("no coins in response")
+	}
+
+	coins := make([]CoinMarketsRankedCoin, 0, len(entries))
+	for _, e := range entries {
+		if e.MarketCapRank == nil {
+			continue
+		}
+		coins = append(coins, CoinMarketsRankedCoin{
+			ID:            e.ID,
+			Symbol:        e.Symbol,
+			MarketCapRank: *e.MarketCapRank,
+			Change24h:     e.Change24h,
+		})
+	}
+
+	return CoinMarketsRankedData{
+		Coins:     coins,
+		CoinCount: len(entries),
+	}, nil
 }
