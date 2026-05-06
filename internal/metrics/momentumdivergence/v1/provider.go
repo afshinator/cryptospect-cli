@@ -122,6 +122,10 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		return p.unavailable(err.Error()), nil
 	}
 
+	if ranked.CoinCount < 250 {
+		compMeta.Confidence = "low"
+	}
+
 	dataBytes, err := json.Marshal(dataResult)
 	if err != nil {
 		return p.unavailable("failed to marshal data: " + err.Error()), nil //nolint:nilerr

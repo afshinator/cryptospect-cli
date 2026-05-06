@@ -247,3 +247,40 @@ func TestProvider_MetaHasDataTimestamp(t *testing.T) {
 		t.Error("meta should contain data_timestamp")
 	}
 }
+
+func TestProvider_CacheStarvationGuard(t *testing.T) {
+	p := &Provider{}
+	ctx := context.Background()
+
+	smallFixture := `[
+		{"id":"bitcoin","symbol":"btc","market_cap_rank":1,"price_change_percentage_24h_in_currency":2.10},
+		{"id":"ethereum","symbol":"eth","market_cap_rank":2,"price_change_percentage_24h_in_currency":-1.20},
+		{"id":"tether","symbol":"usdt","market_cap_rank":3,"price_change_percentage_24h_in_currency":0.01},
+		{"id":"chainlink","symbol":"link","market_cap_rank":11,"price_change_percentage_24h_in_currency":8.00},
+		{"id":"polygon","symbol":"matic","market_cap_rank":12,"price_change_percentage_24h_in_currency":7.00},
+		{"id":"avalanche","symbol":"avax","market_cap_rank":13,"price_change_percentage_24h_in_currency":9.00},
+		{"id":"gmx","symbol":"gmx","market_cap_rank":51,"price_change_percentage_24h_in_currency":12.00},
+		{"id":"dydx","symbol":"dydx","market_cap_rank":52,"price_change_percentage_24h_in_currency":10.00},
+		{"id":"inj","symbol":"inj","market_cap_rank":53,"price_change_percentage_24h_in_currency":14.00}
+	]`
+
+	data := map[string]json.RawMessage{
+		api.CoinGeckoCoinMarketsBreadth: json.RawMessage(smallFixture),
+	}
+
+	result, err := p.Compute(ctx, data)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Meta == nil {
+		t.Fatal("Meta should not be nil")
+	}
+	var meta map[string]interface{}
+	if err := json.Unmarshal(result.Meta, &meta); err != nil {
+		t.Fatalf("unmarshal meta: %v", err)
+	}
+	conf, _ := meta["confidence"].(string)
+	if conf != "low" {
+		t.Errorf("confidence: got %q, want low (6 coins < 250)", conf)
+	}
+}
