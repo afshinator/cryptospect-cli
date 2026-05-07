@@ -1,6 +1,6 @@
 # momentum-divergence
 
-**version:** `v1.0.0`
+**version:** `v1.1.0`
 **Alias:** `md`
 **Endpoints:** `coingecko.coin_markets_breadth`
 
@@ -18,19 +18,22 @@ Tier construction (null-exclusion per coin):
     rank 1–10:   tier_large
     rank 11–50:  tier_mid
     rank 51–200: tier_small
-  Include coin in tier stats only if price_change_percentage_24h is non-null.
+  Include coin in tier stats only if price_change_percentage_24h is non-null
+    AND market_cap is non-zero.
 
-  Statistical floor: if any tier has fewer than 3 valid coins after null exclusion,
+  Statistical floor: if any tier has fewer than 3 valid coins after double-null exclusion,
     that tier is marked absent. Absent tiers affect confidence (see Classification).
   If all three tiers are absent: status → "unavailable".
 
-Tier averages (simple mean, null-excluded):
-  large_avg = mean(price_change_percentage_24h) for tier_large valid coins
-  mid_avg   = mean(price_change_percentage_24h) for tier_mid   valid coins
-  small_avg = mean(price_change_percentage_24h) for tier_small valid coins
+Tier averages (market-cap weighted, double-null-excluded):
+  large_avg = sum(price_change_24h_i * market_cap_i) / sum(market_cap_i) for tier_large valid coins
+  mid_avg   = sum(price_change_24h_i * market_cap_i) / sum(market_cap_i) for tier_mid   valid coins
+  small_avg = sum(price_change_24h_i * market_cap_i) / sum(market_cap_i) for tier_small valid coins
 
+  // v1.1: market-cap weighted means. Coins with null/zero market_cap are excluded from
+  // both numerator and denominator. If a tier has ≥ TierFloorMinCoins price-valid coins
+  // but zero market-cap-valid coins, falls back to simple mean (weighting_fallback: true).
   // CoinGecko returns percentage directly: 5.0 == +5%, not 0.05.
-  // Simple means are used. Volume-weighted means are a future enhancement.
 
 Spread matrix (nil-safe -- only computed when both constituent tiers are valid):
   mid_vs_large   = mid_avg   - large_avg  if tier_large != nil AND tier_mid   != nil, else null
@@ -224,6 +227,7 @@ CoinMarketCap free tier is the natural future validator for per-coin price data 
         "ttl_remaining_sec": "int",
         "primary_source":    "coingecko",
         "confidence":        "string",   // "high" (all tiers ≥ 3 coins) / "low" (any tier < 3 coins)
+        "weighting_method":  "string",   // "market_cap" / "simple" (v1.1; extended detail only)
         "tier_counts": {
             "large": "int",  // valid coin count after null exclusion
             "mid":   "int",
@@ -250,9 +254,9 @@ CoinMarketCap free tier is the natural future validator for per-coin price data 
         // }
         // "description": "string"
         // "tier_detail": {
-        //     "large": [ { "id": "bitcoin",   "return_24h": 2.10  }, ... ],
-        //     "mid":   [ { "id": "chainlink", "return_24h": -1.40 }, ... ],
-        //     "small": [ { "id": "gmx",       "return_24h": -4.20 }, ... ]
+        //     "large": [ { "id": "bitcoin",   "return_24h": 2.10, "market_cap": 1953000000000, "weight_pct": 52.34 }, ... ],
+        //     "mid":   [ { "id": "chainlink", "return_24h": -1.40, "market_cap": 15000000000, "weight_pct": 8.12 }, ... ],
+        //     "small": [ { "id": "gmx",       "return_24h": -4.20, "market_cap": 1000000000,  "weight_pct": 2.50 }, ... ]
         // }
     }
 }
@@ -264,9 +268,12 @@ CoinMarketCap free tier is the natural future validator for per-coin price data 
 |-------|-----------|-------------|
 | `tail_extension` | Always | Boolean overlay; always present — agents must never check for field absence |
 | `spreads.small_vs_mid` | Always | Rotation depth signal; positive = heat propagating to long-tail, negative = stalling at mid-caps |
-| `tier_detail` | `--detail full` | Per-coin breakdown (id, return_24h) for each tier; primary tool for detecting outlier distortion |
+| `weighting_method` | `--detail extended` or `full` | v1.1: `"market_cap"` or `"simple"`; indicates whether tier averages use market-cap weighting or fell back to simple mean |
+| `market_cap` on tier_detail entries | `--detail full` | v1.1: per-coin market cap (USD); aids outlier weight inspection |
+| `weight_pct` on tier_detail entries | `--detail full` | v1.1: per-coin share of tier market cap (2dp); e.g. 52.34 means BTC is 52.34% of large-tier weight |
+| `tier_detail` | `--detail full` | Per-coin breakdown (id, return_24h, market_cap, weight_pct) for each tier; primary tool for detecting outlier distortion |
 | `segments_clamped` / `segments_clamped_reason` | `--segments` outside enforced range | Documents that clamping occurred and why |
-| `delta_24h` on spreads | Prior cache data exists | Not yet implemented in v1.0 — percentage change in `mid_vs_large` spread from prior cached value |
+| `delta_24h` on spreads | Prior cache data exists | Not yet implemented — percentage change in `mid_vs_large` spread from prior cached value |
 
 ## Usage
 
@@ -353,30 +360,37 @@ When `classification.label` is `risk_on` and `tier_detail` is available (`--deta
 No cross-source verification in v1. The BTC CVD validator was explicitly rejected: in a divergence metric, a validator checking for BTC momentum "agreement" is adversarial by design — a successful mid-cap rotation (mid-caps +10%, BTC -5%) would produce a negative CVD that incorrectly lowers confidence on a valid `risk_on` verdict. The tier structure is self-validating.
 
 **Implementation Compromises:**
-- **Simple means over volume-weighted means.** Within the top-10 tier, BTC has the same weight as rank 10 despite representing a far larger share of market cap. Volume-weighted means are a future enhancement. Use `tier_detail` at full detail to inspect for outlier concentration.
-- **Top-10 tier outlier sensitivity.** With only 10 coins, a single idiosyncratic event (an ETH upgrade, a BTC ETF catalyst) can shift the large-cap average by 2–3pp. Borderline `top_heavy` or `risk_on` signals (near ±3–5pp) should be cross-checked against `tier_detail.large` before acting.
-- **Stablecoins included without filtering.** USDT and USDC appear in the top 200 and register near-zero 24h returns. Their presence in the top-10 tier (USDT commonly at rank 3–4) slightly dampens `large_avg`, making `mid_vs_large` spreads marginally more positive than a pure-equity comparison — a known conservative bias that slightly favors `risk_on` classification at the margins. A future `--exclude-stables` flag addresses this.
+- **Market-cap weighted means (v1.1).** v1 used simple means; v1.1 replaces with market-cap weighted means. BTC and ETH now contribute to `large_avg` in proportion to their economic weight (~60-70% of large-tier market cap) rather than 2 of (up to) 10 equal weights. The `weighting_method` meta field surfaces whether the current run used market_cap weighting or fell back to simple mean (degenerate API edge case).
+- **Stablecoin market-cap weight impact (v1.1).** USDT (~$150B market cap) at rank 3-4 in the large tier now carries significant weight under market-cap weighting. Its near-zero 24h return dampens `large_avg` toward zero, making `top_heavy` and `flight_to_safety` slightly harder to trigger than under simple means. This is correct — USDT's economic footprint in the large-cap tier is real — but agents should be aware of the systematic dampening effect. A future `--exclude-stables` flag is more impactful under market-cap weighting than under simple means.
+- **Top-10 tier outlier sensitivity.** With only 10 coins, a single idiosyncratic event can still shift the large-cap average, but market-cap weighting (v1.1) significantly reduces single-coin distortion compared to simple means. Borderline `top_heavy` or `risk_on` signals (near ±3–5pp) should be cross-checked against `tier_detail.large` before acting.
+- **Stablecoins included without filtering.** USDT and USDC appear in the top 200 and register near-zero 24h returns. See stablecoin market-cap weight impact above.
 - **24h price change, not intraday.** The metric uses CoinGecko's pre-computed 24h percentage change. Tier averages are slightly lagged relative to live intraday prices. A future 1h variant addresses this.
 - **`--segments` small_ceiling hard-clamped to 200.** Pagination for values above 200 is a future enhancement.
-- **No volume conviction in v1.** Volume intensity (`total_volume / market_cap` per tier) was designed and deferred. The baseline comparison problem has no clean solution given the current cache infrastructure. Implemented in v1.1 once the historical cache layer is settled.
-- **Threshold annotation in `Compute.go`:** The `±5.0`, `-3.0`, and `1.0` threshold constants in `Compute.go` (or `divergence.go`) should carry an inline comment referencing this documentation: `// heuristic thresholds -- see docs/momentum-divergence.md, Implementation Compromises`. This makes it trivial for future implementers to locate the calibration rationale and the v1.1 recalibration plan when the time comes to tune these values.
-- **BTC simple-mean distortion (most consequential known limitation).** Within the top-10 tier, BTC and ETH together often represent 60–70% of aggregate large-cap market cap but carry only 2 of 10 equal weights in the simple mean. A BTC-only rally of +10% with the remaining 9 coins at -2% produces `large_avg` of approximately +0.8%. Compared against `mid_avg` of +2.0%, the spread is +1.2pp — well below the `risk_on` threshold, producing a `neutral` verdict during what is functionally a BTC-driven market with mid-cap outperformance of non-BTC large-caps. This is the most likely source of false negatives. Mitigation: agents should cross-reference `flow-tension` CVD and `tier_detail.large` at full detail to detect BTC-specific outlier influence before concluding no rotation is present. Volume-weighted tier means are the correct fix; queued as a future enhancement.
+- **No volume conviction.** Volume intensity (`total_volume / market_cap` per tier) was designed and deferred. The baseline comparison problem has no clean solution given the current cache infrastructure. Deferred to v1.2.
+- **Thresholds calibrated against v1 simple means.** The ±5pp / –3pp / 1pp guard thresholds were calibrated against v1 simple-mean values and are carried forward unchanged in v1.1. Under market-cap weighting, large-tier averages are more dominated by BTC/ETH → spreads may be narrower in absolute value. Threshold recalibration is a post-v1.1 task requiring accumulated v1.1 output data. A v1.1 Calibration Note is documented below.
 - **No stale-data guard in v1.** If CoinGecko returns a payload where `price_change_percentage_24h` is zero or near-zero for all coins (stale cache, API degradation), the metric will compute `neutral` with `confidence: "high"` and emit no warning. A future sanity check should flag `status: "degraded"` if all tier averages are simultaneously within ±0.1% of zero — statistically near-impossible for live BTC/ETH data and indicative of a frozen or default-valued payload. Not implemented in v1; the `tier_detail` breakdown at full detail is the manual inspection path.
 - **The `large_avg` zero-crossing boundary is noise-level in practice.** The `top_heavy` / `flight_to_safety` split fires at exactly `large_avg == 0`, but a difference of +0.01% vs -0.01% is indistinguishable from rounding and API precision noise. The label distinction is only reliable when `large_avg` is meaningfully above or below zero. The practical dead band is ±0.5%: within this range, the two labels should be treated as equivalent by downstream consumers. This is a known limitation of binary threshold classification at a zero boundary; a hysteresis buffer is the correct long-term fix but is not implemented in v1.
 - **The 5pp threshold is a high-conviction filter — slow rotations are invisible.** In a low-volatility "crab" market, mid-caps can outperform mega-caps by 3pp consistently for weeks — a genuine, healthy rotation — and this metric remains `neutral` throughout. The threshold is intentionally conservative for v1 ("fire only when the signal is unambiguous") but this means the metric has a structural blind spot for gradual regime shifts. An agent seeing persistent `neutral` readings should not conclude rotation is absent; it may be occurring below the detection threshold. The correct cross-check is `market-breadth`'s `timeframe_breadth` spread over multiple calls (see Agentic Logic).
 
 **Future Enhancements:**
-- **Volume conviction (`tier_volume_intensity`):** `total_volume / market_cap` per tier compared against a prior cached snapshot. Tiers with rising price but declining intensity surface a per-tier `conviction_hook: "weak"`. Deferred to v1.1.
+- **Volume conviction (`tier_volume_intensity`):** `total_volume / market_cap` per tier compared against a prior cached snapshot. Tiers with rising price but declining intensity surface a per-tier `conviction_hook: "weak"`. Deferred to v1.2.
 - **`delta_24h` on spreads:** Percentage change in `mid_vs_large` spread from prior cached value. A widening spread (rotation accelerating) is more signal-rich than the absolute level.
-- **Volume-weighted tier means:** Replace simple means with market-cap-weighted means to reduce top-10 outlier sensitivity.
-- **`--exclude-stables` flag:** Removes stablecoins from tier computation for a pure-equity rotation signal.
+- **`--exclude-stables` flag:** Removes stablecoins from tier computation for a pure-equity rotation signal. More impactful under market-cap weighting (v1.1). Deferred to v1.2.
 - **`--segments` pagination above 200:** Automatic paginated fetch for `small_ceiling` values above 200.
 - **1h return variant (`--window 1h`):** Uses `price_change_percentage_1h_in_currency` for intraday rotation detection.
 - **ETH sub-classification within `top_heavy`:** Distinguish "BTC-only rally" from "BTC+ETH rally." These imply different rotation timelines.
-- **Threshold recalibration (v1.1):** The ±5pp / –3pp / 1pp guard thresholds are v1 heuristics documented in `meta.thresholds`. Once real output data accumulates, these should be backtested to validate or adjust the boundaries. This is the highest-priority v1.1 task for this metric.
-- **`--sensitivity` flag (v1.1):** A user-selectable sensitivity level — e.g., `--sensitivity high` lowers thresholds to `risk_on > +3.0pp`, `top_heavy < -2.0pp` — to detect slower rotations in low-volatility regimes. This is the correct v1.1 solution because it has no external dependencies: the caller supplies the regime context rather than requiring the metric to infer it. The default (`--sensitivity normal`) preserves the current ±5pp / –3pp behavior. A `--sensitivity low` option (thresholds ±7pp / –5pp) targets high-volatility environments where the standard threshold fires too frequently.
+- **Threshold recalibration:** The ±5pp / –3pp / 1pp guard thresholds are v1 heuristics carried forward into v1.1. Once real v1.1 output data accumulates, these should be backtested to validate or adjust the boundaries for market-cap weighted tier averages.
+- **`--sensitivity` flag:** A user-selectable sensitivity level — e.g., `--sensitivity high` lowers thresholds to `risk_on > +3.0pp`, `top_heavy < -2.0pp` — to detect slower rotations in low-volatility regimes. This is the correct solution because it has no external dependencies: the caller supplies the regime context rather than requiring the metric to infer it. The default (`--sensitivity normal`) preserves the current ±5pp / –3pp behavior. A `--sensitivity low` option (thresholds ±7pp / –5pp) targets high-volatility environments where the standard threshold fires too frequently.
 - **Regime-aware dynamic thresholds (v1.2+):** Automatically adjust thresholds based on detected market volatility — e.g., lower the `risk_on` threshold when BTC realized volatility is low. Requires either a new volatility endpoint (new API dependency) or a rolling self-history of spread values (cache dependency). The `--sensitivity` flag is the prerequisite stepping stone; dynamic thresholds build on top of it once the threshold-adjustment logic is proven.
 - **CoinMarketCap cross-validation:** Per-coin 24h return cross-check once a suitable rate-limit-free tier is available.
+
+## v1.1 Calibration Note
+
+v1.1 replaces simple arithmetic means with market-cap weighted tier averages. The following metrics are designed for comparing v1.0 and v1.1 output to characterize the impact:
+
+- **`label_drift`:** How many classifications change between v1 and v1.1 when run against the same payload. A high drift rate indicates the simple mean was systematically over- or under-weighting certain coins within tiers. This is the primary signal for whether the v1 thresholds remain appropriate under weighted means.
+- **`avg_magnitude_shift`:** Percentage-point delta on `large_avg` between v1 and v1.1. BTC and ETH now carry ~60-70% of large-tier weight (vs. 20% under simple means), so `large_avg` will systematically shift toward BTC/ETH behavior. A large shift confirms the BTC simple-mean distortion documented in v1.
+- **Threshold conservatism note:** Under market-cap weighting, spreads may be narrower in absolute value (BTC/ETH dominance pulls both large and mid tiers toward similar behavior). The +5pp `risk_on` threshold may need to be lowered once sufficient v1.1 data is available for backtesting. The thresholds ship unchanged in v1.1 to avoid calibrating against a single snapshot; recalibration is a data-accumulation task.
 
 **Agentic Logic (Strategic Notes)**
 

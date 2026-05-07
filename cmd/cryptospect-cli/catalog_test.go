@@ -16,7 +16,7 @@ var wantCatalogMetrics = []struct {
 	{"liquidity-pulse", "lp", "v1.0.0"},
 	{"market-breadth", "mb", "v1.0.0"},
 	{"market-regime", "mr", "v1.0.0"},
-	{"momentum-divergence", "md", "v1.0.0"},
+	{"momentum-divergence", "md", "v1.1.0"},
 	{"stablecoin-power", "sp", "v1.0.0"},
 }
 

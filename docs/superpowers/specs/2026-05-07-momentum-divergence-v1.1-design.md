@@ -1,7 +1,7 @@
 # momentum-divergence v1.1 Design: Market-Cap Weighted Tier Means
 
 **Date:** 2026-05-07  
-**Status:** Design — pending implementation  
+**Status:** Finalized — ready for implementation  
 **Scope:** momentum-divergence metric only (md)
 
 ---
@@ -42,10 +42,10 @@ tier_avg = sum(price_change_24h_i) / n_valid
 tier_avg = sum(price_change_24h_i * market_cap_i) / sum(market_cap_i)
 ```
 where both sums run over coins with non-null `price_change_percentage_24h` AND
-non-zero `market_cap`. A coin with a valid price change but null/zero market_cap is
-excluded from the weighted average (same null-exclusion pattern as v1's price-change
-exclusion). If all valid-price coins in a tier have null/zero market_cap, the tier
-falls back to simple mean and documents this in meta (`weighting_fallback: true`).
+non-zero `market_cap`. A coin must have valid price change AND non-zero market cap
+to enter tier averages. Coins with null price change or zero market_cap are excluded.
+If all price-valid coins in a tier have null/zero market_cap, the tier falls back to
+simple mean and documents this in meta (`weighting_fallback: true`).
 
 ### Data layer
 
@@ -62,9 +62,22 @@ endpoint already returns it in the wire format — no URL change needed.
 
 ### Compute layer
 
-`internal/metrics/momentumdivergence/v1/compute.go`:
+`internal/metrics/momentumdivergence/v1/{compute.go, types.go}`:
 
-Replace `meanTier(coins []tierCoin)` with `weightedMeanTier(coins []tierCoin)`:
+**Tier assignment (validity condition change):** In v1, a coin enters tier averages if
+`Change24h != nil`. In v1.1, a coin must have `Change24h != nil` **AND** `MarketCap > 0`.
+The statistical floor check remains at `TierFloorMinCoins = 3`. If fewer than
+`TierFloorMinCoins` coins have *both* valid price change and non-zero market cap,
+the tier is marked absent (same floor as v1).
+
+**Weighting fallback semantics:**
+`weighting_fallback: true` fires only in a specific edge case: a tier has
+≥ `TierFloorMinCoins` price-valid coins but zero market-cap-valid coins — the
+degenerate API state where the endpoint returns ranks and prices but no market_cap
+values. This is not the tier-absent condition; it means the tier is present (enough
+price data) but weighting degrades to simple mean because market_cap data is absent.
+
+Replace `meanTier(coins []tierCoin)` with `weightedMeanTier(coins []tierCoin)`: 
 
 ```go
 func weightedMeanTier(coins []tierCoin) (avg float64, fallback bool) {
@@ -200,70 +213,102 @@ once v1.1 data accumulates.
 
 ## Implementation Plan
 
-**T1 — API data layer** (`internal/api/coingecko/client.go`)
-- Add `MarketCap *float64 \`json:"market_cap"\`` to `CoinMarketsBreadthEntry`
-- Add `MarketCap float64` to `CoinMarketsRankedCoin`
-- Update `ParseCoinMarketsRankedResponse` to populate `MarketCap`
-- Update existing `coinmarkets_test.go` parser tests to cover `market_cap` field
+### T1 — API data layer
+**File:** `internal/api/coingecko/client.go`
 
-**T2 — Compute layer** (`internal/metrics/momentumdivergence/v1/`)
-- Add `marketCap float64` to `tierCoin` (internal struct)
-- Add `WeightingFallback bool` to `computedMeta`
-- Implement `weightedMeanTier` alongside existing `meanTier` (keep `meanTier` as
-  the fallback path — don't delete it)
-- Update tier assignment loop to copy `MarketCap` from coin to `tierCoin`
-- Replace `meanTier(coins)` calls with `weightedMeanTier(coins)`
-- Add `MarketCap float64` and `WeightPct float64` to `TierCoinDetail`
-- Populate `weight_pct` in `TierDetail` construction
-- Update `Thresholds` map to add `"weighting_method_note"` comment (or separate
-  meta field — see schema above)
-
-**T3 — Provider layer** (`internal/metrics/momentumdivergence/v1/provider.go`)
-- Add `weighting_method` to `metaMap` (value from `compMeta.WeightingFallback`)
-- Version constant: `MetricVersion = "v1.1.0"`
-
-**T4 — Spec update** (`docs/metrics/momentum-divergence.md`)
-- Bump version to `v1.1.0` in header
-- Update Formula section with weighted mean formula and null-market_cap handling
-- Update Output Schema to document `weighting_method`, new `tier_detail` fields
-- Move "volume-weighted tier means" from Future Enhancements to Implemented
-- Update Implementation Compromises: remove "Simple means over volume-weighted
-  means" compromise; add new compromise about stablecoin market-cap weight impact
-- Add note that thresholds were calibrated against simple means and may need
-  recalibration once v1.1 data accumulates
-
-**T5 — Tests**
-- `coinmarkets_test.go`: add fixture field `market_cap`, verify it parses into
-  `CoinMarketsRankedCoin.MarketCap`
-- `compute_test.go`: update all existing fixtures to include market_cap values;
-  add table-driven test for `weightedMeanTier` covering: normal weighting, zero
-  market_cap fallback, mixed null/non-null, single coin, equal weights
-- `provider_test.go`: update `rankedFixture` to include `market_cap` fields;
-  verify `weighting_method` present in meta at extended detail
-- `momentum_divergence_e2e_test.go`: add assertion that `weighting_method` is
-  present at extended detail
+1. Add `MarketCap *float64 \`json:"market_cap"\`` to `CoinMarketsBreadthEntry` (shared entry type, additive — mb unaffected)
+2. Add `MarketCap float64` to `CoinMarketsRankedCoin`
+3. In `ParseCoinMarketsRankedResponse`: copy `e.MarketCap` (dereference to 0.0 if nil) into the ranked coin
+4. Add `market_cap` fixture to `coinmarkets_test.go`; verify it parses into `CoinMarketsRankedCoin.MarketCap`
 
 ---
 
-## Open Questions
+### T2 — Compute layer
+**Files:** `internal/metrics/momentumdivergence/v1/{compute.go, types.go}`
 
-1. **`weight_pct` precision:** 2dp (`52.34`) vs 4dp vs integer. Recommendation: 2dp
-   — it's a display/inspection aid, not used in computation.
+**types.go:**
+- Add `MarketCap float64` field to `tierCoin` (internal)
+- Add `WeightingFallback bool` to `computedMeta`
 
-2. **`weighting_method` in basic detail:** Currently only extended/full detail
-   exposes meta. Weighting method is a fundamental change to how the metric works —
-   should it surface at basic detail too? Recommendation: no. Basic detail is
-   signal-only. Agents that care about the weighting method can use extended detail.
+**compute.go — tier assignment loop:**
+- Change validity condition from `Change24h == nil` exclusion only → **both** `Change24h == nil` AND `MarketCap == 0` exclusion. A coin must have valid price change AND non-zero market cap to enter tier averages.
+- Copy `coin.MarketCap` into `tierCoin.marketCap`
 
-3. **Fallback threshold:** If only 1 coin in a tier has a valid market_cap, it
-   carries 100% weight — effectively a single-coin average. Should there be a
-   minimum number of weighted coins before fallback triggers? The v1 `TierFloorMinCoins = 3`
-   floor already ensures at least 3 price-valid coins per tier; applying the same
-   floor to market-cap-valid coins is the natural choice.
-   Recommendation: if fewer than `TierFloorMinCoins` coins have non-zero market_cap,
-   flag `weighting_fallback: true` and use simple mean for that tier.
+**New function:**
+```go
+func weightedMeanTier(coins []tierCoin) (avg float64, fallback bool) {
+    // sum(change24h_i * marketCap_i) / sum(marketCap_i)
+    // coins with marketCap == 0 are skipped
+    // if totalWeight == 0 → return meanTier(coins), true (weighting_fallback)
+}
+```
 
-4. **Impact measurement:** We have today's live output (2026-05-07, `neutral`,
-   mid_vs_large +1.72pp). Running v1.1 against the same cached data would show the
-   exact numeric impact. Recommendation: after implementation, run both versions
-   against the same payload and document the delta in the commit message.
+Replace `meanTier(coins)` calls with `weightedMeanTier(coins)`, capture the fallback bool.
+
+**TierDetail construction:** Add `MarketCap` and `WeightPct` (2dp) to `TierCoinDetail`. Populate both from `tierCoin`:
+- `WeightPct = tc.marketCap / sumTierMarketCap * 100`
+
+If fewer than `TierFloorMinCoins` coins have non-zero market cap: tier is absent (same as v1 floor — no special fallback needed at tier floor level).
+
+`weighting_fallback: true` is set only when a tier has ≥ `TierFloorMinCoins` price-valid coins but zero market-cap-valid coins — the degenerate API state.
+
+---
+
+### T3 — Provider layer
+**File:** `internal/metrics/momentumdivergence/v1/provider.go`
+
+1. Add `weighting_method: "market_cap"` (or `"simple"` if fallback) to `metaMap` — extended detail only
+2. Bump `MetricVersion = "v1.1.0"`
+3. Pass `compMeta.WeightingFallback` from compute result into `metaMap`
+
+---
+
+### T4 — Spec update
+**File:** `docs/metrics/momentum-divergence.md`
+
+1. Bump version header: `v1.0.0` → `v1.1.0`
+2. Update Formula: weighted mean formula + double-null exclusion rule
+3. Update Output Schema: add `weighting_method` (extended), `market_cap` (tier_detail, full), `weight_pct` (tier_detail, full)
+4. **New section:** `## v1.1 Calibration Note` — document `label_drift` and `avg_magnitude_shift` as the baseline comparison metrics (not just in the commit message)
+5. Move "volume-weighted tier means" from Future Enhancements → Implemented
+6. Remove "Simple means over volume-weighted means" from Implementation Compromises
+7. Add new Implementation Compromise: stablecoin market-cap weight impact under weighting
+8. Add note: thresholds calibrated against v1 simple means — may need recalibration once v1.1 data accumulates
+
+---
+
+### T5 — Tests
+
+- `coinmarkets_test.go` — add `market_cap` field to fixture; assert `MarketCap` parses correctly.
+- `compute_test.go`:
+  - Update all existing fixtures to include `market_cap` values (realistic distribution — BTC dominant, mid/small distributed)
+  - New table-driven test `TestWeightedMeanTier` covering:
+    - Normal weighting (BTC 52%, ETH 25%, rest 23%)
+    - Zero market_cap fallback → `fallback: true`
+    - Mixed null/non-null market_cap → only non-null count toward tier
+    - Single coin with 100% weight
+    - Equal weights (all same market cap)
+  - Expected behavior baseline: assert specific `large_avg` values using calibration data — this becomes the regression anchor
+- `provider_test.go`:
+  - Add `MarketCap` to `rankedFixture`; assert `weighting_method` present in meta at extended detail
+- `momentum_divergence_e2e_test.go`:
+  - Assert `weighting_method` present in meta at extended detail (no assertions on specific numeric values that would break on real API data)
+
+---
+
+## Post-Implementation
+
+After code is green, run both v1 and v1.1 against the same cached payload:
+- Document `label_drift` (how many classifications changed)
+- Document `avg_magnitude_shift` (pp delta on `large_avg`)
+- Add these as comments or a test fixture so future refactors can detect regressions
+
+---
+
+## Order to Execute
+
+```
+T1 → T2 → T3 → T5 (compute/provider tests) → T4 → smoke test → make lint/fmt
+```
+
+T4 (spec) is last because it's documentation — don't finalize the doc until the code is stable.

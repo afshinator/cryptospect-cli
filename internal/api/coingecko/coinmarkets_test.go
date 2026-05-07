@@ -229,11 +229,11 @@ func TestParseCoinMarketsMomentumResponse_EmptyArray(t *testing.T) {
 // --- Ranked Response Parser (momentum-divergence) ---
 
 const coinMarketsRankedFixture = `[
-  {"id":"bitcoin","symbol":"btc","market_cap_rank":1,"price_change_percentage_24h_in_currency":2.10},
-  {"id":"ethereum","symbol":"eth","market_cap_rank":2,"price_change_percentage_24h_in_currency":-1.20},
-  {"id":"tether","symbol":"usdt","market_cap_rank":3,"price_change_percentage_24h_in_currency":0.01},
-  {"id":"solana","symbol":"sol","market_cap_rank":4,"price_change_percentage_24h_in_currency":5.50},
-  {"id":"bnb","symbol":"bnb","market_cap_rank":5,"price_change_percentage_24h_in_currency":null}
+  {"id":"bitcoin","symbol":"btc","market_cap_rank":1,"price_change_percentage_24h_in_currency":2.10,"market_cap":1953000000000},
+  {"id":"ethereum","symbol":"eth","market_cap_rank":2,"price_change_percentage_24h_in_currency":-1.20,"market_cap":380000000000},
+  {"id":"tether","symbol":"usdt","market_cap_rank":3,"price_change_percentage_24h_in_currency":0.01,"market_cap":150000000000},
+  {"id":"solana","symbol":"sol","market_cap_rank":4,"price_change_percentage_24h_in_currency":5.50,"market_cap":120000000000},
+  {"id":"bnb","symbol":"bnb","market_cap_rank":5,"price_change_percentage_24h_in_currency":null,"market_cap":null}
 ]`
 
 func TestParseCoinMarketsRankedResponse_Valid(t *testing.T) {
@@ -317,6 +317,26 @@ func TestParseCoinMarketsRankedResponse_InvalidJSON(t *testing.T) {
 	_, err := ParseCoinMarketsRankedResponse([]byte("not json"))
 	if err == nil {
 		t.Error("expected error for invalid JSON")
+	}
+}
+
+func TestParseCoinMarketsRankedResponse_MarketCap(t *testing.T) {
+	result, err := ParseCoinMarketsRankedResponse([]byte(coinMarketsRankedFixture))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// bitcoin: $1.953T
+	if result.Coins[0].MarketCap != 1953000000000 {
+		t.Errorf("Coins[0].MarketCap: got %v, want 1953000000000", result.Coins[0].MarketCap)
+	}
+	// ethereum: $380B
+	if result.Coins[1].MarketCap != 380000000000 {
+		t.Errorf("Coins[1].MarketCap: got %v, want 380000000000", result.Coins[1].MarketCap)
+	}
+	// bnb: null market_cap → 0.0 (dereference nil)
+	if result.Coins[4].MarketCap != 0.0 {
+		t.Errorf("Coins[4].MarketCap: got %v, want 0.0 (nil dereference)", result.Coins[4].MarketCap)
 	}
 }
 

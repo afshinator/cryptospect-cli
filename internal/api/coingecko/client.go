@@ -201,6 +201,7 @@ type CoinMarketsBreadthEntry struct {
 	ID            string   `json:"id"`
 	Symbol        string   `json:"symbol"`
 	MarketCapRank *int     `json:"market_cap_rank"`
+	MarketCap     *float64 `json:"market_cap"`
 	Change1h      *float64 `json:"price_change_percentage_1h_in_currency"`
 	Change24h     *float64 `json:"price_change_percentage_24h_in_currency"`
 	Change7d      *float64 `json:"price_change_percentage_7d_in_currency"`
@@ -430,13 +431,14 @@ type CoinMarketsRankedData struct {
 	CoinCount int                     `json:"coin_count"`
 }
 
-// CoinMarketsRankedCoin is a single coin with rank and 24h price change.
+// CoinMarketsRankedCoin is a single coin with rank, 24h price change, and market cap.
 // Change24h is nil when the API returns null for the price change field.
 type CoinMarketsRankedCoin struct {
 	ID            string   `json:"id"`
 	Symbol        string   `json:"symbol"`
 	MarketCapRank int      `json:"market_cap_rank"`
 	Change24h     *float64 `json:"price_change_24h"`
+	MarketCap     float64  `json:"market_cap"`
 }
 
 // ParseCoinMarketsRankedResponse parses the CoinGecko /coins/markets response
@@ -462,11 +464,16 @@ func ParseCoinMarketsRankedResponse(body []byte) (CoinMarketsRankedData, error) 
 		if e.MarketCapRank == nil {
 			continue
 		}
+		mc := 0.0
+		if e.MarketCap != nil {
+			mc = *e.MarketCap
+		}
 		coins = append(coins, CoinMarketsRankedCoin{
 			ID:            e.ID,
 			Symbol:        e.Symbol,
 			MarketCapRank: *e.MarketCapRank,
 			Change24h:     e.Change24h,
+			MarketCap:     mc,
 		})
 	}
 

@@ -10,6 +10,7 @@ import (
 type tierCoin struct {
 	coin      coingecko.CoinMarketsRankedCoin
 	change24h float64
+	marketCap float64
 }
 
 // Compute runs the 6-stage momentum-divergence pipeline: tier construction,
@@ -26,7 +27,10 @@ func Compute(input Input) (Data, computedMeta, error) {
 		if coin.Change24h == nil {
 			continue
 		}
-		tc := tierCoin{coin: coin, change24h: *coin.Change24h}
+		if coin.MarketCap <= 0 {
+			continue
+		}
+		tc := tierCoin{coin: coin, change24h: *coin.Change24h, marketCap: coin.MarketCap}
 		switch rank := coin.MarketCapRank; {
 		case rank <= input.LargeCeiling:
 			largeCoins = append(largeCoins, tc)
@@ -65,13 +69,13 @@ func Compute(input Input) (Data, computedMeta, error) {
 
 	var largeAvg, midAvg, smallAvg float64
 	if !largeAbsent {
-		largeAvg = meanTier(largeCoins)
+		largeAvg, meta.WeightingFallback = weightedMeanTier(largeCoins)
 	}
 	if !midAbsent {
-		midAvg = meanTier(midCoins)
+		midAvg, _ = weightedMeanTier(midCoins)
 	}
 	if !smallAbsent {
-		smallAvg = meanTier(smallCoins)
+		smallAvg, _ = weightedMeanTier(smallCoins)
 	}
 
 	averages := TierAverages{
@@ -136,22 +140,13 @@ func Compute(input Input) (Data, computedMeta, error) {
 
 	td := TierDetail{}
 	if !largeAbsent {
-		td.Large = make([]TierCoinDetail, len(largeCoins))
-		for i, tc := range largeCoins {
-			td.Large[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
-		}
+		td.Large = buildTierDetail(largeCoins)
 	}
 	if !midAbsent {
-		td.Mid = make([]TierCoinDetail, len(midCoins))
-		for i, tc := range midCoins {
-			td.Mid[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
-		}
+		td.Mid = buildTierDetail(midCoins)
 	}
 	if !smallAbsent {
-		td.Small = make([]TierCoinDetail, len(smallCoins))
-		for i, tc := range smallCoins {
-			td.Small[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
-		}
+		td.Small = buildTierDetail(smallCoins)
 	}
 	meta.TierDetail = &td
 
@@ -186,6 +181,45 @@ func meanTier(coins []tierCoin) float64 {
 		sum += tc.change24h
 	}
 	return sum / float64(len(coins))
+}
+
+func weightedMeanTier(coins []tierCoin) (avg float64, fallback bool) {
+	weightedSum := 0.0
+	totalWeight := 0.0
+	for _, tc := range coins {
+		if tc.marketCap > 0 {
+			weightedSum += tc.change24h * tc.marketCap
+			totalWeight += tc.marketCap
+		}
+	}
+	if totalWeight == 0 {
+		return meanTier(coins), true
+	}
+	return weightedSum / totalWeight, false
+}
+
+func buildTierDetail(coins []tierCoin) []TierCoinDetail {
+	if len(coins) == 0 {
+		return nil
+	}
+	totalCap := 0.0
+	for _, tc := range coins {
+		totalCap += tc.marketCap
+	}
+	details := make([]TierCoinDetail, len(coins))
+	for i, tc := range coins {
+		wp := 0.0
+		if totalCap > 0 && tc.marketCap > 0 {
+			wp = math.Round(tc.marketCap/totalCap*100*100) / 100
+		}
+		details[i] = TierCoinDetail{
+			ID:        tc.coin.ID,
+			Return24h: tc.coin.Change24h,
+			MarketCap: tc.marketCap,
+			WeightPct: wp,
+		}
+	}
+	return details
 }
 
 func round4(v float64) float64 {

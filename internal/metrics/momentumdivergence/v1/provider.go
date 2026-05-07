@@ -19,7 +19,7 @@ import (
 // MetricName and MetricVersion identify this provider in the registry.
 const (
 	MetricName    = "momentum-divergence"
-	MetricVersion = "v1.0.0"
+	MetricVersion = "v1.1.0"
 
 	// starvationThreshold is the minimum CoinCount from the shared breadth endpoint
 	// that indicates a full (non-truncated) API response. Distinct from SegmentsSmallMax,
@@ -108,6 +108,12 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		"tier_counts":       compMeta.TierCounts,
 		"segments_used":     map[string]int{"large_ceiling": largeCeiling, "mid_ceiling": midCeiling, "small_ceiling": smallCeiling},
 		"data_timestamp":    time.Now().UTC().Format(time.RFC3339),
+	}
+
+	if compMeta.WeightingFallback {
+		metaMap["weighting_method"] = "simple"
+	} else {
+		metaMap["weighting_method"] = "market_cap"
 	}
 
 	if clamped {

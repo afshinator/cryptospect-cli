@@ -87,6 +87,8 @@ type SegmentsUsed struct {
 type TierCoinDetail struct {
 	ID        string   `json:"id"`
 	Return24h *float64 `json:"return_24h"`
+	MarketCap float64  `json:"market_cap,omitempty"`
+	WeightPct float64  `json:"weight_pct,omitempty"`
 }
 
 // TierDetail holds per-tier coin breakdowns for full-detail output.
@@ -98,9 +100,10 @@ type TierDetail struct {
 
 // computedMeta holds metadata computed by the pure Compute function.
 type computedMeta struct {
-	Confidence       string
-	TierCounts       TierCounts
-	Thresholds       map[string]float64
-	LabelDescription string
-	TierDetail       *TierDetail
+	Confidence        string
+	TierCounts        TierCounts
+	Thresholds        map[string]float64
+	LabelDescription  string
+	TierDetail        *TierDetail
+	WeightingFallback bool
 }
