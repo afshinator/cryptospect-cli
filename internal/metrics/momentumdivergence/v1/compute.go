@@ -172,6 +172,7 @@ func Compute(input Input) (Data, computedMeta, error) {
 	return data, meta, nil
 }
 
+// weightedMeanTier computes the market-cap weighted average 24h return.
 func weightedMeanTier(coins []tierCoin) float64 {
 	weightedSum := 0.0
 	totalWeight := 0.0
