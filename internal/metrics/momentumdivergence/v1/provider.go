@@ -20,6 +20,11 @@ import (
 const (
 	MetricName    = "momentum-divergence"
 	MetricVersion = "v1.0.0"
+
+	// starvationThreshold is the minimum CoinCount from the shared breadth endpoint
+	// that indicates a full (non-truncated) API response. Distinct from SegmentsSmallMax,
+	// which is the user-facing segment boundary clamp.
+	starvationThreshold = 250
 )
 
 func init() { metrics.MustRegister(&Provider{}) }
@@ -46,19 +51,19 @@ func (p *Provider) RegisterFlags(cmd *cobra.Command) {
 }
 
 // Compute implements metrics.MetricProvider.
-func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage) (output.MetricResult, error) { //nolint:gocyclo
+func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
 	cgRaw, ok := data[api.CoinGeckoCoinMarketsBreadth]
 	if !ok || cgRaw == nil {
-		return p.unavailable("CoinGecko coin markets breadth data not available"), nil
+		return p.unavailable("CoinGecko coin markets breadth data not available")
 	}
 
 	ranked, err := coingecko.ParseCoinMarketsRankedResponse(cgRaw)
 	if err != nil {
-		return p.unavailable("failed to parse coin markets data: " + err.Error()), nil //nolint:nilerr
+		return p.unavailable("failed to parse coin markets data: " + err.Error())
 	}
 
 	if len(ranked.Coins) == 0 {
-		return p.unavailable("no coins with valid market_cap_rank in response"), nil
+		return p.unavailable("no coins with valid market_cap_rank in response")
 	}
 
 	largeCeiling := DefaultLargeCeiling
@@ -68,67 +73,31 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	var clampReason string
 
 	if segsRaw, ok := config.SegmentsFromContext(ctx); ok && segsRaw != "" {
-		parts := strings.Split(segsRaw, ",")
-		if len(parts) != 3 {
-			return p.unavailable("invalid --segments format: must be three comma-separated values"), nil
-		}
-
-		vals := make([]int, 3)
-		for i, part := range parts {
-			part = strings.TrimSpace(part)
-			v, err := strconv.Atoi(part)
-			if err != nil || v < 1 {
-				return p.unavailable("invalid --segments value: " + part), nil //nolint:nilerr
-			}
-			vals[i] = v
-		}
-
-		if vals[0] >= vals[1] || vals[1] >= vals[2] {
-			return p.unavailable("invalid --segments: boundaries must be strictly ascending"), nil
-		}
-
-		largeCeiling, midCeiling, smallCeiling = vals[0], vals[1], vals[2]
-
-		if largeCeiling < SegmentsLargeMin {
-			clampReason = fmt.Sprintf("Large-cap ceiling below minimum of %d. Adjusted from %d to %d.",
-				SegmentsLargeMin, largeCeiling, SegmentsLargeMin)
-			largeCeiling = SegmentsLargeMin
-			clamped = true
-		}
-		if smallCeiling > SegmentsSmallMax {
-			reason := fmt.Sprintf("Small-cap ceiling above maximum of %d. Adjusted from %d to %d.",
-				SegmentsSmallMax, smallCeiling, SegmentsSmallMax)
-			if clampReason != "" {
-				clampReason += " " + reason
-			} else {
-				clampReason = reason
-			}
-			smallCeiling = SegmentsSmallMax
-			clamped = true
+		largeCeiling, midCeiling, smallCeiling, clamped, clampReason, err = parseSegments(segsRaw)
+		if err != nil {
+			return p.unavailable(err.Error())
 		}
 	}
 
 	input := Input{
-		Coins:                 ranked.Coins,
-		LargeCeiling:          largeCeiling,
-		MidCeiling:            midCeiling,
-		SmallCeiling:          smallCeiling,
-		SegmentsClamped:       clamped,
-		SegmentsClampedReason: clampReason,
+		Coins:        ranked.Coins,
+		LargeCeiling: largeCeiling,
+		MidCeiling:   midCeiling,
+		SmallCeiling: smallCeiling,
 	}
 
 	dataResult, compMeta, err := Compute(input)
 	if err != nil {
-		return p.unavailable(err.Error()), nil
+		return p.unavailable(err.Error())
 	}
 
-	if ranked.CoinCount < 250 {
+	if ranked.CoinCount < starvationThreshold {
 		compMeta.Confidence = "low"
 	}
 
 	dataBytes, err := json.Marshal(dataResult)
 	if err != nil {
-		return p.unavailable("failed to marshal data: " + err.Error()), nil //nolint:nilerr
+		return p.unavailable("failed to marshal data: " + err.Error())
 	}
 
 	metaMap := map[string]interface{}{
@@ -148,13 +117,11 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	metaMap["thresholds"] = compMeta.Thresholds
 	metaMap["description"] = compMeta.LabelDescription
-	if compMeta.TierDetail != nil {
-		metaMap["tier_detail"] = compMeta.TierDetail
-	}
+	metaMap["tier_detail"] = compMeta.TierDetail
 
 	metaBytes, err := json.Marshal(metaMap)
 	if err != nil {
-		return p.unavailable("failed to marshal meta: " + err.Error()), nil //nolint:nilerr
+		return p.unavailable("failed to marshal meta: " + err.Error())
 	}
 
 	status := "ok"
@@ -171,13 +138,55 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	}, nil
 }
 
+// parseSegments validates and clamps a raw "--segments large,mid,small" string.
+// Returns an error for invalid format or non-ascending values; returns clamped=true
+// when boundaries were adjusted to fit enforced limits.
+func parseSegments(raw string) (large, mid, small int, clamped bool, reason string, err error) {
+	parts := strings.Split(raw, ",")
+	if len(parts) != 3 {
+		return 0, 0, 0, false, "", fmt.Errorf("invalid --segments format: must be three comma-separated values")
+	}
+	vals := make([]int, 3)
+	for i, part := range parts {
+		part = strings.TrimSpace(part)
+		v, convErr := strconv.Atoi(part)
+		if convErr != nil || v < 1 {
+			return 0, 0, 0, false, "", fmt.Errorf("invalid --segments value: %s", part)
+		}
+		vals[i] = v
+	}
+	if vals[0] >= vals[1] || vals[1] >= vals[2] {
+		return 0, 0, 0, false, "", fmt.Errorf("invalid --segments: boundaries must be strictly ascending")
+	}
+	large, mid, small = vals[0], vals[1], vals[2]
+	if large < SegmentsLargeMin {
+		reason = fmt.Sprintf(
+			"Large-cap ceiling below minimum of %d. Adjusted from %d to %d to ensure tier averages are statistically representative.",
+			SegmentsLargeMin, large, SegmentsLargeMin,
+		)
+		large = SegmentsLargeMin
+		clamped = true
+	}
+	if small > SegmentsSmallMax {
+		r := fmt.Sprintf("Small-cap ceiling above maximum of %d. Adjusted from %d to %d.", SegmentsSmallMax, small, SegmentsSmallMax)
+		if reason != "" {
+			reason += " " + r
+		} else {
+			reason = r
+		}
+		small = SegmentsSmallMax
+		clamped = true
+	}
+	return large, mid, small, clamped, reason, nil
+}
+
 // unavailable returns a MetricResult with status "unavailable" and an error message.
-func (p *Provider) unavailable(msg string) output.MetricResult {
+func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
 	errorData, _ := json.Marshal(map[string]string{"error": msg})
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
 		Status:  "unavailable",
 		Data:    json.RawMessage(errorData),
-	}
+	}, nil
 }

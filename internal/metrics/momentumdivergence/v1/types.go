@@ -14,7 +14,7 @@ const (
 	TailExtensionSpread   = 5.0
 	TierFloorMinCoins     = 3
 	SegmentsLargeMin      = 5
-	SegmentsSmallMax      = 250
+	SegmentsSmallMax      = 200
 	ConcentrationDeadBand = 0.5
 
 	DefaultLargeCeiling = 10
@@ -31,12 +31,10 @@ const (
 
 // Input is the pure compute input for momentum-divergence.
 type Input struct {
-	Coins                 []coingecko.CoinMarketsRankedCoin
-	LargeCeiling          int
-	MidCeiling            int
-	SmallCeiling          int
-	SegmentsClamped       bool
-	SegmentsClampedReason string
+	Coins        []coingecko.CoinMarketsRankedCoin
+	LargeCeiling int
+	MidCeiling   int
+	SmallCeiling int
 }
 
 // TierAverages holds the simple mean 24h return for each market-cap tier.

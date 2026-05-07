@@ -198,6 +198,7 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 					delete(meta, "thresholds")
 					delete(meta, "description")
 					delete(meta, "top_n_stablecoins")
+					delete(meta, "tier_detail")
 					filtered, _ := json.Marshal(meta)
 					result.Meta = filtered
 				}

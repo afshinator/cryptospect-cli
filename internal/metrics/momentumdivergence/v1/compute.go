@@ -111,7 +111,7 @@ func Compute(input Input) (Data, computedMeta, error) {
 			if largeAvg > ConcentrationDeadBand {
 				label = LabelTopHeavy
 				desc = "Top-Heavy — Narrow Rally"
-			} else if largeAvg < -ConcentrationDeadBand {
+			} else if largeAvg <= -ConcentrationDeadBand {
 				label = LabelFlightToSafety
 				desc = "Flight to Safety — Defensive Capital Concentration"
 			}
@@ -134,31 +134,26 @@ func Compute(input Input) (Data, computedMeta, error) {
 
 	summary := buildSummary(label, averages, spreads, tailExtension)
 
-	// TierDetail at full detail
-	var tierDetail *TierDetail
-	if smallCount >= TierFloorMinCoins || midCount >= TierFloorMinCoins || largeCount >= TierFloorMinCoins {
-		td := TierDetail{}
-		if !largeAbsent {
-			td.Large = make([]TierCoinDetail, len(largeCoins))
-			for i, tc := range largeCoins {
-				td.Large[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
-			}
+	td := TierDetail{}
+	if !largeAbsent {
+		td.Large = make([]TierCoinDetail, len(largeCoins))
+		for i, tc := range largeCoins {
+			td.Large[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
 		}
-		if !midAbsent {
-			td.Mid = make([]TierCoinDetail, len(midCoins))
-			for i, tc := range midCoins {
-				td.Mid[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
-			}
-		}
-		if !smallAbsent {
-			td.Small = make([]TierCoinDetail, len(smallCoins))
-			for i, tc := range smallCoins {
-				td.Small[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
-			}
-		}
-		tierDetail = &td
 	}
-	meta.TierDetail = tierDetail
+	if !midAbsent {
+		td.Mid = make([]TierCoinDetail, len(midCoins))
+		for i, tc := range midCoins {
+			td.Mid[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
+		}
+	}
+	if !smallAbsent {
+		td.Small = make([]TierCoinDetail, len(smallCoins))
+		for i, tc := range smallCoins {
+			td.Small[i] = TierCoinDetail{ID: tc.coin.ID, Return24h: tc.coin.Change24h}
+		}
+	}
+	meta.TierDetail = &td
 
 	meta.Thresholds = map[string]float64{
 		"risk_on_spread":              RiskOnSpread,

@@ -93,6 +93,9 @@ func TestMomentumDivergenceDetailExtended(t *testing.T) {
 	if _, ok := meta["description"]; ok {
 		t.Error("description should not be present at extended detail")
 	}
+	if _, ok := meta["tier_detail"]; ok {
+		t.Error("tier_detail should not be present at extended detail")
+	}
 }
 
 func TestMomentumDivergenceDetailFull(t *testing.T) {
@@ -122,6 +125,11 @@ func TestMomentumDivergenceDetailFull(t *testing.T) {
 	}
 	if _, ok := meta["thresholds"]; !ok {
 		t.Error("thresholds should be present at full detail")
+	}
+	if r.Status == "ok" || r.Status == "degraded" {
+		if _, ok := meta["tier_detail"]; !ok {
+			t.Error("tier_detail should be present at full detail")
+		}
 	}
 }
 

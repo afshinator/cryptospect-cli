@@ -52,7 +52,7 @@ Primary classification:
   label =
     "risk_on"          if mid_vs_large > +5.0 AND mid_avg > 1.0
     "top_heavy"        if mid_vs_large < -3.0 AND large_avg > +0.5
-    "flight_to_safety" if mid_vs_large < -3.0 AND large_avg < -0.5
+    "flight_to_safety" if mid_vs_large < -3.0 AND large_avg <= -0.5
     "neutral"          otherwise  // ← includes the dead band: large_avg in (-0.5, +0.5]
                                    //   when mid_vs_large < -3.0 but large_avg is within
                                    //   ±0.5%, label is "neutral" (Concentration / ambiguous).
@@ -199,7 +199,7 @@ CoinMarketCap free tier is the natural future validator for per-coin price data 
                                            // null if tier_mid or tier_small is absent
             // NEVER 0.0 for a missing spread -- see Formula section for nil-safety contract
         },
-        "tail_extension": "bool",  // always present; true only in risk_on with small_vs_large > +5pp
+        "tail_extension": "bool",  // always present; true if small_vs_large > +5.0pp, regardless of label
         "classification": {
             "label":       "string",  // "risk_on" / "top_heavy" / "flight_to_safety" / "neutral"
                                       // label alone is sufficient for agent switch/case logic;

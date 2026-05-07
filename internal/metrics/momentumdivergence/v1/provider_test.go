@@ -138,7 +138,7 @@ func TestProvider_Compute_SegmentsClamping(t *testing.T) {
 	if err := json.Unmarshal(result.Meta, &meta); err != nil {
 		t.Fatalf("unmarshal meta: %v", err)
 	}
-	// 3 < 5 → large_ceiling clamped to 5; 300 > 250 → small_ceiling clamped to 250
+	// 3 < 5 → large_ceiling clamped to 5; 300 > 200 → small_ceiling clamped to 200
 	clamped, ok := meta["segments_clamped"].(bool)
 	if !ok || !clamped {
 		t.Error("segments_clamped should be true")
@@ -210,6 +210,51 @@ func TestProvider_OutputEnvelope(t *testing.T) {
 		if dataParsed.Spreads.SmallVsLarge != nil && *dataParsed.Spreads.SmallVsLarge <= TailExtensionSpread {
 			t.Log("tail_extension false is valid given fixture")
 		}
+	}
+}
+
+func TestProvider_InvalidSegments_WrongFormat(t *testing.T) {
+	p := &Provider{}
+	ctx := config.StoreSegmentsInContext(context.Background(), "abc,def,ghi")
+	data := map[string]json.RawMessage{
+		api.CoinGeckoCoinMarketsBreadth: json.RawMessage(rankedFixture),
+	}
+	result, err := p.Compute(ctx, data)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Status != "unavailable" {
+		t.Errorf("Status = %q, want unavailable for non-integer segments", result.Status)
+	}
+}
+
+func TestProvider_InvalidSegments_NonAscending(t *testing.T) {
+	p := &Provider{}
+	ctx := config.StoreSegmentsInContext(context.Background(), "50,10,200")
+	data := map[string]json.RawMessage{
+		api.CoinGeckoCoinMarketsBreadth: json.RawMessage(rankedFixture),
+	}
+	result, err := p.Compute(ctx, data)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Status != "unavailable" {
+		t.Errorf("Status = %q, want unavailable for non-ascending segments", result.Status)
+	}
+}
+
+func TestProvider_InvalidSegments_WrongCount(t *testing.T) {
+	p := &Provider{}
+	ctx := config.StoreSegmentsInContext(context.Background(), "10,50")
+	data := map[string]json.RawMessage{
+		api.CoinGeckoCoinMarketsBreadth: json.RawMessage(rankedFixture),
+	}
+	result, err := p.Compute(ctx, data)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Status != "unavailable" {
+		t.Errorf("Status = %q, want unavailable for wrong segment count", result.Status)
 	}
 }
 
