@@ -37,7 +37,7 @@ type Input struct {
 	SmallCeiling int
 }
 
-// TierAverages holds the simple mean 24h return for each market-cap tier.
+// TierAverages holds the market-cap weighted 24h return for each market-cap tier.
 type TierAverages struct {
 	Large float64 `json:"large"`
 	Mid   float64 `json:"mid"`
@@ -87,8 +87,8 @@ type SegmentsUsed struct {
 type TierCoinDetail struct {
 	ID        string   `json:"id"`
 	Return24h *float64 `json:"return_24h"`
-	MarketCap float64  `json:"market_cap,omitempty"`
-	WeightPct float64  `json:"weight_pct,omitempty"`
+	MarketCap float64  `json:"market_cap"`
+	WeightPct float64  `json:"weight_pct"`
 }
 
 // TierDetail holds per-tier coin breakdowns for full-detail output.
@@ -100,10 +100,9 @@ type TierDetail struct {
 
 // computedMeta holds metadata computed by the pure Compute function.
 type computedMeta struct {
-	Confidence        string
-	TierCounts        TierCounts
-	Thresholds        map[string]float64
-	LabelDescription  string
-	TierDetail        *TierDetail
-	WeightingFallback bool
+	Confidence       string
+	TierCounts       TierCounts
+	Thresholds       map[string]float64
+	LabelDescription string
+	TierDetail       *TierDetail
 }

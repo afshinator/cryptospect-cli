@@ -841,34 +841,12 @@ func TestWeightedMeanTier_Normal(t *testing.T) {
 		{change24h: 3.0, marketCap: 380},  // ETH
 		{change24h: 1.0, marketCap: 120},  // SOL
 	}
-	avg, fallback := weightedMeanTier(tcs)
-	if fallback {
-		t.Error("fallback should be false with valid market caps")
-	}
+	avg := weightedMeanTier(tcs)
 	// (2*1953 + 3*380 + 1*120) / (1953+380+120) = (3906+1140+120)/2453 = 5166/2453 = 2.1060
 	expected := 2.1060
 	diff := avg - expected
 	if diff < -0.01 || diff > 0.01 {
 		t.Errorf("avg: got %v, want %v", avg, expected)
-	}
-}
-
-// TestWeightedMeanTier_Fallback verifies fallback to simple mean when all market caps are zero.
-func TestWeightedMeanTier_Fallback(t *testing.T) {
-	tcs := []tierCoin{
-		{change24h: 2.0, marketCap: 0},
-		{change24h: 3.0, marketCap: 0},
-		{change24h: 5.0, marketCap: 0},
-	}
-	avg, fallback := weightedMeanTier(tcs)
-	if !fallback {
-		t.Error("fallback should be true when all market caps are zero")
-	}
-	// Simple mean: (2+3+5)/3 = 3.3333
-	expected := 3.3333
-	diff := avg - expected
-	if diff < -0.01 || diff > 0.01 {
-		t.Errorf("avg: got %v, want %v (simple mean fallback)", avg, expected)
 	}
 }
 
@@ -879,10 +857,7 @@ func TestWeightedMeanTier_MixedNull(t *testing.T) {
 		{change24h: 20.0, marketCap: 0},   // excluded from weighted avg
 		{change24h: 30.0, marketCap: 200}, // valid
 	}
-	avg, fallback := weightedMeanTier(tcs)
-	if fallback {
-		t.Error("fallback should be false with mixed market caps")
-	}
+	avg := weightedMeanTier(tcs)
 	// (10*100 + 30*200) / (100+200) = (1000+6000)/300 = 7000/300 = 23.3333
 	expected := 23.3333
 	diff := avg - expected
@@ -896,26 +871,20 @@ func TestWeightedMeanTier_SingleCoin(t *testing.T) {
 	tcs := []tierCoin{
 		{change24h: 5.0, marketCap: 500},
 	}
-	avg, fallback := weightedMeanTier(tcs)
-	if fallback {
-		t.Error("fallback should be false for single valid coin")
-	}
+	avg := weightedMeanTier(tcs)
 	if avg != 5.0 {
 		t.Errorf("avg: got %v, want 5.0", avg)
 	}
 }
 
-// TestWeightedMeanTier_EqualWeights verifies equal market caps produce simple mean.
+// TestWeightedMeanTier_EqualWeights verifies equal market caps produce same result as simple mean.
 func TestWeightedMeanTier_EqualWeights(t *testing.T) {
 	tcs := []tierCoin{
 		{change24h: 2.0, marketCap: 100},
 		{change24h: 4.0, marketCap: 100},
 		{change24h: 6.0, marketCap: 100},
 	}
-	avg, fallback := weightedMeanTier(tcs)
-	if fallback {
-		t.Error("fallback should be false for equal weights")
-	}
+	avg := weightedMeanTier(tcs)
 	// With equal weights, weighted mean equals simple mean: (2+4+6)/3 = 4.0
 	if avg != 4.0 {
 		t.Errorf("avg: got %v, want 4.0", avg)
@@ -933,10 +902,7 @@ func TestWeightedMeanTier_VerifiedData(t *testing.T) {
 		{change24h: 5.0, marketCap: 120_000_000_000},
 		{change24h: 1.0, marketCap: 90_000_000_000},
 	}
-	avg, fallback := weightedMeanTier(tcs)
-	if fallback {
-		t.Error("fallback should be false")
-	}
+	avg := weightedMeanTier(tcs)
 	// Numerator: 2*1953e9 + 3*380e9 + 0*150e9 + 5*120e9 + 1*90e9
 	//   = 3906e9 + 1140e9 + 0 + 600e9 + 90e9 = 5736e9
 	// Denominator: 1953e9 + 380e9 + 150e9 + 120e9 + 90e9 = 2693e9

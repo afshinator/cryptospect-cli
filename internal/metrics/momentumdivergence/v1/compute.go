@@ -69,13 +69,13 @@ func Compute(input Input) (Data, computedMeta, error) {
 
 	var largeAvg, midAvg, smallAvg float64
 	if !largeAbsent {
-		largeAvg, meta.WeightingFallback = weightedMeanTier(largeCoins)
+		largeAvg = weightedMeanTier(largeCoins)
 	}
 	if !midAbsent {
-		midAvg, _ = weightedMeanTier(midCoins)
+		midAvg = weightedMeanTier(midCoins)
 	}
 	if !smallAbsent {
-		smallAvg, _ = weightedMeanTier(smallCoins)
+		smallAvg = weightedMeanTier(smallCoins)
 	}
 
 	averages := TierAverages{
@@ -172,18 +172,7 @@ func Compute(input Input) (Data, computedMeta, error) {
 	return data, meta, nil
 }
 
-func meanTier(coins []tierCoin) float64 {
-	if len(coins) == 0 {
-		return 0
-	}
-	sum := 0.0
-	for _, tc := range coins {
-		sum += tc.change24h
-	}
-	return sum / float64(len(coins))
-}
-
-func weightedMeanTier(coins []tierCoin) (avg float64, fallback bool) {
+func weightedMeanTier(coins []tierCoin) float64 {
 	weightedSum := 0.0
 	totalWeight := 0.0
 	for _, tc := range coins {
@@ -193,9 +182,9 @@ func weightedMeanTier(coins []tierCoin) (avg float64, fallback bool) {
 		}
 	}
 	if totalWeight == 0 {
-		return meanTier(coins), true
+		return 0
 	}
-	return weightedSum / totalWeight, false
+	return weightedSum / totalWeight
 }
 
 func buildTierDetail(coins []tierCoin) []TierCoinDetail {

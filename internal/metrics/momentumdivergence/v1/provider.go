@@ -110,11 +110,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		"data_timestamp":    time.Now().UTC().Format(time.RFC3339),
 	}
 
-	if compMeta.WeightingFallback {
-		metaMap["weighting_method"] = "simple"
-	} else {
-		metaMap["weighting_method"] = "market_cap"
-	}
+	metaMap["weighting_method"] = "market_cap_weighted"
 
 	if clamped {
 		metaMap["segments_clamped"] = true

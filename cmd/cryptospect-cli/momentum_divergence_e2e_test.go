@@ -98,8 +98,8 @@ func TestMomentumDivergenceDetailExtended(t *testing.T) {
 	}
 	if wm, ok := meta["weighting_method"]; !ok {
 		t.Error("weighting_method should be present at extended detail")
-	} else if wm != "market_cap" && wm != "simple" {
-		t.Errorf("weighting_method: got %q, want market_cap or simple", wm)
+	} else if wm != "market_cap_weighted" {
+		t.Errorf("weighting_method: got %q, want market_cap_weighted", wm)
 	}
 }
 

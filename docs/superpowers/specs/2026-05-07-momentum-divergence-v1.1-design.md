@@ -312,3 +312,24 @@ T1 → T2 → T3 → T5 (compute/provider tests) → T4 → smoke test → make 
 ```
 
 T4 (spec) is last because it's documentation — don't finalize the doc until the code is stable.
+
+---
+
+## Post-Review (2026-05-07)
+
+The fallback path and `WeightingFallback` field were removed during code review. The original
+design specified a simple-mean fallback when a tier had ≥ `TierFloorMinCoins` price-valid
+coins but zero market-cap-valid coins. This path was unreachable through production code
+because `Compute()` filters out coins with `MarketCap <= 0` before tier construction.
+
+Instead of restructuring the double-validity logic to make the fallback reachable, the
+decision was to remove it entirely. `weighting_method` is always `"market_cap_weighted"`.
+Coins without market cap are invalid at tier construction — they do not count toward the
+statistical floor and do not enter tier averages. This makes the contract simpler (no
+degenerate API edge case to surface) and removes the `WeightingFallback` field from
+`computedMeta`.
+
+Additional cleanups from the review: `omitempty` removed from `WeightPct` and `MarketCap`
+in `TierCoinDetail` (stable JSON output), `TierAverages` comment fixed from "simple mean"
+to "market-cap weighted", and `weighting_method` enum value renamed from `"market_cap"` to
+`"market_cap_weighted"` for forward clarity.

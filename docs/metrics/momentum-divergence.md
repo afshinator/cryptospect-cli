@@ -31,8 +31,8 @@ Tier averages (market-cap weighted, double-null-excluded):
   small_avg = sum(price_change_24h_i * market_cap_i) / sum(market_cap_i) for tier_small valid coins
 
   // v1.1: market-cap weighted means. Coins with null/zero market_cap are excluded from
-  // both numerator and denominator. If a tier has ≥ TierFloorMinCoins price-valid coins
-  // but zero market-cap-valid coins, falls back to simple mean (weighting_fallback: true).
+  // both numerator and denominator and are invalid for tier construction — they do not
+  // count toward the statistical floor and do not enter tier averages.
   // CoinGecko returns percentage directly: 5.0 == +5%, not 0.05.
 
 Spread matrix (nil-safe -- only computed when both constituent tiers are valid):
@@ -139,7 +139,7 @@ Tail extension (standalone signal, decoupled from label):
 
 - **Primary API:** CoinGecko
 - **Endpoint key:** `coingecko.coin_markets_breadth` — `/coins/markets` with `per_page=200`, `order=market_cap_desc`, `price_change_percentage=24h`
-- **Fields used:** `id`, `market_cap_rank`, `price_change_percentage_24h` (per coin)
+- **Fields used:** `id`, `market_cap_rank`, `price_change_percentage_24h`, `market_cap` (per coin)
 
 **Endpoint cache sharing:** `coingecko.coin_markets_breadth` is the same endpoint key used by `market-breadth`. When both metrics are called in the same session, the dispatcher serves data from cache at zero additional API cost. `market-breadth` defaults to `per_page=250`; if both metrics are active, the dispatcher should use `per_page=250` as the canonical fetch. `momentum-divergence` uses only ranks 1–200; ranks 201–250 are silently ignored.
 
@@ -181,7 +181,7 @@ CoinMarketCap free tier is the natural future validator for per-coin price data 
 ```json
 {
     "metric":  "momentum-divergence",
-    "version": "v1.0.0",
+    "version": "v1.1.0",
     "status":  "string",  // "ok" / "degraded" / "unavailable"
                           // "unavailable": CoinGecko parse failed OR all three tiers absent
                           // "degraded": one or more tiers has < 3 valid coins
@@ -227,7 +227,7 @@ CoinMarketCap free tier is the natural future validator for per-coin price data 
         "ttl_remaining_sec": "int",
         "primary_source":    "coingecko",
         "confidence":        "string",   // "high" (all tiers ≥ 3 coins) / "low" (any tier < 3 coins)
-        "weighting_method":  "string",   // "market_cap" / "simple" (v1.1; extended detail only)
+        "weighting_method":  "market_cap_weighted"   // v1.1; extended detail only
         "tier_counts": {
             "large": "int",  // valid coin count after null exclusion
             "mid":   "int",
@@ -268,7 +268,7 @@ CoinMarketCap free tier is the natural future validator for per-coin price data 
 |-------|-----------|-------------|
 | `tail_extension` | Always | Boolean overlay; always present — agents must never check for field absence |
 | `spreads.small_vs_mid` | Always | Rotation depth signal; positive = heat propagating to long-tail, negative = stalling at mid-caps |
-| `weighting_method` | `--detail extended` or `full` | v1.1: `"market_cap"` or `"simple"`; indicates whether tier averages use market-cap weighting or fell back to simple mean |
+| `weighting_method` | `--detail extended` or `full` | v1.1: always `"market_cap_weighted"`; tier averages use market-cap weighting |
 | `market_cap` on tier_detail entries | `--detail full` | v1.1: per-coin market cap (USD); aids outlier weight inspection |
 | `weight_pct` on tier_detail entries | `--detail full` | v1.1: per-coin share of tier market cap (2dp); e.g. 52.34 means BTC is 52.34% of large-tier weight |
 | `tier_detail` | `--detail full` | Per-coin breakdown (id, return_24h, market_cap, weight_pct) for each tier; primary tool for detecting outlier distortion |
@@ -309,7 +309,7 @@ When mid-caps start outpacing mega-caps, investors are deliberately accepting mo
 
 ### Exact definition and data needs, logic
 
-**Data source:** A single `coingecko.coin_markets_breadth` call (`/coins/markets`, `per_page=200`, `order=market_cap_desc`, `price_change_percentage=24h`) returns all required fields — rank and 24h price change — per coin. No additional endpoints are needed. When called in the same session as `market-breadth`, the dispatcher serves this data from cache at zero additional API cost.
+**Data source:** A single `coingecko.coin_markets_breadth` call (`/coins/markets`, `per_page=200`, `order=market_cap_desc`, `price_change_percentage=24h`) returns all required fields — `id`, `market_cap_rank`, `price_change_percentage_24h`, and `market_cap` — per coin. No additional endpoints are needed. When called in the same session as `market-breadth`, the dispatcher serves this data from cache at zero additional API cost.
 
 **Tier assignment:** Coins are assigned by `market_cap_rank` field, not positional index. This is defensive against silent API ordering changes.
 
@@ -317,7 +317,7 @@ When mid-caps start outpacing mega-caps, investors are deliberately accepting mo
 
 **Statistical floor (3 coins):** Each tier requires at least 3 valid coins to produce a reliable average. The top-10 tier is unlikely to fall below this floor under normal conditions; the floor exists as a defensive guard against severe API failures or partial response bodies.
 
-**Simple means:** Tier averages are unweighted. A single large outlier within a tier can skew the tier average — particularly in the top-10 tier, where each asset carries 10% weight. `tier_detail` at full detail exposes per-coin data for outlier inspection.
+**Market-cap weighted means:** Tier averages are weighted by market cap. BTC and ETH together carry ~60-70% of large-tier weight, reducing single-coin outlier distortion compared to simple means. `tier_detail` at full detail exposes per-coin data including `market_cap` and `weight_pct` for weight inspection.
 
 **No `relative_performance` ratio:** The ratio `mid_avg / large_avg` was evaluated and rejected. When `large_avg` approaches zero, the ratio explodes. When `large_avg` is negative, the ratio's sign flips non-intuitively. The spread (percentage-point difference) is always defined, always sign-correct, and directly interpretable. Division-by-zero and "ghost ratio" protection logic is eliminated entirely.
 
@@ -360,7 +360,7 @@ When `classification.label` is `risk_on` and `tier_detail` is available (`--deta
 No cross-source verification in v1. The BTC CVD validator was explicitly rejected: in a divergence metric, a validator checking for BTC momentum "agreement" is adversarial by design — a successful mid-cap rotation (mid-caps +10%, BTC -5%) would produce a negative CVD that incorrectly lowers confidence on a valid `risk_on` verdict. The tier structure is self-validating.
 
 **Implementation Compromises:**
-- **Market-cap weighted means (v1.1).** v1 used simple means; v1.1 replaces with market-cap weighted means. BTC and ETH now contribute to `large_avg` in proportion to their economic weight (~60-70% of large-tier market cap) rather than 2 of (up to) 10 equal weights. The `weighting_method` meta field surfaces whether the current run used market_cap weighting or fell back to simple mean (degenerate API edge case).
+- **Market-cap weighted means (v1.1).** v1 used simple means; v1.1 replaces with market-cap weighted means. BTC and ETH now contribute to `large_avg` in proportion to their economic weight (~60-70% of large-tier market cap) rather than 2 of (up to) 10 equal weights. The `weighting_method` meta field (always `"market_cap_weighted"`) identifies this as a v1.1+ run. Coins without market cap data are excluded from tier computation entirely — they do not count toward the statistical floor and do not enter tier averages.
 - **Stablecoin market-cap weight impact (v1.1).** USDT (~$150B market cap) at rank 3-4 in the large tier now carries significant weight under market-cap weighting. Its near-zero 24h return dampens `large_avg` toward zero, making `top_heavy` and `flight_to_safety` slightly harder to trigger than under simple means. This is correct — USDT's economic footprint in the large-cap tier is real — but agents should be aware of the systematic dampening effect. A future `--exclude-stables` flag is more impactful under market-cap weighting than under simple means.
 - **Top-10 tier outlier sensitivity.** With only 10 coins, a single idiosyncratic event can still shift the large-cap average, but market-cap weighting (v1.1) significantly reduces single-coin distortion compared to simple means. Borderline `top_heavy` or `risk_on` signals (near ±3–5pp) should be cross-checked against `tier_detail.large` before acting.
 - **Stablecoins included without filtering.** USDT and USDC appear in the top 200 and register near-zero 24h returns. See stablecoin market-cap weight impact above.
