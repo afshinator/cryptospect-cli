@@ -1,0 +1,5258 @@
+{
+  "nodes": [
+    {
+      "id": "cryptospect_cli",
+      "label": "cryptospect-cli",
+      "file_type": "document",
+      "source_file": "docs/.. (meta)",
+      "source_location": null
+    },
+    {
+      "id": "design_decisions_md",
+      "label": "Design-Decisions.md",
+      "file_type": "document",
+      "source_file": "Design-Decisions.md",
+      "source_location": null
+    },
+    {
+      "id": "claude_md",
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": null
+    },
+    {
+      "id": "agents_md",
+      "label": "agents.md",
+      "file_type": "document",
+      "source_file": "agents.md",
+      "source_location": null
+    },
+    {
+      "id": "readme_md",
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": null
+    },
+    {
+      "id": "liquidity_pulse_metric",
+      "label": "liquidity-pulse metric",
+      "file_type": "document",
+      "source_file": "docs/metrics/liquidity-pulse.md",
+      "source_location": null
+    },
+    {
+      "id": "stablecoin_power_metric",
+      "label": "stablecoin-power metric",
+      "file_type": "document",
+      "source_file": "docs/metrics/stablecoin-power.md",
+      "source_location": null
+    },
+    {
+      "id": "flow_tension_metric",
+      "label": "flow-tension metric",
+      "file_type": "document",
+      "source_file": "docs/metrics/flow-tension.md",
+      "source_location": null
+    },
+    {
+      "id": "market_breadth_metric",
+      "label": "market-breadth metric",
+      "file_type": "document",
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null
+    },
+    {
+      "id": "momentum_divergence_metric",
+      "label": "momentum-divergence metric",
+      "file_type": "document",
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null
+    },
+    {
+      "id": "market_regime_metric",
+      "label": "market-regime metric",
+      "file_type": "document",
+      "source_file": "docs/metrics/.. (scaffold)",
+      "source_location": null
+    },
+    {
+      "id": "metric_template",
+      "label": "metric-template.md",
+      "file_type": "document",
+      "source_file": "docs/metrics/metric-template.md",
+      "source_location": null
+    },
+    {
+      "id": "flow_tension_impl_plan",
+      "label": "flow-tension implementation plan",
+      "file_type": "document",
+      "source_file": "docs/plans/flow-tension-impl.md",
+      "source_location": null
+    },
+    {
+      "id": "stablecoin_power_impl_plan",
+      "label": "stablecoin-power implementation plan",
+      "file_type": "document",
+      "source_file": "docs/plans/stablecoin-power-impl.md",
+      "source_location": null
+    },
+    {
+      "id": "market_breadth_impl_plan",
+      "label": "market-breadth implementation plan",
+      "file_type": "document",
+      "source_file": "docs/superpowers/plans/2026-05-04-market-breadth.md",
+      "source_location": null
+    },
+    {
+      "id": "momentum_divergence_design",
+      "label": "momentum-divergence design (v1)",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-05-06-momentum-divergence-design.md",
+      "source_location": null
+    },
+    {
+      "id": "momentum_divergence_v1_1_design",
+      "label": "momentum-divergence v1.1 design",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-05-07-momentum-divergence-v1.1-design.md",
+      "source_location": null
+    },
+    {
+      "id": "market_breadth_design",
+      "label": "market-breadth design spec",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-05-04-market-breadth-design.md",
+      "source_location": null
+    },
+    {
+      "id": "momentum_divergence_code_review",
+      "label": "momentum-divergence v1.1 code review",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-05-07-momentum-divergence-v1.1-code-review.md",
+      "source_location": null
+    },
+    {
+      "id": "go1_25_caching_patterns_doc",
+      "label": "Go 1.25 caching patterns doc",
+      "file_type": "document",
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null
+    },
+    {
+      "id": "flow_tension_old_reference",
+      "label": "flow-tension old reference",
+      "file_type": "document",
+      "source_file": "docs/metrics/flow-tension-old-reference.md",
+      "source_location": null
+    },
+    {
+      "id": "plugin_architecture",
+      "label": "Plugin Architecture (MetricProvider)",
+      "file_type": "rationale",
+      "source_file": "Design-Decisions.md#step-15",
+      "source_location": null
+    },
+    {
+      "id": "primary_with_anchor_asset_validation",
+      "label": "Primary with Anchor-Asset Validation pattern",
+      "file_type": "rationale",
+      "source_file": "Design-Decisions.md#step-14",
+      "source_location": null
+    },
+    {
+      "id": "dual_source_aggregate_supply_verification",
+      "label": "Dual-Source Aggregate Supply Verification pattern",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/stablecoin-power.md",
+      "source_location": null
+    },
+    {
+      "id": "structured_caching_patterns",
+      "label": "Structured Caching Patterns",
+      "file_type": "rationale",
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null
+    },
+    {
+      "id": "sharded_maps",
+      "label": "Sharded maps (16 shards)",
+      "file_type": "rationale",
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null
+    },
+    {
+      "id": "unique_handle_zero_allocation",
+      "label": "Zero-allocation keying with unique.Handle",
+      "file_type": "rationale",
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null
+    },
+    {
+      "id": "null_exclusion_per_timeframe",
+      "label": "Null-exclusion per-timeframe denominator",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null
+    },
+    {
+      "id": "recency_biased_weighting",
+      "label": "Recency-biased weighting (10/30/40/20)",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null
+    },
+    {
+      "id": "ghost_rally_divergence",
+      "label": "Ghost Rally divergence detection",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null
+    },
+    {
+      "id": "directional_consensus_validator",
+      "label": "Directional consensus validator",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null
+    },
+    {
+      "id": "detect_status_helper",
+      "label": "DetectStatus helper (confidence/thin-data)",
+      "file_type": "rationale",
+      "source_file": "Design-Decisions.md#step-12",
+      "source_location": null
+    },
+    {
+      "id": "market_cap_weighted_means",
+      "label": "Market-cap weighted tier means",
+      "file_type": "rationale",
+      "source_file": "docs/superpowers/specs/2026-05-07-momentum-divergence-v1.1-design.md",
+      "source_location": null
+    },
+    {
+      "id": "cli_response_envelope",
+      "label": "CLIResponse JSON envelope",
+      "file_type": "rationale",
+      "source_file": "Design-Decisions.md#step-9",
+      "source_location": null
+    },
+    {
+      "id": "detail_level_standard",
+      "label": "Detail level standard (basic/extended/full)",
+      "file_type": "rationale",
+      "source_file": "Design-Decisions.md#step-12",
+      "source_location": null
+    },
+    {
+      "id": "three_signal_metric",
+      "label": "Three co-equal signal pattern (flow-tension)",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/flow-tension.md",
+      "source_location": null
+    },
+    {
+      "id": "flag_registrar_interface",
+      "label": "flagRegistrar interface pattern",
+      "file_type": "rationale",
+      "source_file": "docs/plans/stablecoin-power-impl.md",
+      "source_location": null
+    },
+    {
+      "id": "cold_start_oi_cache",
+      "label": "OI 24h change via cache (cold-start)",
+      "file_type": "rationale",
+      "source_file": "docs/plans/flow-tension-impl.md",
+      "source_location": null
+    },
+    {
+      "id": "thin_candle_guard",
+      "label": "Thin-candle guard (numTrades < 10)",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/flow-tension.md",
+      "source_location": null
+    },
+    {
+      "id": "slog_diagnostics_stderr",
+      "label": "slog diagnostics on stderr only",
+      "file_type": "rationale",
+      "source_file": "Design-Decisions.md#step-8",
+      "source_location": null
+    },
+    {
+      "id": "tail_extension_signal",
+      "label": "tail_extension standalone boolean",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null
+    },
+    {
+      "id": "concentration_dead_band",
+      "label": "Concentration dead band (\u00b10.5% large_avg)",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null
+    },
+    {
+      "id": "segments_clamping",
+      "label": "--segments flag with clamp logic",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null
+    },
+    {
+      "id": "barbell_modifier",
+      "label": "Barbell modifier (neutral + tail_extension)",
+      "file_type": "rationale",
+      "source_file": "docs/superpowers/specs/2026-05-06-momentum-divergence-design.md",
+      "source_location": null
+    },
+    {
+      "id": "weight_redistribution",
+      "label": "Weight redistribution (per-timeframe floor)",
+      "file_type": "rationale",
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null
+    },
+    {
+      "id": "semver_metric_registry",
+      "label": "SemVer metric registry with alias resolution",
+      "file_type": "rationale",
+      "source_file": "Design-Decisions.md#step-15",
+      "source_location": null
+    },
+    {
+      "id": "agent_orchestration_playbook",
+      "label": "Agent orchestration playbook",
+      "file_type": "rationale",
+      "source_file": "agents.md",
+      "source_location": null
+    },
+    {
+      "id": "lp_provider",
+      "label": "Liquidity Pulse Provider",
+      "file_type": "code",
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sp_provider",
+      "label": "Stablecoin Power Provider",
+      "file_type": "code",
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_provider",
+      "label": "Flow Tension Provider",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mb_provider",
+      "label": "Market Breadth Provider",
+      "file_type": "code",
+      "source_file": "internal/metrics/marketbreadth/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_provider",
+      "label": "Momentum Divergence Provider",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mr_provider",
+      "label": "Market Regime Provider",
+      "file_type": "code",
+      "source_file": "internal/metrics/marketregime/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_compute",
+      "label": "Momentum Divergence Compute",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_weightedmeantier",
+      "label": "weightedMeanTier",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_buildtierdetail",
+      "label": "buildTierDetail",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_round4",
+      "label": "round4",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_buildsummary",
+      "label": "buildSummary",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mb_compute",
+      "label": "Market Breadth Compute",
+      "file_type": "code",
+      "source_file": "internal/metrics/marketbreadth/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mb_sign",
+      "label": "sign helper",
+      "file_type": "code",
+      "source_file": "internal/metrics/marketbreadth/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_compute",
+      "label": "Flow Tension Compute",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_computenetflow",
+      "label": "ComputeExchangeNetFlow",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_computeflowhook",
+      "label": "ComputeFlowHook",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_computefundingratehook",
+      "label": "ComputeFundingRateHook",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_computeoichange",
+      "label": "ComputeOIChange24h",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_computeoichangehook",
+      "label": "ComputeOIChangeHook",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_computesummary",
+      "label": "ComputeSummary",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_parse_segments",
+      "label": "parseSegments",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "lp_classify",
+      "label": "LP classify",
+      "file_type": "code",
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sp_classify",
+      "label": "SP classify",
+      "file_type": "code",
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "lp_confidencetofloat",
+      "label": "LP confidenceToFloat",
+      "file_type": "code",
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sp_confidencetofloat",
+      "label": "SP confidenceToFloat",
+      "file_type": "code",
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_computenerr",
+      "label": "Flow Tension computeErr",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "md_constants",
+      "label": "MD Threshold Constants",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/types.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "mb_constants",
+      "label": "MB Threshold Constants",
+      "file_type": "code",
+      "source_file": "internal/metrics/marketbreadth/v1/types.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "ft_constants",
+      "label": "FT Threshold and Hook Constants",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/types.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "lp_constants",
+      "label": "LP Threshold Constants",
+      "file_type": "code",
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "sp_constants",
+      "label": "SP Threshold Constants",
+      "file_type": "code",
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metric_lp",
+      "label": "Liquidity Pulse Metric",
+      "file_type": "code",
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metric_sp",
+      "label": "Stablecoin Power Metric",
+      "file_type": "code",
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metric_ft",
+      "label": "Flow Tension Metric",
+      "file_type": "code",
+      "source_file": "internal/metrics/flowtension/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metric_mb",
+      "label": "Market Breadth Metric",
+      "file_type": "code",
+      "source_file": "internal/metrics/marketbreadth/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metric_md",
+      "label": "Momentum Divergence Metric",
+      "file_type": "code",
+      "source_file": "internal/metrics/momentumdivergence/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "metric_mr",
+      "label": "Market Regime Metric",
+      "file_type": "code",
+      "source_file": "internal/metrics/marketregime/v1/provider.go",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "api_fetcher",
+      "label": "Fetcher struct (cache-first endpoint fetcher with sharded in-memory cache)",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_fetchmeta",
+      "label": "FetchMeta struct (cache hit/stale/ttl/fetch time metadata)",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_shard",
+      "label": "shard struct (mutex-guarded in-memory cache shard)",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_new",
+      "label": "New() constructor \u2014 creates Fetcher with cache, http client, shards",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_fetch",
+      "label": "Fetch() \u2014 cache-first fetch with stale fallback on API failure",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_resolveurl",
+      "label": "resolveURL() \u2014 dispatches endpoint key to provider URL builder",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_resolvettl",
+      "label": "resolveTTL() \u2014 looks up per-endpoint TTL from config with bounds clamping",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_apikey",
+      "label": "apiKey() \u2014 returns provider API key from config",
+      "file_type": "code",
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null
+    },
+    {
+      "id": "api_constants",
+      "label": "Endpoint key constants (coingecko/binance/defillama/coindesk/coinmetrics)",
+      "file_type": "code",
+      "source_file": "internal/api/constants.go",
+      "source_location": null
+    },
+    {
+      "id": "api_allendpoints",
+      "label": "AllEndpoints() \u2014 returns all known endpoint keys",
+      "file_type": "code",
+      "source_file": "internal/api/constants.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_baseurl",
+      "label": "BaseURL constant (https://api.coingecko.com/api/v3)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_globaldata",
+      "label": "GlobalData struct (total_market_cap, total_volume, 24h change)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_globalresponse",
+      "label": "GlobalResponse wrapper (data \u2192 GlobalData)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_globalurl",
+      "label": "GlobalURL() \u2014 /global endpoint",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parseglobalresponse",
+      "label": "ParseGlobalResponse() \u2014 unmarshals /global JSON",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parseglobaldominance",
+      "label": "ParseGlobalDominance() \u2014 extracts BTC dominance % from body",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_derivativesdata",
+      "label": "DerivativesData struct (total OI, median funding rate, exchange count)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_derivativesentry",
+      "label": "DerivativesEntry struct (per-exchange derivatives row)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_derivativesurl",
+      "label": "DerivativesURL() \u2014 /derivatives endpoint (optionally keyed)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parsederviatives",
+      "label": "ParseDerivativesResponse() \u2014 aggregates BTC perpetual OI + median funding rate",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_sppstableids",
+      "label": "SPPStableIDs \u2014 top-18 stablecoin CoinGecko IDs for stablecoin-power",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_stablecoinmarket",
+      "label": "StableCoinMarket struct (id, symbol, market_cap, volume, 24h change, price)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_stablesmarketsurl",
+      "label": "StablesMarketsURL() \u2014 /coins/markets for stablecoin IDs",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parsestables",
+      "label": "ParseStablesMarketsResponse() \u2014 parses stablecoin markets JSON array",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_timeframemetric",
+      "label": "TimeframeMetric struct (green/total counts per timeframe)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_btcreference",
+      "label": "BTCReference struct (24h price change extracted from markets response)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsbreadthdata",
+      "label": "CoinMarketsBreadthData struct (per-tf green/total, coin count, BTC ref)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsbreathentry",
+      "label": "CoinMarketsBreadthEntry struct (multi-tf price changes per coin)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsbreadthurl",
+      "label": "CoinMarketsBreadthURL() \u2014 /coins/markets for 1h/24h/7d/30d breadth",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parsebreadth",
+      "label": "ParseCoinMarketsBreadthResponse() \u2014 computes per-tf green counts, excludes nulls",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsmomentumdata",
+      "label": "CoinMarketsMomentumData struct (price changes, volumes, market caps)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsmomentumentry",
+      "label": "CoinMarketsMomentumEntry struct (24h change, volume, market cap)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsmomentumurl",
+      "label": "CoinMarketsMomentumURL() \u2014 /coins/markets for 24h momentum",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parsemomentum",
+      "label": "ParseCoinMarketsMomentumResponse() \u2014 extracts momentum data, null\u21920",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parsetopgainers",
+      "label": "ParseTopGainers() \u2014 extracts top N gainers sorted by 24h change desc",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_topgainerentry",
+      "label": "TopGainerEntry struct (symbol + 24h change)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsrankeddata",
+      "label": "CoinMarketsRankedData struct (ranked coins, excludes null-rank)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_coinmarketsrankedcoin",
+      "label": "CoinMarketsRankedCoin struct (rank, symbol, 24h change, market cap)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_parseranked",
+      "label": "ParseCoinMarketsRankedResponse() \u2014 for momentum-divergence tier analysis",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coingecko_median",
+      "label": "median() \u2014 median of float64 slice (avg of 2 middle for even len)",
+      "file_type": "code",
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coindesk_client",
+      "label": "coindesk package stub (placeholder, not implemented)",
+      "file_type": "code",
+      "source_file": "internal/api/coindesk/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_baseurl",
+      "label": "BaseURL constant (https://stablecoins.llama.fi)",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_circulating",
+      "label": "Circulating struct (peggedUSD)",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_peggedasset",
+      "label": "PeggedAsset struct (id, symbol, name, current/prev circulating)",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_stablecoinsresponse",
+      "label": "StablecoinsResponse struct (peggedAssets array)",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_stablecoinsurl",
+      "label": "StablecoinsURL() \u2014 /stablecoins endpoint",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_parsestablecoins",
+      "label": "ParseStablecoinsResponse() \u2014 unmarshals /stablecoins JSON",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_aggregatesupply",
+      "label": "AggregateSupply() \u2014 sums peggedUSD across all assets (current+prev)",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_classifytrend",
+      "label": "ClassifyTrend() \u2014 expanding/stable/contracting from 7d change",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "defillama_trendconstants",
+      "label": "Trend constants: TrendExpanding, TrendStable, TrendContracting",
+      "file_type": "code",
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null
+    },
+    {
+      "id": "output_cliresponse",
+      "label": "CLIResponse struct (status, ts, results[], error?) \u2014 top-level envelope",
+      "file_type": "code",
+      "source_file": "internal/output/envelope.go",
+      "source_location": null
+    },
+    {
+      "id": "output_metricresult",
+      "label": "MetricResult struct (metric, version, status, data, meta?)",
+      "file_type": "code",
+      "source_file": "internal/output/envelope.go",
+      "source_location": null
+    },
+    {
+      "id": "output_clierror",
+      "label": "CLIError struct (code, msg, retry_after_sec, source)",
+      "file_type": "code",
+      "source_file": "internal/output/envelope.go",
+      "source_location": null
+    },
+    {
+      "id": "output_metabasic",
+      "label": "MetaBasic struct (cache_hit, ttl_remaining)",
+      "file_type": "code",
+      "source_file": "internal/output/meta.go",
+      "source_location": null
+    },
+    {
+      "id": "output_sourcemeta",
+      "label": "SourceMeta struct (endpoint, timestamp, cache_hit)",
+      "file_type": "code",
+      "source_file": "internal/output/meta.go",
+      "source_location": null
+    },
+    {
+      "id": "output_metaextended",
+      "label": "MetaExtended struct (MetaBasic + sources map)",
+      "file_type": "code",
+      "source_file": "internal/output/meta.go",
+      "source_location": null
+    },
+    {
+      "id": "output_metafull",
+      "label": "MetaFull struct (MetaExtended + thresholds + description)",
+      "file_type": "code",
+      "source_file": "internal/output/meta.go",
+      "source_location": null
+    },
+    {
+      "id": "output_writesuccess",
+      "label": "WriteSuccess() \u2014 writes successful CLIResponse JSON to stdout",
+      "file_type": "code",
+      "source_file": "internal/output/writer.go",
+      "source_location": null
+    },
+    {
+      "id": "output_writeerror",
+      "label": "WriteError() \u2014 writes error CLIResponse with CLIError to stdout",
+      "file_type": "code",
+      "source_file": "internal/output/writer.go",
+      "source_location": null
+    },
+    {
+      "id": "output_setwriter",
+      "label": "SetWriter() \u2014 replaces stdout writer (testing only)",
+      "file_type": "code",
+      "source_file": "internal/output/writer.go",
+      "source_location": null
+    },
+    {
+      "id": "config_config",
+      "label": "Config struct (APIs, Cache, Output, Metrics, SourceOverrides)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_apiconfig",
+      "label": "APIsConfig struct (CoinGecko + Binance APIKeyConfig)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_apikeyconfig",
+      "label": "APIKeyConfig struct (api_key)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_cacheconfig",
+      "label": "CacheConfig struct (enabled, dir, ttl map)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_outputconfig",
+      "label": "OutputConfig struct (format, pretty)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_metricsconfig",
+      "label": "MetricsConfig struct (stablecoin_power overrides)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_stablecoinpowerconfig",
+      "label": "StablecoinPowerConfig struct (stablecoin_ids override)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_load",
+      "label": "Load() \u2014 loads config from file (delegates to LoadWithViper)",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_loadwithviper",
+      "label": "LoadWithViper() \u2014 viper-based config load with env, flags, perms check",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_write",
+      "label": "Write() \u2014 writes default config template to path",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_sourcefor",
+      "label": "SourceFor() \u2014 datapoint\u2192endpoint mapping with override support",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_cachedir",
+      "label": "CacheDir() \u2014 ~/.cryptospect-cli/cache default",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_resolveconfigpath",
+      "label": "resolveConfigPath() \u2014 .yaml\u2194.yml extension fallback resolution",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_storeincontext",
+      "label": "StoreInContext() \u2014 stores Config snapshot in context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_fromcontext",
+      "label": "FromContext() \u2014 retrieves Config from context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_storedetailincontext",
+      "label": "StoreDetailInContext() \u2014 stores --detail flag in context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_detailfromcontext",
+      "label": "DetailFromContext() \u2014 retrieves --detail from context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_storetopnincontext",
+      "label": "StoreTopNInContext() \u2014 stores --top N in context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_topnfromcontext",
+      "label": "TopNFromContext() \u2014 retrieves --top N from context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_storesegmentsincontext",
+      "label": "StoreSegmentsInContext() \u2014 stores --segments in context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "config_segmentsfromcontext",
+      "label": "SegmentsFromContext() \u2014 retrieves --segments from context",
+      "file_type": "code",
+      "source_file": "internal/config/config.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_package",
+      "label": "cache package",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_cache",
+      "label": "Cache struct",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_entry",
+      "label": "Entry struct",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_record",
+      "label": "record struct (internal)",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_exists",
+      "label": "Exists function",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_open",
+      "label": "Open function",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_close",
+      "label": "Close method",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_get",
+      "label": "Get method",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_set",
+      "label": "Set method",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_clear",
+      "label": "Clear method",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_filepath",
+      "label": "filePath internal method",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_filepath_pub",
+      "label": "FilePath exported method",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_checkclosed",
+      "label": "checkClosed internal method",
+      "file_type": "code",
+      "source_file": "internal/cache/cache.go",
+      "source_location": null
+    },
+    {
+      "id": "cache_tests",
+      "label": "cache test suite",
+      "file_type": "code",
+      "source_file": "internal/cache/cache_test.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_package",
+      "label": "httpclient package",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_httpdoer",
+      "label": "HTTPDoer interface",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_apierror",
+      "label": "APIError struct",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_ratelimiterror",
+      "label": "RateLimitError struct",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_client",
+      "label": "Client struct",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_new",
+      "label": "New function",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_get",
+      "label": "Get method",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_setdoer",
+      "label": "SetDoer method",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_backoffduration",
+      "label": "backoffDuration function",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_parseretryafter",
+      "label": "parseRetryAfter function",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null
+    },
+    {
+      "id": "httpclient_tests",
+      "label": "httpclient test suite",
+      "file_type": "code",
+      "source_file": "internal/httpclient/client_test.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_package",
+      "label": "binance package",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_klinesdata",
+      "label": "KlinesData struct",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_klinesvolumes",
+      "label": "KlinesVolumes struct",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_klinesurl",
+      "label": "KlinesURL function",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_parseklinesresponse",
+      "label": "ParseKlinesResponse function",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_parseint",
+      "label": "parseInt internal function",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_parsestringfloat",
+      "label": "parseStringFloat internal function",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_parseklinesvolumesresponse",
+      "label": "ParseKlinesVolumesResponse function",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_baseurl",
+      "label": "BaseURL constant",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null
+    },
+    {
+      "id": "binance_tests",
+      "label": "binance test suite",
+      "file_type": "code",
+      "source_file": "internal/api/binance/client_test.go",
+      "source_location": null
+    },
+    {
+      "id": "coinmetrics_package",
+      "label": "coinmetrics package (stub)",
+      "file_type": "code",
+      "source_file": "internal/api/coinmetrics/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coinmetrics_baseurl",
+      "label": "BaseURL constant",
+      "file_type": "code",
+      "source_file": "internal/api/coinmetrics/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coinmetrics_communityurl",
+      "label": "CommunityURL stub function",
+      "file_type": "code",
+      "source_file": "internal/api/coinmetrics/client.go",
+      "source_location": null
+    },
+    {
+      "id": "coinmetrics_parsecommunityresponse",
+      "label": "ParseCommunityResponse stub function",
+      "file_type": "code",
+      "source_file": "internal/api/coinmetrics/client.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_registry",
+      "label": "Registry struct",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_metricprovider",
+      "label": "MetricProvider interface",
+      "file_type": "code",
+      "source_file": "internal/metrics/provider.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_metricdef",
+      "label": "MetricDef struct",
+      "file_type": "code",
+      "source_file": "internal/metrics/provider.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_metricfloat",
+      "label": "MetricFloat struct",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_globalregistry",
+      "label": "globalRegistry var",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_corenamespace",
+      "label": "CoreNamespace constant",
+      "file_type": "code",
+      "source_file": "internal/metrics/provider.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_floatprecision",
+      "label": "FloatPrecision constant",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_currencyprecision",
+      "label": "CurrencyPrecision constant",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_errmetricnotfound",
+      "label": "ErrMetricNotFound sentinel error",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_errduplicatemetric",
+      "label": "ErrDuplicateMetric sentinel error",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_errinvalidprovider",
+      "label": "ErrInvalidProvider sentinel error",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_newregistry",
+      "label": "NewRegistry constructor",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_globalregistry_func",
+      "label": "GlobalRegistry accessor",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_mustregister",
+      "label": "MustRegister function",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_fullkey",
+      "label": "fullKey helper function",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_register",
+      "label": "Registry.Register method",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_bestprovider",
+      "label": "Registry.bestProvider method",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_resolve",
+      "label": "Registry.Resolve method",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_bestproviders",
+      "label": "Registry.BestProviders method",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_list",
+      "label": "Registry.List method",
+      "file_type": "code",
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_parsemever",
+      "label": "ParseSemVer function",
+      "file_type": "code",
+      "source_file": "internal/metrics/semver.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_comparesemver",
+      "label": "CompareSemVer function",
+      "file_type": "code",
+      "source_file": "internal/metrics/semver.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_detectstatus",
+      "label": "DetectStatus function",
+      "file_type": "code",
+      "source_file": "internal/metrics/helpers.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_newmetricfloat",
+      "label": "NewMetricFloat constructor",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_ratio",
+      "label": "Ratio helper function",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_currency",
+      "label": "Currency helper function",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_metricfloat_value",
+      "label": "MetricFloat.Value method",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_metricfloat_marshaljson",
+      "label": "MetricFloat.MarshalJSON method",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_metricfloat_unmarshaljson",
+      "label": "MetricFloat.UnmarshalJSON method",
+      "file_type": "code",
+      "source_file": "internal/metrics/float.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_testprovider",
+      "label": "testProvider struct (test mock)",
+      "file_type": "test",
+      "source_file": "internal/metrics/registry_test.go",
+      "source_location": null
+    },
+    {
+      "id": "registry_makeprovider",
+      "label": "makeProvider test helper",
+      "file_type": "test",
+      "source_file": "internal/metrics/registry_test.go",
+      "source_location": null
+    },
+    {
+      "id": "cryptospect_cli_main_func",
+      "label": "main (entry point)",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/main.go",
+      "source_location": {
+        "line": 9
+      }
+    },
+    {
+      "id": "cryptospect_cli_new_root_command",
+      "label": "NewRootCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 34
+      }
+    },
+    {
+      "id": "cryptospect_cli_build_metric_run_e",
+      "label": "buildMetricRunE",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 145
+      }
+    },
+    {
+      "id": "cryptospect_cli_default_config_path",
+      "label": "defaultConfigPath",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 26
+      }
+    },
+    {
+      "id": "cryptospect_cli_new_list_command",
+      "label": "newListCommand (list-metrics)",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/list.go",
+      "source_location": {
+        "line": 11
+      }
+    },
+    {
+      "id": "cryptospect_cli_new_cache_clear_command",
+      "label": "newCacheClearCommand (cache-clear)",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/cache.go",
+      "source_location": {
+        "line": 12
+      }
+    },
+    {
+      "id": "cryptospect_cli_flag_registrar_interface",
+      "label": "flagRegistrar interface",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 22
+      }
+    },
+    {
+      "id": "cryptospect_cli_version_var",
+      "label": "version variable",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/main.go",
+      "source_location": {
+        "line": 7
+      }
+    },
+    {
+      "id": "cryptospect_cli_catalog_file",
+      "label": "catalog.go (metric provider blank imports)",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog.go",
+      "source_location": {
+        "line": 1
+      }
+    },
+    {
+      "id": "cryptospect_cli_root_command_obj",
+      "label": "cryptospect-cli root cobra command",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 41
+      }
+    },
+    {
+      "id": "cryptospect_cli_persistent_pre_run_e",
+      "label": "PersistentPreRunE (config init, flag validation, logging setup)",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 63
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_catalog_all_registered",
+      "label": "TestCatalog_AllProvidersRegistered",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog_test.go",
+      "source_location": {
+        "line": 23
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_catalog_aliases_resolvable",
+      "label": "TestCatalog_AliasesResolvable",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog_test.go",
+      "source_location": {
+        "line": 42
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_catalog_endpoints_known",
+      "label": "TestCatalog_EndpointsAreKnown",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog_test.go",
+      "source_location": {
+        "line": 56
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_detail_flag_validation",
+      "label": "TestDetailFlagValidation",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 11
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_new_root_command",
+      "label": "TestNewRootCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 39
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_root_command_flags",
+      "label": "TestRootCommandFlags",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 55
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_list_metrics_subcommand_exists",
+      "label": "TestListMetricsSubcommandExists",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 101
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_list_metrics_command",
+      "label": "TestListMetricsCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/list_metrics_e2e_test.go",
+      "source_location": {
+        "line": 11
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_list_metrics_output_json",
+      "label": "TestListMetricsOutputJSON",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/list_metrics_e2e_test.go",
+      "source_location": {
+        "line": 69
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_cache_clear_command",
+      "label": "TestCacheClearCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/cache_clear_e2e_test.go",
+      "source_location": {
+        "line": 13
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_cache_clear_output_json",
+      "label": "TestCacheClearOutputJSON",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/cache_clear_e2e_test.go",
+      "source_location": {
+        "line": 80
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_liquidity_pulse_command",
+      "label": "TestLiquidityPulseCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 12
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_liquidity_pulse_alias",
+      "label": "TestLiquidityPulseAlias",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 66
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_liquidity_pulse_output_json",
+      "label": "TestLiquidityPulseOutputJSON",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 87
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_liquidity_pulse_detail_extended",
+      "label": "TestLiquidityPulseDetailExtended",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 108
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_liquidity_pulse_detail_full",
+      "label": "TestLiquidityPulseDetailFull",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 130
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_stablecoin_power_command",
+      "label": "TestStablecoinPowerCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 12
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_stablecoin_power_alias",
+      "label": "TestStablecoinPowerAlias",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 78
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_stablecoin_power_detail_extended",
+      "label": "TestStablecoinPowerDetailExtended",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 99
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_stablecoin_power_detail_full",
+      "label": "TestStablecoinPowerDetailFull",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 139
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_stablecoin_power_top_flag",
+      "label": "TestStablecoinPowerTopFlag",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 175
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_stablecoin_power_top_flag_clamped",
+      "label": "TestStablecoinPowerTopFlagClamped",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 206
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_flow_tension_command",
+      "label": "TestFlowTensionCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 12
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_flow_tension_alias",
+      "label": "TestFlowTensionAlias",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 77
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_flow_tension_detail_extended",
+      "label": "TestFlowTensionDetailExtended",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 98
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_flow_tension_detail_full",
+      "label": "TestFlowTensionDetailFull",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 135
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_command",
+      "label": "TestMarketBreadthCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 16
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_alias",
+      "label": "TestMarketBreadthAlias",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 74
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_detail_extended",
+      "label": "TestMarketBreadthDetailExtended",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 95
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_detail_full",
+      "label": "TestMarketBreadthDetailFull",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 132
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_top_flag",
+      "label": "TestMarketBreadthTopFlag",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 168
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_top_flag_clamped",
+      "label": "TestMarketBreadthTopFlagClamped",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 199
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_provider_direct",
+      "label": "TestMarketBreadth_ProviderDirect",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 228
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_market_breadth_unavailable_when_cg_empty",
+      "label": "TestMarketBreadth_UnavailableWhenCGEmpty",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 271
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_momentum_divergence_command",
+      "label": "TestMomentumDivergenceCommand",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 11
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_momentum_divergence_alias",
+      "label": "TestMomentumDivergenceAlias",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 43
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_momentum_divergence_detail_extended",
+      "label": "TestMomentumDivergenceDetailExtended",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 65
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_momentum_divergence_detail_full",
+      "label": "TestMomentumDivergenceDetailFull",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 106
+      }
+    },
+    {
+      "id": "cryptospect_cli_test_momentum_divergence_segments_flag",
+      "label": "TestMomentumDivergenceSegmentsFlag",
+      "file_type": "code",
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 141
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "cryptospect_cli",
+      "target": "design_decisions_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_md",
+      "target": "design_decisions_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "agents_md",
+      "target": "design_decisions_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "agents.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_md",
+      "target": "design_decisions_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "liquidity_pulse_metric",
+      "target": "primary_with_anchor_asset_validation",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/liquidity-pulse.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stablecoin_power_metric",
+      "target": "dual_source_aggregate_supply_verification",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/stablecoin-power.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stablecoin_power_metric",
+      "target": "flag_registrar_interface",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/stablecoin-power-impl.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_tension_metric",
+      "target": "three_signal_metric",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/flow-tension.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_tension_metric",
+      "target": "cold_start_oi_cache",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/flow-tension-impl.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_tension_metric",
+      "target": "thin_candle_guard",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/flow-tension.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_metric",
+      "target": "null_exclusion_per_timeframe",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_metric",
+      "target": "recency_biased_weighting",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_metric",
+      "target": "ghost_rally_divergence",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_metric",
+      "target": "directional_consensus_validator",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_metric",
+      "target": "weight_redistribution",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_metric",
+      "target": "flag_registrar_interface",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-04-market-breadth-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_metric",
+      "target": "market_cap_weighted_means",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-07-momentum-divergence-v1.1-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_metric",
+      "target": "tail_extension_signal",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_metric",
+      "target": "concentration_dead_band",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_metric",
+      "target": "segments_clamping",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_metric",
+      "target": "barbell_modifier",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-06-momentum-divergence-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "design_decisions_md",
+      "target": "plugin_architecture",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "design_decisions_md",
+      "target": "primary_with_anchor_asset_validation",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "design_decisions_md",
+      "target": "cli_response_envelope",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "design_decisions_md",
+      "target": "detail_level_standard",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "design_decisions_md",
+      "target": "detect_status_helper",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "design_decisions_md",
+      "target": "semver_metric_registry",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "design_decisions_md",
+      "target": "slog_diagnostics_stderr",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "go1_25_caching_patterns_doc",
+      "target": "structured_caching_patterns",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "go1_25_caching_patterns_doc",
+      "target": "sharded_maps",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "go1_25_caching_patterns_doc",
+      "target": "unique_handle_zero_allocation",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "structured_caching_patterns",
+      "target": "sharded_maps",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "structured_caching_patterns",
+      "target": "unique_handle_zero_allocation",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/go1.25-caching-patterns.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_tension_impl_plan",
+      "target": "flow_tension_metric",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/flow-tension-impl.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_tension_impl_plan",
+      "target": "cold_start_oi_cache",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/flow-tension-impl.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stablecoin_power_impl_plan",
+      "target": "stablecoin_power_metric",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/stablecoin-power-impl.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stablecoin_power_impl_plan",
+      "target": "flag_registrar_interface",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/stablecoin-power-impl.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_impl_plan",
+      "target": "market_breadth_metric",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-05-04-market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_impl_plan",
+      "target": "null_exclusion_per_timeframe",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-05-04-market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_impl_plan",
+      "target": "recency_biased_weighting",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-05-04-market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_impl_plan",
+      "target": "ghost_rally_divergence",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-05-04-market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_design",
+      "target": "momentum_divergence_metric",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-06-momentum-divergence-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_design",
+      "target": "barbell_modifier",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-06-momentum-divergence-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_v1_1_design",
+      "target": "momentum_divergence_metric",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-07-momentum-divergence-v1.1-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_v1_1_design",
+      "target": "market_cap_weighted_means",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-07-momentum-divergence-v1.1-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_code_review",
+      "target": "momentum_divergence_v1_1_design",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-07-momentum-divergence-v1.1-code-review.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_design",
+      "target": "market_breadth_metric",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-04-market-breadth-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_design",
+      "target": "directional_consensus_validator",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-04-market-breadth-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_design",
+      "target": "weight_redistribution",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-05-04-market-breadth-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "agents_md",
+      "target": "agent_orchestration_playbook",
+      "relation": "cites",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "agents.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "liquidity_pulse_metric",
+      "target": "market_regime_metric",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/metrics/liquidity-pulse.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stablecoin_power_metric",
+      "target": "liquidity_pulse_metric",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/metrics/stablecoin-power.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_tension_metric",
+      "target": "stablecoin_power_metric",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/metrics/flow-tension.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "market_breadth_metric",
+      "target": "momentum_divergence_metric",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_metric",
+      "target": "market_regime_metric",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plugin_architecture",
+      "target": "semver_metric_registry",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "Design-Decisions.md#step-15",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "directional_consensus_validator",
+      "target": "primary_with_anchor_asset_validation",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "null_exclusion_per_timeframe",
+      "target": "weight_redistribution",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ghost_rally_divergence",
+      "target": "directional_consensus_validator",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/market-breadth.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "three_signal_metric",
+      "target": "thin_candle_guard",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/flow-tension.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "three_signal_metric",
+      "target": "cold_start_oi_cache",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/plans/flow-tension-impl.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flow_tension_old_reference",
+      "target": "flow_tension_metric",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/metrics/flow-tension-old-reference.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "momentum_divergence_metric",
+      "target": "market_breadth_metric",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "docs/metrics/momentum-divergence.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lp_provider",
+      "target": "metric_lp",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sp_provider",
+      "target": "metric_sp",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_provider",
+      "target": "metric_ft",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mb_provider",
+      "target": "metric_mb",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/marketbreadth/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_provider",
+      "target": "metric_md",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/momentumdivergence/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mr_provider",
+      "target": "metric_mr",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/marketregime/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_provider",
+      "target": "md_compute",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/momentumdivergence/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_provider",
+      "target": "md_parse_segments",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/momentumdivergence/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mb_provider",
+      "target": "mb_compute",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/marketbreadth/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_provider",
+      "target": "ft_compute",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_provider",
+      "target": "ft_computenerr",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_compute",
+      "target": "md_weightedmeantier",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_compute",
+      "target": "md_buildtierdetail",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_compute",
+      "target": "md_round4",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_compute",
+      "target": "md_buildsummary",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mb_compute",
+      "target": "mb_sign",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/marketbreadth/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_compute",
+      "target": "ft_computenetflow",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_compute",
+      "target": "ft_computeflowhook",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_compute",
+      "target": "ft_computefundingratehook",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_compute",
+      "target": "ft_computeoichange",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_compute",
+      "target": "ft_computeoichangehook",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_compute",
+      "target": "ft_computesummary",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/flowtension/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lp_provider",
+      "target": "lp_classify",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sp_provider",
+      "target": "sp_classify",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lp_confidencetofloat",
+      "target": "lp_provider",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sp_confidencetofloat",
+      "target": "sp_provider",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/stablecoinpower/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lp_classify",
+      "target": "sp_classify",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lp_confidencetofloat",
+      "target": "sp_confidencetofloat",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mb_provider",
+      "target": "sp_provider",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "internal/metrics/marketbreadth/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_provider",
+      "target": "mb_provider",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "internal/metrics/momentumdivergence/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mr_provider",
+      "target": "md_provider",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/metrics/marketregime/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mr_provider",
+      "target": "mb_provider",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "internal/metrics/marketregime/v1/provider.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "md_compute",
+      "target": "mb_compute",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.65,
+      "source_file": "internal/metrics/momentumdivergence/v1/compute.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ft_constants",
+      "target": "md_constants",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.55,
+      "source_file": "internal/metrics/flowtension/v1/types.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_new",
+      "target": "api_fetcher",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_fetch",
+      "target": "api_resolveurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_fetch",
+      "target": "api_resolvettl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_fetch",
+      "target": "api_apikey",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_resolveurl",
+      "target": "coingecko_globalurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_resolveurl",
+      "target": "coingecko_stablesmarketsurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_resolveurl",
+      "target": "coingecko_derivativesurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_resolveurl",
+      "target": "coingecko_coinmarketsbreadthurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_resolveurl",
+      "target": "coingecko_coinmarketsmomentumurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_resolveurl",
+      "target": "defillama_stablecoinsurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_resolveurl",
+      "target": "api_constants",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_fetcher",
+      "target": "api_fetchmeta",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_fetcher",
+      "target": "api_shard",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "api_fetcher",
+      "target": "config_config",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/fetcher.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_load",
+      "target": "config_loadwithviper",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_loadwithviper",
+      "target": "config_resolveconfigpath",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "output_metaextended",
+      "target": "output_metabasic",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/output/meta.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "output_metafull",
+      "target": "output_metaextended",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/output/meta.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "output_writesuccess",
+      "target": "output_cliresponse",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/output/writer.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "output_writeerror",
+      "target": "output_cliresponse",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/output/writer.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "output_writeerror",
+      "target": "output_clierror",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/output/writer.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_parsederviatives",
+      "target": "coingecko_median",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "defillama_aggregatesupply",
+      "target": "defillama_stablecoinsresponse",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "defillama_classifytrend",
+      "target": "defillama_trendconstants",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_globalurl",
+      "target": "coingecko_baseurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_stablesmarketsurl",
+      "target": "coingecko_baseurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_derivativesurl",
+      "target": "coingecko_baseurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_coinmarketsbreadthurl",
+      "target": "coingecko_baseurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_coinmarketsmomentumurl",
+      "target": "coingecko_baseurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "coingecko_globalresponse",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "coingecko_globaldata",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_parseranked",
+      "target": "coingecko_coinmarketsbreathentry",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coingecko_globalurl",
+      "target": "coingecko_stablesmarketsurl",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_globalurl",
+      "target": "coingecko_derivativesurl",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_globalurl",
+      "target": "coingecko_coinmarketsbreadthurl",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_globalurl",
+      "target": "coingecko_coinmarketsmomentumurl",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_stablesmarketsurl",
+      "target": "coingecko_coinmarketsbreadthurl",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_stablesmarketsurl",
+      "target": "coingecko_coinmarketsmomentumurl",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "coingecko_parsestables",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "coingecko_parsederviatives",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "coingecko_parsebreadth",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "coingecko_parsemomentum",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "coingecko_parseranked",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/api/coingecko/client.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "coingecko_parseglobalresponse",
+      "target": "defillama_parsestablecoins",
+      "relation": "semantically_similar_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "internal/api/defillama/client.go",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "config_storeincontext",
+      "target": "config_fromcontext",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "config_storedetailincontext",
+      "target": "config_detailfromcontext",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "config_storetopnincontext",
+      "target": "config_topnfromcontext",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "config_storesegmentsincontext",
+      "target": "config_segmentsfromcontext",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "output_metabasic",
+      "target": "output_sourcemeta",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "internal/output/meta.go",
+      "source_location": null,
+      "weight": 0.75
+    },
+    {
+      "source": "output_metabasic",
+      "target": "output_metaextended",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/output/meta.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "output_metaextended",
+      "target": "output_metafull",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/output/meta.go",
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "output_cliresponse",
+      "target": "output_metricresult",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/output/envelope.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "output_cliresponse",
+      "target": "output_clierror",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/output/envelope.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_config",
+      "target": "config_apiconfig",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_config",
+      "target": "config_cacheconfig",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_config",
+      "target": "config_outputconfig",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_config",
+      "target": "config_metricsconfig",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_metricsconfig",
+      "target": "config_stablecoinpowerconfig",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "config_apiconfig",
+      "target": "config_apikeyconfig",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/config/config.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_exists",
+      "target": "cache_package",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_open",
+      "target": "cache_cache",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_close",
+      "target": "cache_cache",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_get",
+      "target": "cache_cache",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_set",
+      "target": "cache_cache",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_clear",
+      "target": "cache_cache",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_filepath_pub",
+      "target": "cache_cache",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_get",
+      "target": "cache_checkclosed",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_get",
+      "target": "cache_filepath",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_set",
+      "target": "cache_checkclosed",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_set",
+      "target": "cache_filepath",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_clear",
+      "target": "cache_checkclosed",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_filepath_pub",
+      "target": "cache_filepath",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_tests",
+      "target": "cache_open",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_tests",
+      "target": "cache_get",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_tests",
+      "target": "cache_set",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_tests",
+      "target": "cache_clear",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_tests",
+      "target": "cache_close",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cache_tests",
+      "target": "cache_filepath_pub",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/cache/cache_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_new",
+      "target": "httpclient_client",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_get",
+      "target": "httpclient_client",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_setdoer",
+      "target": "httpclient_client",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_get",
+      "target": "httpclient_backoffduration",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_get",
+      "target": "httpclient_parseretryafter",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_ratelimiterror",
+      "target": "httpclient_apierror",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_client",
+      "target": "httpclient_httpdoer",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_tests",
+      "target": "httpclient_new",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_tests",
+      "target": "httpclient_get",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_tests",
+      "target": "httpclient_backoffduration",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_tests",
+      "target": "httpclient_parseretryafter",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/httpclient/client_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "binance_parseklinesresponse",
+      "target": "binance_parsestringfloat",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "binance_parseklinesresponse",
+      "target": "binance_parseint",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "binance_parseklinesvolumesresponse",
+      "target": "binance_parsestringfloat",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "binance_klinesurl",
+      "target": "binance_baseurl",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/binance/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "binance_tests",
+      "target": "binance_parseklinesresponse",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/binance/client_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "binance_tests",
+      "target": "binance_parseklinesvolumesresponse",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/binance/client_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "binance_tests",
+      "target": "binance_klinesurl",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/binance/client_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coinmetrics_communityurl",
+      "target": "coinmetrics_package",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coinmetrics/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "coinmetrics_parsecommunityresponse",
+      "target": "coinmetrics_package",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/api/coinmetrics/client.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "httpclient_get",
+      "target": "cache_get",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": null,
+      "source_location": null,
+      "weight": 0.85
+    },
+    {
+      "source": "registry_mustregister",
+      "target": "registry_register",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_register",
+      "target": "registry_fullkey",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_register",
+      "target": "registry_parsemever",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_bestprovider",
+      "target": "registry_parsemever",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_bestprovider",
+      "target": "registry_comparesemver",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_resolve",
+      "target": "registry_bestprovider",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_bestproviders",
+      "target": "registry_bestprovider",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_list",
+      "target": "registry_bestproviders",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_globalregistry_func",
+      "target": "registry_globalregistry",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_mustregister",
+      "target": "registry_globalregistry",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_ratio",
+      "target": "registry_newmetricfloat",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/float.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_currency",
+      "target": "registry_newmetricfloat",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/float.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_testprovider",
+      "target": "registry_metricprovider",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_makeprovider",
+      "target": "registry_metricdef",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry_test.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_register",
+      "target": "registry_metricdef",
+      "relation": "shares_data_with",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_bestprovider",
+      "target": "registry_corenamespace",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_ratio",
+      "target": "registry_floatprecision",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/float.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_currency",
+      "target": "registry_currencyprecision",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/float.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_register",
+      "target": "registry_errinvalidprovider",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_register",
+      "target": "registry_errduplicatemetric",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_resolve",
+      "target": "registry_errmetricnotfound",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_registry",
+      "target": "registry_metricprovider",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_registry",
+      "target": "registry_metricdef",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "internal/metrics/registry.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "registry_newmetricfloat",
+      "target": "registry_metricfloat",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/float.go",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_main_func",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/main.go",
+      "source_location": {
+        "line": 10
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_new_root_command",
+      "target": "cryptospect_cli_new_list_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 122
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_new_root_command",
+      "target": "cryptospect_cli_new_cache_clear_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 123
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_new_root_command",
+      "target": "cryptospect_cli_build_metric_run_e",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 134
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_new_root_command",
+      "target": "cryptospect_cli_default_config_path",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 88
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_new_root_command",
+      "target": "cryptospect_cli_flag_registrar_interface",
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 136
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_new_root_command",
+      "target": "cryptospect_cli_catalog_file",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 125
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_build_metric_run_e",
+      "target": "cryptospect_cli_persistent_pre_run_e",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root.go",
+      "source_location": {
+        "line": 147
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_catalog_all_registered",
+      "target": "cryptospect_cli_catalog_file",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog_test.go",
+      "source_location": {
+        "line": 23
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_catalog_aliases_resolvable",
+      "target": "cryptospect_cli_catalog_file",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog_test.go",
+      "source_location": {
+        "line": 42
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_catalog_endpoints_known",
+      "target": "cryptospect_cli_catalog_file",
+      "relation": "conceptually_related_to",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog_test.go",
+      "source_location": {
+        "line": 56
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_detail_flag_validation",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 25
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_new_root_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 40
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_root_command_flags",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 56
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_list_metrics_subcommand_exists",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/root_test.go",
+      "source_location": {
+        "line": 102
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_list_metrics_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/list_metrics_e2e_test.go",
+      "source_location": {
+        "line": 19
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_list_metrics_output_json",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/list_metrics_e2e_test.go",
+      "source_location": {
+        "line": 76
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_cache_clear_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/cache_clear_e2e_test.go",
+      "source_location": {
+        "line": 44
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_cache_clear_output_json",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/cache_clear_e2e_test.go",
+      "source_location": {
+        "line": 98
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_liquidity_pulse_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 18
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_liquidity_pulse_alias",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 72
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_liquidity_pulse_output_json",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 93
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_liquidity_pulse_detail_extended",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 114
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_liquidity_pulse_detail_full",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/liquidity_pulse_e2e_test.go",
+      "source_location": {
+        "line": 136
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_stablecoin_power_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 18
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_stablecoin_power_alias",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 84
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_stablecoin_power_detail_extended",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 105
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_stablecoin_power_detail_full",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 145
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_stablecoin_power_top_flag",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 181
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_stablecoin_power_top_flag_clamped",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/stablecoin_power_e2e_test.go",
+      "source_location": {
+        "line": 214
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_flow_tension_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 18
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_flow_tension_alias",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 83
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_flow_tension_detail_extended",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 104
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_flow_tension_detail_full",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/flow_tension_e2e_test.go",
+      "source_location": {
+        "line": 141
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 22
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_alias",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 80
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_detail_extended",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 101
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_detail_full",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 138
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_top_flag",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 174
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_top_flag_clamped",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 205
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_provider_direct",
+      "target": "cryptospect_cli_build_metric_run_e",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 246
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_market_breadth_unavailable_when_cg_empty",
+      "target": "cryptospect_cli_build_metric_run_e",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/market_breadth_e2e_test.go",
+      "source_location": {
+        "line": 277
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_momentum_divergence_command",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 17
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_momentum_divergence_alias",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 49
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_momentum_divergence_detail_extended",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 71
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_momentum_divergence_detail_full",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 112
+      },
+      "weight": 1.0
+    },
+    {
+      "source": "cryptospect_cli_test_momentum_divergence_segments_flag",
+      "target": "cryptospect_cli_new_root_command",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/momentum_divergence_e2e_test.go",
+      "source_location": {
+        "line": 147
+      },
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [
+    {
+      "id": "metric_provider_suite",
+      "label": "Metric Provider Suite",
+      "nodes": [
+        "lp_provider",
+        "sp_provider",
+        "ft_provider",
+        "mb_provider",
+        "md_provider",
+        "mr_provider"
+      ],
+      "relation": "form",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go"
+    },
+    {
+      "id": "binance_validator_pattern",
+      "label": "Binance Klines Validator Pattern",
+      "nodes": [
+        "lp_provider",
+        "mb_provider",
+        "ft_provider"
+      ],
+      "relation": "participate_in",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go"
+    },
+    {
+      "id": "confidencetofloat_duplication",
+      "label": "Duplicate confidenceToFloat Helper",
+      "nodes": [
+        "lp_confidencetofloat",
+        "sp_confidencetofloat",
+        "lp_provider",
+        "sp_provider"
+      ],
+      "relation": "implement",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "internal/metrics/liquiditypulse/v1/provider.go"
+    },
+    {
+      "id": "registry_pattern",
+      "label": "Plugin Registry Pattern",
+      "involves": [
+        "registry_registry",
+        "registry_metricprovider",
+        "registry_metricdef",
+        "registry_corenamespace",
+        "registry_parsemever",
+        "registry_comparesemver",
+        "registry_mustregister",
+        "registry_register",
+        "registry_resolve",
+        "registry_bestproviders"
+      ],
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "attributes": {
+        "description": "Central registry for versioned metric providers with semver-based resolution and core-namespace priority"
+      }
+    },
+    {
+      "id": "custom_serialization_pattern",
+      "label": "Custom JSON Serialization Pattern",
+      "involves": [
+        "registry_metricfloat",
+        "registry_metricfloat_marshaljson",
+        "registry_metricfloat_unmarshaljson",
+        "registry_floatprecision",
+        "registry_currencyprecision"
+      ],
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "attributes": {
+        "description": "Controlled-precision float64 serialization with configurable decimal places"
+      }
+    },
+    {
+      "id": "status_detection_pattern",
+      "label": "Metric Status Detection Pattern",
+      "involves": [
+        "registry_detectstatus"
+      ],
+      "confidence": "INFERRED",
+      "confidence_score": 0.75,
+      "attributes": {
+        "description": "Confidence-threshold-based status mapping with thin-data downgrade"
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_test_liquidity_pulse_command",
+        "cryptospect_cli_test_stablecoin_power_command",
+        "cryptospect_cli_test_flow_tension_command",
+        "cryptospect_cli_test_market_breadth_command",
+        "cryptospect_cli_test_momentum_divergence_command"
+      ],
+      "label": "MetricE2ETestPattern",
+      "relation": "follows_shared_test_pattern",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "pattern": "redirect_output__new_root_command__set_args__execute__unmarshal_cli_response__validate_envelope__check_status_ok_degraded_unavailable__validate_data_shape"
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_test_liquidity_pulse_alias",
+        "cryptospect_cli_test_stablecoin_power_alias",
+        "cryptospect_cli_test_flow_tension_alias",
+        "cryptospect_cli_test_market_breadth_alias",
+        "cryptospect_cli_test_momentum_divergence_alias"
+      ],
+      "label": "MetricAliasTestPattern",
+      "relation": "follows_shared_test_pattern",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "pattern": "redirect_output__new_root_command__set_args_with_short_alias__execute__unmarshal__verify_results_0_metric_matches_full_name"
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_test_liquidity_pulse_detail_extended",
+        "cryptospect_cli_test_stablecoin_power_detail_extended",
+        "cryptospect_cli_test_flow_tension_detail_extended",
+        "cryptospect_cli_test_market_breadth_detail_extended",
+        "cryptospect_cli_test_momentum_divergence_detail_extended"
+      ],
+      "label": "MetricDetailExtendedTestPattern",
+      "relation": "follows_shared_test_pattern",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "pattern": "verify_meta_present_when_ok_degraded__verify_no_thresholds__verify_no_description__verify_no_full_detail_specific_fields"
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_test_liquidity_pulse_detail_full",
+        "cryptospect_cli_test_stablecoin_power_detail_full",
+        "cryptospect_cli_test_flow_tension_detail_full",
+        "cryptospect_cli_test_market_breadth_detail_full",
+        "cryptospect_cli_test_momentum_divergence_detail_full"
+      ],
+      "label": "MetricDetailFullTestPattern",
+      "relation": "follows_shared_test_pattern",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "pattern": "verify_meta_present_when_ok_degraded__verify_thresholds_present__verify_description_present"
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_main_func",
+        "cryptospect_cli_new_root_command",
+        "cryptospect_cli_build_metric_run_e",
+        "cryptospect_cli_new_list_command",
+        "cryptospect_cli_new_cache_clear_command",
+        "cryptospect_cli_persistent_pre_run_e"
+      ],
+      "label": "CLIArchitecturePattern",
+      "relation": "forms_cobra_cli_architecture",
+      "confidence": "INFERRED",
+      "confidence_score": 0.95,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "pattern": "main__new_root_command_with_children__persistent_pre_run_for_init__generic_build_metric_run_e_for_all_metric_subcommands"
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_test_catalog_all_registered",
+        "cryptospect_cli_test_catalog_aliases_resolvable",
+        "cryptospect_cli_test_catalog_endpoints_known"
+      ],
+      "label": "CatalogTestSuite",
+      "relation": "tests_metric_registration_contract",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog_test.go",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "tests": [
+          "all_6_providers_registered",
+          "all_aliases_resolvable",
+          "all_endpoints_known_to_api"
+        ]
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_test_market_breadth_top_flag",
+        "cryptospect_cli_test_stablecoin_power_top_flag"
+      ],
+      "label": "TopFlagTestPattern",
+      "relation": "follows_shared_test_pattern",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "pattern": "set_args_with__top_n__execute__validate_coins_counted_ge_1_when_ok_or_degraded"
+      }
+    },
+    {
+      "nodes": [
+        "cryptospect_cli_test_market_breadth_top_flag_clamped",
+        "cryptospect_cli_test_stablecoin_power_top_flag_clamped"
+      ],
+      "label": "TopFlagClampedTestPattern",
+      "relation": "follows_shared_test_pattern",
+      "confidence": "INFERRED",
+      "confidence_score": 0.85,
+      "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli",
+      "source_location": null,
+      "weight": 1.0,
+      "attributes": {
+        "pattern": "set_args_with__detail_extended__top_below_minimum__execute__verify_metas_top_clamped_is_true"
+      }
+    }
+  ],
+  "input_tokens": 16800,
+  "output_tokens": 4050
+}

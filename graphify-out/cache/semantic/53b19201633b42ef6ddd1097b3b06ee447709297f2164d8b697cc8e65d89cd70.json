@@ -1,0 +1,1 @@
+{"nodes": [{"id": "registry_parsemever", "label": "ParseSemVer function", "file_type": "code", "source_file": "internal/metrics/semver.go", "source_location": null}, {"id": "registry_comparesemver", "label": "CompareSemVer function", "file_type": "code", "source_file": "internal/metrics/semver.go", "source_location": null}], "edges": [], "hyperedges": []}

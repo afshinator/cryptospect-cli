@@ -1,0 +1,1 @@
+{"nodes": [{"id": "cryptospect_cli_new_cache_clear_command", "label": "newCacheClearCommand (cache-clear)", "file_type": "code", "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/cache.go", "source_location": {"line": 12}}], "edges": [], "hyperedges": []}

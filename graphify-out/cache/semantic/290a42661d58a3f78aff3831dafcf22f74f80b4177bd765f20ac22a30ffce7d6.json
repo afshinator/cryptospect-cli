@@ -1,0 +1,1 @@
+{"nodes": [{"id": "cryptospect_cli_new_list_command", "label": "newListCommand (list-metrics)", "file_type": "code", "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/list.go", "source_location": {"line": 11}}], "edges": [], "hyperedges": []}

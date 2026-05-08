@@ -1,0 +1,1 @@
+{"nodes": [{"id": "cryptospect_cli_catalog_file", "label": "catalog.go (metric provider blank imports)", "file_type": "code", "source_file": "/project/cryptospect-cli/cmd/cryptospect-cli/catalog.go", "source_location": {"line": 1}}], "edges": [], "hyperedges": []}

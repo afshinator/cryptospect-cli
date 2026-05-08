@@ -1,0 +1,1 @@
+{"nodes": [{"id": "registry_detectstatus", "label": "DetectStatus function", "file_type": "code", "source_file": "internal/metrics/helpers.go", "source_location": null}], "edges": [], "hyperedges": []}
