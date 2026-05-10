@@ -43,3 +43,9 @@ dist-*/
 # Temporary files
 tmp/
 *.tmp
+
+
+# Graphify local-only state and cache
+graphify-out/manifest.json
+graphify-out/cost.json
+graphify-out/cache/
