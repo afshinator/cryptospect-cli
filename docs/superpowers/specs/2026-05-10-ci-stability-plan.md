@@ -92,6 +92,21 @@ T1c — Adversarial code review fixes (2 blocking issues found):
 **Verification:** `go test -race -count=1 ./cmd/cryptospect-cli/` — 44/44 pass.
 Plus `go vet`, `golangci-lint`, `go build` all clean.
 
+**Known residual issues (deferred):**
+
+1. **WriteError dead code**: `output.WriteError()` has zero production callers.
+   The `"error"` envelope path corrected in T1a is forward-compatible but currently
+   untestable in E2E tests. When an unrecoverable error occurs, cobra returns the
+   error to `main.go` which calls `os.Exit(1)` — no JSON envelope is written to
+   stdout. The `"error"` allowance will become testable when `WriteError` is wired
+   into the command error path.
+
+2. **TopFlag tests lack bounds guards**: `TestMarketBreadthTopFlag`,
+   `TestMarketBreadthTopFlagClamped`, `TestStablecoinPowerTopFlag`, and
+   `TestStablecoinPowerTopFlagClamped` access `resp.Results[0]` without
+   `len(resp.Results)` bounds checks. Same class of bug as the detail tests
+   fixed in T1c. Deferred as follow-up — these tests are outside T1 scope.
+
 ---
 
 ### T2 — Pin formatter versions in CI
@@ -145,7 +160,7 @@ pinning. A future fix could add a `tools.go` or version check in the Makefile.
 
 **File:** `.git/hooks/pre-push` (not git-tracked; installed in local clone)
 
-**Updated script (fixes both gaps found during review):**
+**Updated script:**
 
 ```sh
 #!/bin/sh
@@ -153,8 +168,10 @@ set -e
 
 echo "pre-push: fmt check (gofumpt)..."
 UNFORMATTED=$(find . -name "*.go" \
-  -not -path "./.cache/*" -not -path "./.gomodcache/*" \
-  -not -path "./.go/*" -not -path "./vendor/*" \
+  -not -path "./.cache/*" -not -path "./.gocache/*" \
+  -not -path "./.gomodcache/*" -not -path "./.tempcache/*" \
+  -not -path "./.tempgomod/*" -not -path "./.go/*" \
+  -not -path "./.localbin/*" -not -path "./vendor/*" \
   -exec gofumpt -l {} \;)
 if [ -n "$UNFORMATTED" ]; then
   echo "pre-push: gofumpt would reformat: $UNFORMATTED"
@@ -164,8 +181,10 @@ fi
 
 echo "pre-push: fmt check (goimports)..."
 UNFORMATTED=$(find . -name "*.go" \
-  -not -path "./.cache/*" -not -path "./.gomodcache/*" \
-  -not -path "./.go/*" -not -path "./vendor/*" \
+  -not -path "./.cache/*" -not -path "./.gocache/*" \
+  -not -path "./.gomodcache/*" -not -path "./.tempcache/*" \
+  -not -path "./.tempgomod/*" -not -path "./.go/*" \
+  -not -path "./.localbin/*" -not -path "./vendor/*" \
   -exec goimports -l {} \;)
 if [ -n "$UNFORMATTED" ]; then
   echo "pre-push: goimports would reformat: $UNFORMATTED"
@@ -176,8 +195,8 @@ fi
 echo "pre-push: lint..."
 golangci-lint run ./...
 
-echo "pre-push: unit/provider tests (skipping live E2E)..."
-go test -race -short ./...
+echo "pre-push: tests (all packages, including live E2E)..."
+go test -race ./...
 
 echo "pre-push: all checks passed."
 ```
@@ -189,10 +208,20 @@ Make executable: `chmod +x .git/hooks/pre-push`
 1. **Missing goimports check**: Original hook only ran `gofumpt -l`. CI checks both
    `goimports -l` and `gofumpt -l`. Added goimports parity.
 
-2. **Live E2E tests on push**: Running `go test -race ./...` includes the `cmd/cryptospect-cli/`
-   E2E tests which call live CoinGecko/Binance APIs. These are slow (~30–60s) and
-   subject to rate-limiting failures. Changed to `go test -race -short ./...` which
-   skips E2E tests while still running unit/provider tests.
+2. **Missing cache dir exclusions**: Local dev container has `.tempgomod/`,
+   `.tempcache/`, `.gocache/`, and `.localbin/` directories containing cached
+   Go module sources that should not be format-checked. Added all four to the
+   `find` exclusion list. Note: CI's `find` command only excludes 4 dirs
+   (`.cache`, `.gomodcache`, `.go`, `vendor`) because CI does not have the
+   additional local-only dirs. The hook has intentionally broader exclusions.
+
+3. **Live E2E tests on push**: Running `go test -race ./...` includes the
+   `cmd/cryptospect-cli/` E2E tests which call live CoinGecko/Binance APIs.
+   These add ~30-60s per push. T1's assertion fixes make the tests tolerant
+   of rate-limiting failures, so they should not block pushes. The `-short`
+   flag was considered but is a no-op (no E2E test calls `testing.Short()`).
+   If push latency becomes an issue, a future fix could add `testing.Short()`
+   guards to E2E test functions or split E2E tests into a separate package.
 
 **Verification:** After installing the hook, run `git push --dry-run` or manually
 invoke `sh .git/hooks/pre-push` to confirm all steps pass.
@@ -255,18 +284,18 @@ rm graphify-out/test.txt
 - 2 momentum-divergence detail tests: ungated `t.Fatal` → gated `t.Error` + content blocks wrapped
 - Verified: 44/44 tests pass, lint/vet/build clean, 5 files changed
 
-### T2 — Not started (version corrections applied to plan)
-### T3 — Not started (script gaps fixed in plan)
-### T4 — Not started (verification steps added to plan)
+### T2 — Complete ✅ (2026-05-11)
+### T3 — Complete ✅ (2026-05-11)
+### T4 — Complete ✅ (2026-05-11)
 
 ---
 
 ## Implementation Order
 
 1. ~~**T1** — unblocks CI, smallest risk, pure test changes~~ ✅ Done
-2. **T2** — prevents future formatter drift, CI config change (1 file, 2 lines)
-3. **T4** — cleans up repo pollution, removes tracked generated files
-4. **T3** — local enforcement gate, not committed (hook files aren't tracked)
+2. ~~**T2** — prevents future formatter drift, CI config change (1 file, 2 lines)~~ ✅ Done
+3. ~~**T4** — cleans up repo pollution, removes tracked generated files~~ ✅ Done
+4. ~~**T3** — local enforcement gate, not committed (hook files aren't tracked)~~ ✅ Done
 
 **Commit strategy:** T2 + T4 in separate commits. T3 is local-only.
 (Original plan had T1+T2 in one commit, but T1 is already applied on the working branch.
