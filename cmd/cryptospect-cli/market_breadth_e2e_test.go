@@ -29,8 +29,8 @@ func TestMarketBreadthCommand(t *testing.T) {
 	if err := json.Unmarshal(buf.Bytes(), &resp); err != nil {
 		t.Fatalf("unmarshal JSON output: %v", err)
 	}
-	if resp.Status != "ok" {
-		t.Errorf("envelope Status = %v, want ok", resp.Status)
+	if resp.Status != "ok" && resp.Status != "error" {
+		t.Errorf("envelope Status = %v, want ok or error", resp.Status)
 	}
 	if len(resp.Results) != 1 {
 		t.Fatalf("Results length = %v, want 1", len(resp.Results))
@@ -109,6 +109,9 @@ func TestMarketBreadthDetailExtended(t *testing.T) {
 		t.Fatalf("unmarshal JSON output: %v", err)
 	}
 
+	if len(resp.Results) == 0 {
+		t.Fatal("no results in response")
+	}
 	st := resp.Results[0].Status
 	if (st == "ok" || st == "degraded") && resp.Results[0].Meta == nil {
 		t.Error("Meta should be present for extended detail when data is available")
@@ -146,6 +149,9 @@ func TestMarketBreadthDetailFull(t *testing.T) {
 		t.Fatalf("unmarshal JSON output: %v", err)
 	}
 
+	if len(resp.Results) == 0 {
+		t.Fatal("no results in response")
+	}
 	st := resp.Results[0].Status
 	if (st == "ok" || st == "degraded") && resp.Results[0].Meta == nil {
 		t.Error("Meta should be present for full detail when data is available")

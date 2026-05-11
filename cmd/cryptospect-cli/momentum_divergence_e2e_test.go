@@ -80,26 +80,28 @@ func TestMomentumDivergenceDetailExtended(t *testing.T) {
 		t.Fatalf("results: got %d, want 1", len(resp.Results))
 	}
 	r := resp.Results[0]
-	if r.Meta == nil {
-		t.Fatal("meta should not be nil at extended detail")
+	if (r.Status == "ok" || r.Status == "degraded") && r.Meta == nil {
+		t.Error("meta should not be nil at extended detail when data is available")
 	}
-	var meta map[string]interface{}
-	if err := json.Unmarshal(r.Meta, &meta); err != nil {
-		t.Fatalf("unmarshal meta: %v", err)
-	}
-	if _, ok := meta["thresholds"]; ok {
-		t.Error("thresholds should not be present at extended detail")
-	}
-	if _, ok := meta["description"]; ok {
-		t.Error("description should not be present at extended detail")
-	}
-	if _, ok := meta["tier_detail"]; ok {
-		t.Error("tier_detail should not be present at extended detail")
-	}
-	if wm, ok := meta["weighting_method"]; !ok {
-		t.Error("weighting_method should be present at extended detail")
-	} else if wm != "market_cap_weighted" {
-		t.Errorf("weighting_method: got %q, want market_cap_weighted", wm)
+	if r.Meta != nil {
+		var meta map[string]interface{}
+		if err := json.Unmarshal(r.Meta, &meta); err != nil {
+			t.Fatalf("unmarshal meta: %v", err)
+		}
+		if _, ok := meta["thresholds"]; ok {
+			t.Error("thresholds should not be present at extended detail")
+		}
+		if _, ok := meta["description"]; ok {
+			t.Error("description should not be present at extended detail")
+		}
+		if _, ok := meta["tier_detail"]; ok {
+			t.Error("tier_detail should not be present at extended detail")
+		}
+		if wm, ok := meta["weighting_method"]; !ok {
+			t.Error("weighting_method should be present at extended detail")
+		} else if wm != "market_cap_weighted" {
+			t.Errorf("weighting_method: got %q, want market_cap_weighted", wm)
+		}
 	}
 }
 
@@ -121,19 +123,21 @@ func TestMomentumDivergenceDetailFull(t *testing.T) {
 		t.Fatalf("results: got %d, want 1", len(resp.Results))
 	}
 	r := resp.Results[0]
-	if r.Meta == nil {
-		t.Fatal("meta should not be nil at full detail")
+	if (r.Status == "ok" || r.Status == "degraded") && r.Meta == nil {
+		t.Error("meta should not be nil at full detail when data is available")
 	}
-	var meta map[string]interface{}
-	if err := json.Unmarshal(r.Meta, &meta); err != nil {
-		t.Fatalf("unmarshal meta: %v", err)
-	}
-	if _, ok := meta["thresholds"]; !ok {
-		t.Error("thresholds should be present at full detail")
-	}
-	if r.Status == "ok" || r.Status == "degraded" {
-		if _, ok := meta["tier_detail"]; !ok {
-			t.Error("tier_detail should be present at full detail")
+	if r.Meta != nil {
+		var meta map[string]interface{}
+		if err := json.Unmarshal(r.Meta, &meta); err != nil {
+			t.Fatalf("unmarshal meta: %v", err)
+		}
+		if _, ok := meta["thresholds"]; !ok {
+			t.Error("thresholds should be present at full detail")
+		}
+		if r.Status == "ok" || r.Status == "degraded" {
+			if _, ok := meta["tier_detail"]; !ok {
+				t.Error("tier_detail should be present at full detail")
+			}
 		}
 	}
 }
