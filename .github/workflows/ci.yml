@@ -20,8 +20,8 @@ jobs:
 
       - name: fmt check
         run: |
-          go install golang.org/x/tools/cmd/goimports@latest
-          go install mvdan.cc/gofumpt@latest
+          go install golang.org/x/tools/cmd/goimports@v0.45.0
+          go install mvdan.cc/gofumpt@v0.10.0
           # Exclude cache directories from formatting checks
           find . -name "*.go" -not -path "./.cache/*" -not -path "./.gomodcache/*" -not -path "./.go/*" -not -path "./vendor/*" \
             -exec goimports -l {} \; | tee /dev/stderr | (! read)
