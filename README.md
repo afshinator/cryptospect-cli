@@ -13,14 +13,14 @@ A portable, zero-dependency CLI tool that fetches live cryptocurrency data, comp
 
 ## Commands
 
-### Market Regime Metrics (Planned — not yet implemented)
+### Market Regime Metrics (5 implemented, 1 scaffold)
 
     cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
-    cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]
+    cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]  [--top N]
     cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
-    cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]
-    cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]
-    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
+    cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]  [--top N]
+    cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]  [--segments N]
+    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]  (scaffold — not yet implemented)
 
 ### Utility
 

@@ -790,6 +790,5 @@ cmd/cryptospect-cli/
 - **Coverage:** 92.6% — 11 compute + 6 provider + 8 E2E tests
 - **Parser changes:** KlinesData extended with Close/Open/OpenTime (additive, FT/LP unaffected); CoinMarketsBreadthData restructured to per-timeframe counts with BTCReference
 
-### Remaining metrics (scaffolds only)
-- `momentum-divergence` (md)
+### Remaining metric (scaffold only)
 - `market-regime` (mr)
