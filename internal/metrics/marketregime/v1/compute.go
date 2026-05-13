@@ -169,7 +169,7 @@ func minConfidence(a, b string) string {
 	return a
 }
 
-func buildSummary(regime, modifier, trend, conviction string, coldStart, missingRef, weightRedist bool) string {
+func buildSummary(regime, modifier, _ /*trend*/, conviction string, coldStart, missingRef, weightRedist bool) string {
 	var base string
 
 	switch regime {
@@ -263,4 +263,37 @@ func stringsJoin(parts []string) string {
 		s += p
 	}
 	return s
+}
+
+func classificationDescription(regime, conviction string) string {
+	switch regime {
+	case RegimeBTCLedExpansion:
+		return "BTC-Led Expansion — broad participation with rising BTC dominance"
+	case RegimeInstitutionalBuild:
+		return "Institutional Build — BTC outperforming a mixed market; early accumulation or defensive concentration"
+	case RegimeFlightToSafety:
+		return "Flight to Safety — capital retreating into BTC as the crypto safe harbor"
+	case RegimeSteadyAppreciation:
+		return "Steady Appreciation — balanced market rising with broad participation and no dominance shift"
+	case RegimeConsolidation:
+		if conviction == ConvictionHigh {
+			return "Consolidation (Pressure Cooker) — high volume range-bound trading; imminent violent break likely"
+		}
+		return "Consolidation — market seeking direction, mixed participation"
+	case RegimeStagnation:
+		if conviction == ConvictionHigh {
+			return "Stagnation (Pressure Cooker) — high volume, directionless market; explosive break likely in either direction"
+		}
+		return "Stagnation — flat dominance, narrow breadth, market ignored (Pressure Cooker if conviction is high)"
+	case RegimeAltSeasonMania:
+		return "Alt-Season / Mania — capital rotating down the risk curve with broad alt participation"
+	case RegimeCapitalRotation:
+		return "Capital Rotation — selective rotation; some sectors capturing flow while others lag"
+	case RegimeCapitulation:
+		return "Capitulation — panic selling, high volume, alts collapsing"
+	case RegimeStructuralDecay:
+		return "Structural Decay — slow bleed, falling dominance, thin volume"
+	default:
+		return regime
+	}
 }

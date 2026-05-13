@@ -57,14 +57,6 @@ const (
 	DegradedCoinsThreshold = 50
 )
 
-// ── Nominal breadth weights ──
-var (
-	NominalWeight1h  = 0.10
-	NominalWeight24h = 0.30
-	NominalWeight7d  = 0.40
-	NominalWeight30d = 0.20
-)
-
 // ── Input ──
 
 // Input holds all data needed by the pure Compute function.
