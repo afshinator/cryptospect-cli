@@ -30,8 +30,9 @@ dominance_trend =
 ```
 
 The ±0.5pp dead-band prevents flip-flopping in low-volatility environments where dominance oscillates
-by fractions of a percentage point with no structural change. On cold start (no prior snapshot in
-file cache), dominance_trend defaults to "neutral" and the cold_start note is appended.
+by fractions of a percentage point with no structural change. On cold start (no prior entry for
+the `marketregime_dominance_pct` state key), dominance_trend defaults to "neutral" and the cold_start
+note is appended.
 
 **Signal 2 — Market Breadth Score**
 ```
@@ -61,8 +62,9 @@ conviction =
 // Boundary behaviour: 0.15 → "normal" (>0.15 required for high); 0.07 → "normal" (>=0.07).
 // No value is unclassified. Operators are identical in the Classification table.
 ```
-Conviction thresholds are aligned with `liquidity-pulse` (lp). Used only for the Capitulation
-disambiguation rule; does not affect any other matrix cell.
+Conviction thresholds are aligned with `liquidity-pulse` (lp). Conviction is used for Capitulation
+disambiguation and for description/summary branching (notably Consolidation/Stagnation Pressure Cooker
+variants), but does not change regime label assignment for any other matrix cell.
 
 **The 2×3 Regime Matrix**
 ```
@@ -85,6 +87,8 @@ if dominance_trend == "falling" AND breadth_band == "narrow":
     if conviction == "high"  → regime: "Capitulation"
     else                     → regime: "Structural Decay"
 ```
+Boundary note: `conviction == "high"` requires `lp_ratio > 0.15` (strictly greater). At
+`lp_ratio == 0.15`, conviction is `"normal"` and this branch resolves to Structural Decay.
 Capitulation requires high selling volume (lp_ratio > 0.15) to distinguish a panic event from a
 low-interest grind. When Capitulation fires, the modifier determines the sub-state note:
 ```
@@ -138,22 +142,26 @@ either direction. Cross-reference `flow-tension` OI for leverage loading.
 
 **Stagnation** (Neutral Dom + Narrow Breadth): Sideways dominance with poor participation. The
 highest-risk environment for alt-coin entry — any BTC volatility will disproportionately affect
-alts with no breadth support to absorb it. Distinct from Structural Decay: dominance is not
-falling, so alts are not being actively sold relative to BTC — they are simply being ignored.
+alts with no breadth support to absorb it. With `conviction: "high"` this is the Stagnation
+Pressure Cooker variant (high activity in a directionless structure; elevated break risk). Distinct
+from Structural Decay: dominance is not falling, so alts are not being actively sold relative to
+BTC — they are simply being ignored.
 
 **Alt-Season / Mania** (Falling Dom + Broad Breadth): Capital rotating down the risk curve with
-broad participation. High gains, high blow-off risk. With `negative_pressure` modifier: Speculative
-Exhaustion — alts leading the crash, a late-cycle distribution signal. Cross-reference
-`flow-tension` funding rate for overheated conditions.
+broad participation. High gains, high blow-off risk. With `positive_momentum` modifier: classic
+alt-season confirmation — alts leading a broadly rising market; highest risk appetite in the suite.
+With `negative_pressure` modifier: Speculative Exhaustion — alts leading the crash, a late-cycle
+distribution signal. Cross-reference `flow-tension` funding rate for overheated conditions.
 
 **Capital Rotation** (Falling Dom + Mixed Breadth): Dominance falling with selective participation.
 Some sectors capturing rotation while others lag. Early alt-season or incomplete rotation — not yet
 confirmed as broad. Monitor `momentum-divergence` mid_vs_large spread for rotation depth.
 
-**Structural Decay** (Neutral Dom + Narrow Breadth OR Falling Dom + Narrow Breadth + low/normal vol):
-Broad-based lack of interest. Alts bleeding harder than BTC or the entire market grinding lower on
-thin volume. Not a panic event — a slow bleed. No forced exits, no violent bottom. Structurally
-different from Capitulation; requires a different agent response.
+**Structural Decay** (Falling Dom + Narrow Breadth + low/normal conviction):
+Alts bleeding harder than BTC on thin volume. Not a panic event — a slow, directional bleed with
+no forced exits and no violent bottom signal. Distinct from Stagnation, where dominance is flat
+and the market is simply being ignored; here dominance is actively falling, giving the bleed a
+directional lean. Structurally different from Capitulation; requires a different agent response.
 
 **Capitulation** (Falling Dom + Narrow Breadth + high vol): Panic selling with high conviction
 volume. BTC relatively outperforming a collapsing alt market. Historically provides the best
@@ -208,22 +216,22 @@ panic volume persists.
 - **Endpoints:** `coingecko.global_market` — `/global`; `coingecko.coin_markets_breadth` — `/coins/markets`
 - **Fields used from `/global`:** `market_cap_percentage["btc"]` (dominance), `total_volume["usd"]` (lp_ratio numerator), `total_market_cap["usd"]` (lp_ratio denominator)
 
-**Parser verification required:** The field nesting of `total_volume` and `total_market_cap` in the CoinGecko `/global` response has varied across API versions — some versions return these as top-level keys, others nest them under a `data` wrapper. Before finalising the Go parser struct in `internal/api/coingecko/`, verify the exact JSON structure against a live `/global` response on your specific API tier. The `market_cap_percentage` map and the volume/mcap fields must be confirmed to exist at the same nesting level as the parser expects. A mismatch will silently produce `lp_ratio = 0` and `btc_dominance_pct = 0`, triggering cold-start-like behaviour with no error.
-- **Fields used from `/coins/markets`:** `price_change_percentage_1h_in_currency`, `price_change_percentage_24h`, `price_change_percentage_7d_in_currency`, `price_change_percentage_30d_in_currency` (breadth); `price_change_percentage_24h` for BTC entry (`id == "bitcoin"`) used as `btc_change_24h_pct` for the modifier gate
+**Parser verification required:** The field nesting of `total_volume` and `total_market_cap` in the CoinGecko `/global` response has varied across API versions — some versions return these as top-level keys, others nest them under a `data` wrapper. Before finalising the Go parser struct in `internal/api/coingecko/`, verify the exact JSON structure against a live `/global` response on your specific API tier. The `market_cap_percentage` map and the volume/mcap fields must be confirmed to exist at the same nesting level as the parser expects. A mismatch can parse as missing/zero fields and must be treated as `status: "unavailable"` by `mr`'s zero-guard/unavailable logic (not as a valid low-conviction or cold-start signal).
+- **Fields used from `/coins/markets`:** `price_change_percentage_1h_in_currency`, `price_change_percentage_24h_in_currency`, `price_change_percentage_7d_in_currency`, `price_change_percentage_30d_in_currency` (breadth); `price_change_percentage_24h_in_currency` for BTC entry (`id == "bitcoin"`) used as `btc_change_24h_pct` for the modifier gate
 
 **Endpoint cache sharing:** Both endpoint keys are shared with existing metrics. `coingecko.global_market` is used by `liquidity-pulse` and `stablecoin-power`; `coingecko.coin_markets_breadth` is used by `market-breadth` and `momentum-divergence`. When any of those metrics are called in the same session, `mr` receives cached data at zero additional API cost.
 
-**Dominance delta computation:** `mr.Compute()` reads the prior `coingecko.global_market` snapshot from the local file cache to compute `dominance_delta_pp`. The cache layer must expose a `Stat(key)` or `GetMetadata(key)` method returning the file modification timestamp so that `prior_snapshot_age_sec` can be computed as `current_unix_timestamp - file_mod_timestamp` without deserializing the cached JSON twice. If `Stat(key)` returns an error or the file does not exist, treat as cold start — do not crash. If `Stat(key)` succeeds but the cached JSON is malformed or `market_cap_percentage["btc"]` is missing from the parsed prior snapshot, also treat as cold start rather than propagating a parse error.
+**Dominance delta computation:** `mr.Compute()` reads prior BTC dominance from the dedicated state cache key `marketregime_dominance_pct` — not from the `coingecko.global_market` endpoint entry. On each successful run, the provider writes `*btcDominance` as a JSON-encoded `float64` to this key (TTL: 48h). On the next run, it reads this entry via `cache.Get(stateKey)` and uses `Entry.FetchedAt` to compute `prior_snapshot_age_sec` as `int(now.Unix() - entry.FetchedAt.Unix())`. No `Stat()` or `GetMetadata()` method is required. If the state entry is absent, malformed, or outside the age bounds (negative or > 86400s), treat as cold start — set `dominance_cold_start: true`, append `"cold_start"` to notes, and default `dominance_trend` to `"neutral"`. Do not crash and do not propagate a parse error.
 
-**First-run behavior:** The first invocation of `mr` always functions as a baseline run — it writes the current `/global` snapshot to file cache and produces a Neutral-row regime because no prior snapshot exists to compute a delta. **The second invocation is the first meaningful one.** Implementers and agents must not treat the first call's regime label as a computed signal; `dominance_cold_start: true` in meta is the machine-readable indicator of this state.
+**First-run behavior:** The first **successful** invocation of `mr` with valid required inputs functions as a baseline run — it writes the current BTC dominance value to the `marketregime_dominance_pct` state key and produces a Neutral-row regime because no prior snapshot exists to compute a delta. **The second successful invocation is the first meaningful one.** Implementers and agents must not treat the first successful call's regime label as a computed signal; `dominance_cold_start: true` in meta is the machine-readable indicator of this state.
 
-**`btc_dominance_pct` verification asymmetry:** `btc_dominance_pct` is present in basic `meta` because it is the primary raw signal underlying `dominance_trend`. However, `btc_dominance_pct` alone (the current snapshot) is insufficient to verify `dominance_trend` — verification requires both the current and prior values to confirm the delta direction. Full verification of `dominance_trend` requires `dominance_delta_since_last_fetch` at `--detail extended`. Agents on basic output should treat `btc_dominance_pct` as context, not as a `dominance_trend` validator.
+**`btc_dominance_pct` verification asymmetry:** `btc_dominance_pct` is the primary raw signal underlying `dominance_trend`, available at `--detail extended`. However, the current snapshot value alone is insufficient to verify `dominance_trend` — verification requires both the current and prior values to confirm the delta direction. Full verification requires `dominance_delta_since_last_fetch` alongside it. Agents must call `--detail extended` to access either field; at basic detail, meta is suppressed entirely.
 
 ## Cross-Source Verification
 
 No cross-source verification in v1.
 
-`market-regime` is a synthesis metric — it derives all three input signals from the same two CoinGecko endpoint keys already used by the suite. The breadth score is computed from the identical parser as `market-breadth`, guaranteeing internal consistency via the cache layer rather than cross-source validation. The dominance delta is self-referential (current snapshot vs. prior cached snapshot of the same endpoint).
+`market-regime` is a synthesis metric — it derives all three input signals from the same two CoinGecko endpoint keys already used by the suite. The breadth score is computed from the identical parser as `market-breadth`, guaranteeing internal consistency via the cache layer rather than cross-source validation. The dominance delta is self-referential (current BTC dominance vs. prior cached value from the `marketregime_dominance_pct` state key).
 
 A BTC CVD validator (Binance-US `binance.spot_cvd_btc_1h`) was evaluated and explicitly rejected. In a regime metric anchored to BTC dominance, a validator checking for BTC momentum "agreement" is adversarial by design — a successful alt-season (alts rising while BTC falls) produces a negative BTC CVD that would incorrectly reduce confidence on a valid `Alt-Season / Mania` verdict.
 
@@ -242,8 +250,18 @@ The breadth computation uses the same `per_page=250` default as `market-breadth`
     "metric":  "market-regime",
     "version": "v1.0.0",
     "status":  "string",   // "ok" / "degraded" / "unavailable"
-                           // "unavailable": coingecko.global_market fetch failed entirely
-                           // "degraded": breadth parser TotalCount < 50 (insufficient coin sample)
+                           // "unavailable": any of the following —
+                           //   - coingecko.global_market raw bytes missing or empty
+                           //   - coingecko.global_market parse failure
+                           //   - BTC dominance absent from /global response
+                           //   - volume or market cap zero/missing (zero-guard)
+                           //   - coingecko.coin_markets_breadth raw bytes missing or empty
+                           //   - coingecko.coin_markets_breadth parse failure
+                           //   - mbv1.Compute() returns status "unavailable"
+                           // "degraded": breadth valid but coin sample < 50 (mbResult.CoinsCounted < 50).
+                           //   All data fields are still populated — regime classification proceeds
+                           //   using the thin breadth sample. confidence is forced to "low" to
+                           //   reflect the reduced sample size. meta is populated at extended/full.
                            // "ok": all signals computed; cold start and weight redistribution
                            //       do not affect status — they are reflected in confidence and notes
 
@@ -283,17 +301,64 @@ The breadth computation uses the same `per_page=250` default as `market-breadth`
                               // Summary always incorporates conviction level for all regime labels —
                               // e.g. Stagnation with high conviction is a different agent posture than
                               // Stagnation with low conviction, and the summary must reflect that.
-                              // e.g.: "BTC dominance rising, breadth broad — BTC-Led Expansion with
+                              //
+                              // RELIABILITY CUES (critical for basic-detail callers):
+                              // Because confidence, notes, and dominance_cold_start are extended-only,
+                              // the summary MUST embed a stable ASCII token when any of these
+                              // conditions exist — it is the only signal a basic-detail caller receives.
+                              // Tokens are uppercase, bracketed, ASCII-only for parser stability:
+                              //   cold_start:              prefix "[SIGNAL_UNVERIFIED] "
+                              //   missing_reference_data:  append " [MISSING_BTC_REF]"
+                              //   weight_redistribution:   append " [BREADTH_PARTIAL]"
+                              // These tokens must appear in the summary string regardless of detail
+                              // level — they are not gated to extended. Extended callers can cross-check
+                              // via notes; basic callers have only the summary.
+                              //
+                              // e.g. (normal): "BTC dominance rising, breadth broad — BTC-Led Expansion with
                               //        positive momentum. Capital flowing into BTC with broad alt participation."
-                              // e.g.: "Dominance neutral, breadth narrow, low conviction — Stagnation.
-                              //        Market ignored; alt exposure is high-risk with no breadth support."
-                              // e.g.: "Dominance neutral, breadth narrow, high conviction — Stagnation
-                              //        (Pressure Cooker). High volume in a directionless market; breakout likely."
+                              // e.g. (cold start): "[SIGNAL_UNVERIFIED] Dominance neutral (default), breadth
+                              //        mixed — Consolidation. Run again after 4h for a computed dominance trend."
+                              // e.g. (missing ref): "Dominance neutral, breadth narrow, low conviction —
+                              //        Stagnation. Market ignored; alt exposure is high-risk. [MISSING_BTC_REF]"
+                              // e.g. (Stagnation Pressure Cooker): "Dominance neutral, breadth narrow,
+                              //        high conviction — Stagnation (Pressure Cooker). High volume in a
+                              //        directionless market; breakout likely in either direction."
                               // Extended/full summary may include numeric values from extended meta fields.
     },
 
     "meta": {
-        // Always present (basic and above):
+        // NOTE: root.go suppresses meta entirely at --detail basic for ALL metrics suite-wide
+        // (case "basic": result.Meta = nil). This is global behavior, not per-metric.
+        // mr does not special-case this. At basic detail, only data fields are emitted.
+        // AGENTS: call mr at --detail extended as the default. Basic detail may be
+        // useful for rough context but is insufficient for production decisions —
+        // confidence, notes, and dominance_cold_start are all extended-only.
+
+        // Present when --detail extended or full:
+        "cache_hit":            "bool",    // true iff BOTH coingecko.global_market AND
+                                           // coingecko.coin_markets_breadth cache entries are
+                                           // found AND non-stale at provider compute time.
+                                           // false if either entry is absent, stale, or unreadable.
+                                           // This is freshness inference at compute time, not
+                                           // invocation-level fetch provenance — the provider
+                                           // interface (map[string]json.RawMessage) carries no
+                                           // fetch metadata. Implementation: read both entries
+                                           // via cache.Get() and check !entry.Stale for each;
+                                           // cache_hit = !globalEntry.Stale && !breadthEntry.Stale
+        "ttl_remaining_sec":    "int",     // effective freshness horizon for this invocation:
+                                           // min(global_ttl_remaining, breadth_ttl_remaining)
+                                           // where each is computed as:
+                                           //   max(0, int(entry.FetchedAt.Add(
+                                           //       time.Duration(entry.TTLSeconds)*time.Second,
+                                           //   ).Unix() - now.Unix()))
+                                           // For a metric derived from both endpoints, the earlier-
+                                           // expiring input determines when the output goes stale.
+                                           // Agents use this to schedule the next mr call.
+                                           // If cache reads fail (no config/cache access), set
+                                           // cache_hit=false and ttl_remaining_sec=0.
+        "primary_source":       "coingecko",
+
+        // Core reliability/meta fields (still extended/full; grouped for clarity):
         "btc_dominance_pct":   "float64",  // current BTC dominance percentage, e.g. 52.41
         "btc_24h_change":      "float64?", // BTC 24h price change percentage; input to modifier gate.
                                            // *float64 with omitempty — omitted when "missing_reference_data"
@@ -303,19 +368,19 @@ The breadth computation uses the same `per_page=250` default as `market-breadth`
                                            // unambiguous signal that data was missing.
                                            // Consistent with dominance_delta_since_last_fetch pattern.
         "confidence":          "string",   // "high" | "medium" | "low" — see confidence table below
-        "dominance_cold_start": "bool",    // true if no prior cached snapshot exists
+        "dominance_cold_start": "bool",    // true when dominance state is cold-start:
+                                           // missing, stale (>86400s), malformed, or negative-age entry.
+                                           // false when a valid prior snapshot was used.
         "notes":               "[]string", // enumerated array; empty [] when no conditions active
                                            // values: "cold_start" | "weight_redistribution" |
                                            //         "abnormal_capitulation" |
                                            //         "capitulation_price_stabilizing" | "missing_reference_data"
-        "cache_hint_sec":      14400,      // call frequency recommendation for agents (not dispatcher TTL)
+        "cache_hint_sec":      "int",      // 14400. Call frequency recommendation for agents
+                                           // (not dispatcher TTL)
                                            // regime shifts are structural; re-polling within 4h
                                            // produces identical output on unchanged cached data
 
-        // Present when --detail extended or full:
-        "cache_hit":                       "bool",
-        "ttl_remaining_sec":               "int",
-        "primary_source":                  "coingecko",
+        // Derived diagnostic fields (extended/full):
         "lp_ratio":                        "float64",   // raw volume/mcap ratio; input to conviction
         "dominance_delta_since_last_fetch": "float64?", // percentage points; omitted on cold start
         "prior_snapshot_age_sec":          "int?",      // seconds since prior snapshot was cached;
@@ -325,20 +390,30 @@ The breadth computation uses the same `per_page=250` default as `market-breadth`
                                                         // rather than emitting 0 (a valid age value).
                                                         // Implementation: computed as
                                                         // int(now.Unix() - entry.FetchedAt.Unix())
-                                                        // where entry is the result of Get(coingecko.global_market).
+                                                        // where entry is the result of Get(stateKey) —
+                                                        // the "marketregime_dominance_pct" state cache entry,
+                                                        // NOT Get(coingecko.global_market). The global market
+                                                        // entry is read separately for cache_hit/ttl_remaining_sec.
                                                         // Use Entry.FetchedAt, NOT file ModTime —
                                                         // FetchedAt is immune to NFS/Docker clock drift.
                                                         // A nil pointer marshals to omitted with omitempty;
                                                         // never assign 0 as a sentinel — 0 means age=0sec.
                                                         // agents: contextualize dominance_trend
                                                         // magnitude against this value before acting
-        "weights_used": {                              // actual breadth weights after any redistribution;
-                                                        // matches mb's weights_used field exactly since
-                                                        // mr calls marketbreadth/v1.Compute() directly.
-            "1h":  "float64",                          // may be 0.0 if timeframe was redistributed
+        "weights_used": {                              // breadth timeframe weights after any redistribution.
+                                                        // Fixed struct (not map) for output contract clarity
+                                                        // and deterministic JSON field ordering.
+                                                        // Internally map[string]float64 is fine; expose as
+                                                        // a typed struct in MetaExtended with json tags:
+            "1h":  "float64",                          // 0.0 if this timeframe was dropped/redistributed
             "24h": "float64",
             "7d":  "float64",
             "30d": "float64"
+                                                        // Nominal design weights: 1h=0.10, 24h=0.30,
+                                                        // 7d=0.40, 30d=0.20. Any 0.0 value indicates
+                                                        // that timeframe's weight was redistributed to others.
+                                                        // Implementation: map mbResult.WeightsUsed["1h"], ["24h"],
+                                                        // ["7d"], ["30d"] into the corresponding struct fields.
         },
 
         // Additionally when --detail full:
@@ -356,12 +431,31 @@ The breadth computation uses the same `per_page=250` default as `market-breadth`
 }
 ```
 
+When `status: "unavailable"`, providers in this suite return a standard error payload in `data`
+(`{"error":"<message>"}`) and do not populate `meta`; therefore extended/full fields (including
+`lp_ratio`) are absent and no regime classification fields are emitted.
+
+Unavailable `data` shape for `mr`:
+```json
+{
+  "data": {
+    "error": "string"
+  }
+}
+```
+
 **Confidence determination:**
+
+Apply confidence rules cumulatively; when multiple conditions are true, the minimum level wins.
+`status: "degraded"` does not short-circuit other checks. `confidence: "high"` is valid only when
+no confidence-lowering condition is active. Note: Capitulation with `modifier == "negative_pressure"`
+(panic confirmed, price following volume) produces `confidence: "high"` — this is the expected
+Capitulation state and falls under the first row below. It is called out here only as reassurance
+that the most acute regime can still yield high confidence; it is not a separate rule.
 
 | Condition | `confidence` |
 |-----------|-------------|
 | All signals present, dominance delta available, breadth fully weighted | `"high"` |
-| Capitulation with `modifier == "negative_pressure"` — panic confirmed, price following volume | `"high"` |
 | Cold start (`dominance_cold_start: true`) — dominance trend defaulted to neutral | `"medium"` |
 | Weight redistribution in breadth parser (timeframe TotalCount < 50, weight redistributed) | `"medium"` |
 | Capitulation with `modifier == "neutral"` (`"capitulation_price_stabilizing"` in notes) | `"medium"` |
@@ -369,31 +463,28 @@ The breadth computation uses the same `per_page=250` default as `market-breadth`
 | BTC reference absent (`"missing_reference_data"` in notes) — modifier is a fallback, not a signal | `"low"` |
 | `status: "degraded"` (breadth TotalCount < 50 globally) | `"low"` |
 
-Multiple conditions can lower confidence simultaneously; the minimum applicable level applies. `confidence: "high"` requires all conditions above to be absent.
-
 **Notes field — enumerated values and trigger conditions:**
 
 | Value | Trigger Condition |
 |-------|------------------|
-| `"cold_start"` | No prior `coingecko.global_market` snapshot in file cache; `dominance_delta_since_last_fetch` omitted; `dominance_trend` defaulted to neutral |
+| `"cold_start"` | No prior entry for state key `marketregime_dominance_pct` in cache (or entry is stale/malformed/out-of-bounds); `dominance_delta_since_last_fetch` omitted; `dominance_trend` defaulted to neutral |
 | `"weight_redistribution"` | One or more breadth timeframe TotalCounts fell below 50; nominal weights redistributed; `meta.weights_used` (at extended detail) reflects actual weights |
 | `"abnormal_capitulation"` | `regime: "Capitulation"` fired AND `modifier == "positive_momentum"` — BTC price actively reversing upward against panic volume; V-bottom or short squeeze. `confidence: "medium"`. Agent posture: act with urgency but lower confidence due to volatility |
 | `"capitulation_price_stabilizing"` | `regime: "Capitulation"` fired AND `modifier == "neutral"` — high volume and alt bleed continuing, but BTC price has stopped falling. Stabilization phase or passive absorption of selling. `confidence: "medium"`. Agent posture: shift from "observe for exhaustion" toward "begin scaling/DCA" |
-| `"missing_reference_data"` | BTC entry absent from `/coins/markets` response or its `price_change_percentage_24h` field is nil; `modifier` defaulted to `"neutral"` as fallback, not as a market signal. `confidence` forced to `"low"` to distinguish this from a genuine flat-price neutral |
+| `"missing_reference_data"` | BTC entry absent from `/coins/markets` response or its `price_change_percentage_24h_in_currency` field is nil; `modifier` defaulted to `"neutral"` as fallback, not as a market signal. `confidence` forced to `"low"` to distinguish this from a genuine flat-price neutral |
 
 Multiple notes values are valid simultaneously. Example: `["cold_start", "weight_redistribution"]` on a first run with partial API data.
 
-**Enhancements** (conditional — present when specific conditions are met):
+**Enhancements** (detail-gated fields; some are always present at extended/full):
 
 | Field | Condition | Description |
 |-------|-----------|-------------|
-| `notes` non-empty | Any trigger condition active | Array of enumerated diagnostic strings; always present as `[]` when empty |
-| `dominance_delta_since_last_fetch` | `--detail extended`; omitted on cold start | Percentage-point change in BTC.D since prior cached snapshot |
-| `prior_snapshot_age_sec` | `--detail extended`; omitted on cold start | Age of prior snapshot in seconds; use to contextualize delta magnitude |
+| `notes` | `--detail extended` | Present at extended/full as `[]` when empty; non-empty when any trigger condition is active |
+| `dominance_delta_since_last_fetch` | `--detail extended` | Present at extended/full; omitted on cold start |
+| `prior_snapshot_age_sec` | `--detail extended` | Present at extended/full; omitted on cold start |
 | `lp_ratio` | `--detail extended` | Raw volume/mcap ratio; input to conviction classification |
-| `weights_used` | `--detail extended` | Actual breadth timeframe weights after any redistribution; matches mb output exactly |
 | `thresholds` | `--detail full` | All classification thresholds with units |
-| `dominance_cold_start: true` | First run with no prior cache | Signals that dominance_trend is a default, not computed |
+| `dominance_cold_start` | `--detail extended` | Always present as bool; `true` signals cold-start (missing/stale/malformed/out-of-bounds state entry), `false` otherwise |
 
 ## Usage
 
@@ -423,27 +514,45 @@ The modifier and conviction signals add the two dimensions that a 2×3 matrix ca
 
 ### Exact definition and data needs, logic
 
-**Dominance delta:** `mr.Compute()` reads `market_cap_percentage["btc"]` from the current `/global` response and compares it against the prior cached value of the same field. The delta is in percentage points — the same units as BTC dominance itself (e.g., 52.41% → 53.03% is a +0.62pp delta). The ±0.5pp dead-band prevents the neutral row from emptying out during low-volatility periods when dominance drifts by fractions of a point.
+**Dominance delta:** `mr.Compute()` reads `market_cap_percentage["btc"]` from the current `/global` response and compares it against the prior value stored in the `marketregime_dominance_pct` state key. The delta is in percentage points — the same units as BTC dominance itself (e.g., 52.41% → 53.03% is a +0.62pp delta). The ±0.5pp dead-band prevents the neutral row from emptying out during low-volatility periods when dominance drifts by fractions of a point.
 
-On cold start, no prior snapshot exists. `dominance_trend` defaults to `"neutral"`, `dominance_delta_since_last_fetch` is omitted from output (not set to 0.0 — zero is a valid delta and cannot be distinguished from "no data"), and `dominance_cold_start: true` is set in meta. The `"cold_start"` note is appended. Status remains `"ok"` and confidence is set to `"medium"`. This is the same pattern as `flow-tension`'s OI 24h change on first run.
+On cold start, no prior snapshot exists. `dominance_trend` defaults to `"neutral"`, `dominance_delta_since_last_fetch` is omitted from output (not set to 0.0 — zero is a valid delta and cannot be distinguished from "no data"), and `dominance_cold_start: true` is set in meta. The `"cold_start"` note is appended. Absent other confidence/status-lowering conditions, this yields `status: "ok"` and `confidence: "medium"` (same pattern as `flow-tension`'s OI 24h change on first run).
 
 **Prior snapshot age via `Entry.FetchedAt`:** `prior_snapshot_age_sec` is computed using `Entry.FetchedAt` from the cache record returned by `Get(key)` — not file `ModTime`. `Entry.FetchedAt` is written by the same process that reads it, making it immune to NFS/Docker timestamp drift and rendering a separate `Stat()` method unnecessary. `prior_snapshot_age_sec = int(now.Unix() - entry.FetchedAt.Unix())`. If `Get(key)` returns no entry (cold start), `prior_snapshot_age_sec` is omitted and `dominance_cold_start: true` is set. Two bounds guards apply:
 - If age is negative (impossible with `FetchedAt` but defensive): treat as cold start — set `dominance_cold_start: true`, append `"cold_start"` to notes, default `dominance_trend` to `"neutral"`.
 - If age exceeds 86400 seconds (machine was offline between runs): treat prior snapshot as stale — set `dominance_cold_start: true`, append `"cold_start"` to notes, default `dominance_trend` to `"neutral"`. An agent must not see a neutral dominance trend with no flag; both stale-snapshot cases are indistinguishable in effect from a genuine cold start and must be signalled identically.
 
-**Breadth computation:** `mr.Compute()` calls `marketbreadth/v1.Compute()` directly with the shared `Input` struct rather than duplicating the parser and null-exclusion logic. This is the correct pattern — a direct import is the only way to permanently guarantee that `market_breadth_score` in `mr` output is identical to `market-breadth` output when both are called in the same session. The shared `coingecko.coin_markets_breadth` cached response is passed to both. The thresholds (0.40/0.60) are aligned with `mb`'s `"narrow"` / `"mixed"` / `"broad"` bands. If weight redistribution occurred (a timeframe's TotalCount fell below 50 and its weight was redistributed), `"weight_redistribution"` is appended to notes and confidence is capped at `"medium"`. Status remains `"ok"` — mirrors `mb`'s own behavior under the same condition. Note: this import is of `mb`'s compute function, not its output — `mr` does not call the `mb` CLI command or read `mb`'s JSON result.
+**Breadth computation:** `mr.Compute()` calls `marketbreadth/v1.Compute()` directly with the shared `Input` struct rather than duplicating the parser and null-exclusion logic. This is the correct pattern — a direct import is the only way to permanently guarantee that `market_breadth_score` in `mr` output is identical to `market-breadth` output when both are called in the same session. The shared `coingecko.coin_markets_breadth` cached response is passed to both. The thresholds (0.40/0.60) are aligned with `mb`'s `"narrow"` / `"mixed"` / `"broad"` bands. Note: this import is of `mb`'s compute function, not its output — `mr` does not call the `mb` CLI command or read `mb`'s JSON result.
+
+**`mr` status is derived independently of `mbResult.MetricStatus`.** `mr.Compute()` must not pass `mbResult.MetricStatus` through to its own status field. Instead, `mr` reads two fields from `mb.ComputeResult` directly and applies its own thresholds:
+- `mbResult.CoinsCounted < 50` → `mr` status: `"degraded"`
+- Any value in `mbResult.WeightsUsed` differs from nominal design weights (1h: 0.10, 24h: 0.30, 7d: 0.40, 30d: 0.20) → `mr` status: `"ok"`, append `"weight_redistribution"` to notes, cap `confidence` at `"medium"`
+- Otherwise → `mr` status: `"ok"`, no redistribution note
+
+`mbResult.MetricStatus` is ignored entirely. `mb` internally sets `status: "degraded"` whenever any timeframe is dropped (`len(droppedTimeframes) > 0`), which is stricter than `mr`'s policy. Passing it through would contradict the spec's `medium+ok` promise for weight redistribution. The two fields `CoinsCounted` and `WeightsUsed` are the correct inputs for `mr`'s own status derivation. `mbResult.CoinsCounted` reflects the value passed as `mbInput.CoinsCounted` (`cgData.CoinsWithData`) in this integration path.
 
 **Populating `mb.Input` Binance fields from `mr`:** `mb.Input` includes Binance kline fields (`KlineAvailable bool`, `KlineClose`, `KlineOpen`, `KlineOpenTimeMs`, `Now`). `mr` has no Binance endpoint. Pass `KlineAvailable: false` — this causes `mb`'s internal validator to skip the directional consensus check entirely. The `mb.ComputeResult.ValidatorConfidence` field returned by `mb.Compute()` must be ignored; `mr` drives its own `confidence` value entirely from its own logic (cold start, weight redistribution, missing reference data, capitulation sub-state). Do not propagate `mb`'s validator confidence into `mr`'s output.
 
-**BTC reference extraction:** `btc_change_24h_pct` is extracted from the `/coins/markets` response by checking `entry.ID == "bitcoin"` (not positional index), using the same guard logic as `market-breadth`. If the BTC entry is absent or its `price_change_percentage_24h` is nil: `modifier` defaults to `"neutral"` as a fallback — not as a market signal; `btc_24h_change` is omitted from output (not set to `0.0` — zero is a valid price change and cannot be distinguished from missing data); append `"missing_reference_data"` to notes; force `confidence: "low"`. An agent reading `modifier: "neutral"` with `btc_24h_change` absent and `"missing_reference_data"` in notes knows unambiguously that the neutral modifier is a fallback, not a measurement.
+**BTC reference extraction:** `btc_change_24h_pct` is extracted from the `/coins/markets` response by checking `entry.ID == "bitcoin"` (not positional index), using the same guard logic as `market-breadth`. If the BTC entry is absent or its `price_change_percentage_24h_in_currency` field is nil: `modifier` defaults to `"neutral"` as a fallback — not as a market signal; `btc_24h_change` is omitted from output (not set to `0.0` — zero is a valid price change and cannot be distinguished from missing data); append `"missing_reference_data"` to notes; force `confidence: "low"`. An agent reading `modifier: "neutral"` with `btc_24h_change` absent and `"missing_reference_data"` in notes knows unambiguously that the neutral modifier is a fallback, not a measurement.
 
-**Conviction / lp_ratio:** `lp_ratio = total_volume["usd"] / total_market_cap["usd"]` from the `/global` response. Thresholds (0.07 / 0.15) are aligned with `liquidity-pulse`. Conviction is used only as the Capitulation disambiguation input — it does not affect any other matrix cell or the modifier.
+**Zero-guard (lp_ratio):** If `total_volume["usd"]` or `total_market_cap["usd"]` parses as zero or is missing from the response, `lp_ratio` must not be computed — set `status: "unavailable"` and halt. Conviction classification is performed only after this guard passes; if the guard triggers, no conviction value is computed. A parsed-zero path that proceeds to `conviction: "low"` would silently misrepresent a critical parse failure as a quiet low-interest market. Do not allow this. Note: CoinGecko may return HTTP 200 with empty or null data fields under rate-limiting on some tiers (rather than a `429`). Do not rely solely on HTTP status code to detect unavailability — apply the zero-guard as a content-level check regardless of HTTP status.
 
-**Zero-guard (lp_ratio):** If `total_volume["usd"]` or `total_market_cap["usd"]` parses as zero or is missing from the response, `lp_ratio` must not be computed — set `status: "unavailable"` and halt. A parsed-zero produces `lp_ratio = 0` → `conviction: "low"`, which silently misrepresents a critical parse failure as a quiet low-interest market. Do not allow this. Note: CoinGecko may return HTTP 200 with empty or null data fields under rate-limiting on some tiers (rather than a `429`). Do not rely solely on HTTP status code to detect unavailability — apply the zero-guard as a content-level check regardless of HTTP status.
+**Conviction / lp_ratio:** `lp_ratio = total_volume["usd"] / total_market_cap["usd"]` from the `/global` response (computed only after zero-guard passes). Thresholds (0.07 / 0.15) are aligned with `liquidity-pulse`. Conviction is used for Capitulation disambiguation and for description/summary branching (notably Consolidation/Stagnation Pressure Cooker variants), but does not change regime label assignment for any other matrix cell or the modifier.
 
-**TTL:** The `coingecko.global_market` and `coingecko.coin_markets_breadth` endpoint keys have TTLs set at the dispatcher level, shared with other metrics. `cache_hint_sec: 14400` in `mr`'s output is a *call frequency recommendation* for the calling agent — it signals that re-invoking `mr` within 4 hours will return cached data. It does not modify the dispatcher's endpoint TTL.
+**TTL and cache freshness:** The `coingecko.global_market` and `coingecko.coin_markets_breadth` endpoint keys have TTLs set at the dispatcher level, shared with other metrics. `cache_hint_sec: 14400` in `mr`'s output is a *call frequency recommendation* for the calling agent — it does not modify dispatcher TTLs.
 
-**Summary generation — conviction-aware branching:** The `data.summary` string must branch on `conviction` for all regime labels, not just Capitulation. The most critical case is Stagnation: `Neutral + Narrow + low/normal conviction` is a quiet, ignored market; `Neutral + Narrow + high conviction` is a Pressure Cooker — two opposite agent postures under the same regime label. The summary generator must explicitly check `conviction` before constructing the Stagnation summary string and emit the Pressure Cooker warning when `conviction == "high"`. The `data.classification.description` fixed string carries the parenthetical `(Pressure Cooker if conviction is high)` as a static fallback, but the `summary` field is where the dynamic, conviction-specific language lives. An implementer building the summary generator must not use a single static template per regime label — conviction, modifier, and notes must all be inputs to the summary construction for every label.
+`cache_hit` and `ttl_remaining_sec` are computed in the provider by reading both endpoint cache entries directly after the data is consumed. The provider interface passes only `map[string]json.RawMessage` — no fetch metadata — so these values are freshness inference at compute time, not invocation-level provenance. Implementation must perform both reads explicitly (e.g., `cache.Get(api.CoinGeckoGlobalMarket)` and `cache.Get(api.CoinGeckoCoinMarketsBreadth)`):
+- `cache_hit = !globalEntry.Stale && !breadthEntry.Stale` — true only when both entries are found and non-stale.
+- `ttl_remaining_sec = min(globalTTLRemaining, breadthTTLRemaining)` where each is `max(0, int(entry.FetchedAt.Add(time.Duration(entry.TTLSeconds)*time.Second).Unix() - now.Unix()))`. For a metric derived from both endpoints, the earlier-expiring input determines when the output goes stale — `min()` gives agents the correct scheduling horizon.
+
+**Summary generation — conviction-aware branching and reliability cues:** The `data.summary` string must branch on `conviction` for all regime labels, not just Capitulation. The most critical case is Stagnation: `Neutral + Narrow + low/normal conviction` is a quiet, ignored market; `Neutral + Narrow + high conviction` is a Pressure Cooker — two opposite agent postures under the same regime label. The summary generator must explicitly check `conviction` before constructing the Stagnation summary string and emit the Pressure Cooker warning when `conviction == "high"`. The `data.classification.description` fixed string carries the parenthetical `(Pressure Cooker if conviction is high)` as a static fallback, but the `summary` field is where the dynamic, conviction-specific language lives.
+
+Because `confidence`, `notes`, and `dominance_cold_start` are extended-only (suppressed at basic detail by `root.go`), the `summary` field is the only reliability signal available to a basic-detail caller. The summary generator must embed stable ASCII tokens when critical conditions exist, regardless of detail level:
+- `cold_start` condition: prefix the summary with `[SIGNAL_UNVERIFIED] ` — dominance trend is a default, not measured; agent should re-run after `cache_hint_sec`.
+- `missing_reference_data` condition: append ` [MISSING_BTC_REF]` — the modifier is a fallback; the agent should not act on it.
+- `weight_redistribution` condition: append ` [BREADTH_PARTIAL]` — breadth score is valid but based on fewer timeframes than nominal.
+
+Tokens are uppercase, bracket-delimited, ASCII-only. This ensures parser stability across agent tooling that may not handle unicode punctuation reliably. These tokens must be present in the summary at all detail levels. Extended-detail callers can cross-check via `notes`; basic-detail callers have only the summary. An implementer must not use a single static template per regime label — conviction, modifier, notes conditions, and cold-start state are all required inputs to summary construction for every label.
 
 ### Possible values and associated verdicts
 
@@ -463,7 +572,7 @@ The quietest bull signal: balanced market rising with broad participation and no
 Neutral dominance, mixed participation. The market is seeking direction. Do not increase exposure. With `conviction: "high"` (the Pressure Cooker condition): a large volume of trades is occurring within a tightening range — historically precedes a violent regime break in either direction. Cross-reference `flow-tension` OI hook: if OI is `"building"` simultaneously, a forced resolution is likely.
 
 **Stagnation**
-The highest-risk environment for alt entry in the suite. Dominance flat, breadth narrow. Alts are not being actively sold relative to BTC — they are being ignored. Any sudden BTC volatility amplifies into alts with no breadth support to absorb it. Distinct from Structural Decay: no directional dominance signal exists, so this could resolve in either direction.
+The highest-risk environment for alt entry in the suite. Dominance flat, breadth narrow. Alts are not being actively sold relative to BTC — they are being ignored. Any sudden BTC volatility amplifies into alts with no breadth support to absorb it. With `conviction: "high"` this becomes the Stagnation Pressure Cooker variant: directionless structure with elevated activity, increasing probability of an abrupt break in either direction. Distinct from Structural Decay: no directional dominance signal exists, so this could resolve in either direction.
 
 **Alt-Season / Mania**
 Capital rotating down the risk curve with broad participation. Maximum risk appetite. With `positive_momentum` modifier: the classic alt-season confirmation — alts leading a rising market. Cross-reference `stablecoin-power` for dry powder remaining and `flow-tension` funding rate for overheated conditions: a `"high"` conviction alt-season with overheated funding is historically correlated with late-cycle blow-off peaks. With `negative_pressure` modifier: two distinct scenarios share this state and require different responses. The more common case is **Speculative Exhaustion** — alts leading the market lower, a distribution signal where capital that rotated into alts is now being liquidated faster than BTC. The less common case is a **BTC-specific dislocation** — BTC is being uniquely liquidated (e.g., ETF outflows, exchange-specific BTC selling) while alts hold relatively firm, causing dominance to fall on a down day. Check `flow-tension` CVD: aggressive BTC sell CVD with neutral alt CVD suggests the BTC-dislocation case; broad negative CVD across the market confirms Speculative Exhaustion. Do not assume the common case without checking.
@@ -490,15 +599,16 @@ Falling dominance + narrow breadth + high conviction volume. Panic selling confi
 **File structure:** Follows the `ft`/`mb`/`md` pattern: `types.go`, `compute.go`, `provider.go`, plus test files. `compute.go` imports `marketbreadth/v1` for the breadth computation per the direct-import decision above.
 
 **Enhancements:**
-- `notes` is always present as an array (empty `[]` when no conditions active). Agents must never check for field absence before reading notes.
-- `dominance_delta_since_last_fetch` and `prior_snapshot_age_sec` are both omitted (not null, not zero) on cold start. Agents must check `dominance_cold_start` before reading these fields.
+- See the Output Schema "Enhancements" table above for field-level presence/omission rules.
+- At `--detail extended` and above, `notes` is always present as an array (`[]` when no conditions are active).
 - `prior_snapshot_age_sec` at extended detail is the primary tool for contextualizing dominance trend magnitude. A `"rising"` trend over 600 seconds is noise; over 14400 seconds it is structural. The `dominance_trend` string is the authoritative classification; the raw delta and age are audit fields.
 
 **Cross-Source Verification:** No cross-source verification in v1. The BTC CVD validator was explicitly rejected as architecturally adversarial for a dominance-anchored metric. See Cross-Source Verification section above.
 
 **Implementation Compromises:**
-- **`prior_snapshot_age_sec` uses `Entry.FetchedAt`, not file `ModTime`.** This eliminates NFS/Docker clock skew vulnerability entirely. `FetchedAt` is written by the same process that reads it and is authoritative. No `Stat()` method is needed on the cache package. Two bounds guards remain: if age is negative (impossible with `FetchedAt` but defensive), treat as cold start; if age exceeds 86400 seconds (machine was offline), treat prior snapshot as stale and default `dominance_trend` to `"neutral"`.
-- **Dominance delta is "since last fetch," not "24h."** The delta window is determined by the caller's polling interval and the cache TTL of `coingecko.global_market`, not by a fixed 24h window. A caller polling every 15 minutes will see small deltas; a caller respecting `cache_hint_sec: 14400` will see 4h deltas. The `dominance_trend` string is calibrated against the ±0.5pp dead-band and remains the authoritative signal. The raw delta is an audit field only.
+- **Basic detail emits no meta — agents should default to `--detail extended`.** `root.go` suppresses `result.Meta` for all metrics at basic detail suite-wide. `mr` does not override this. At basic detail, only the seven `data` fields are emitted (`regime`, `modifier`, `dominance_trend`, `conviction`, `market_breadth_score`, `classification`, `summary`). `confidence`, `notes`, and `dominance_cold_start` — the fields most critical for interpreting whether the regime signal is reliable — are all extended-only. This is a global architectural constraint, not a per-metric choice. Agents that call `mr` at basic detail and act on the regime label without reliability context are operating blind; the `summary` field embeds reliability cues for the most critical conditions as a partial mitigation.
+- **`mr` status is independent of `mbResult.MetricStatus`.** `mb` internally sets `status: "degraded"` whenever any timeframe is dropped, which is stricter than `mr`'s policy. Passing `mbResult.MetricStatus` through would cause weight redistribution to emit `degraded+low` instead of the spec's `ok+medium`. `mr.Compute()` explicitly ignores `mbResult.MetricStatus` and derives its own status from `mbResult.CoinsCounted` and `mbResult.WeightsUsed`.
+- **Dominance delta is "since last fetch," not "24h."** The delta window is determined by the caller's polling interval and freshness of the `marketregime_dominance_pct` state key (written on successful runs; TTL 48h), not by a fixed 24h window. A caller polling every 15 minutes will see small deltas; a caller respecting `cache_hint_sec: 14400` will usually see ~4h deltas. The `dominance_trend` string is calibrated against the ±0.5pp dead-band and remains the authoritative signal. The raw delta is an audit field only.
 - **Structural Decay and Stagnation share a superficially similar appearance but are distinct signals.** Stagnation (Neutral+Narrow) means dominance is flat and the market is being ignored — no directional commitment from either side. Structural Decay (Falling+Narrow, low/normal conviction) means alts are bleeding harder than BTC on thin volume — a directional signal, just a slow one. Both produce the same agent posture (no panic entry, no forced exits), which is why they were originally collapsed into one label. They are separated because the `dominance_trend` field carries different forward-looking implications: Stagnation can resolve in either direction; Structural Decay has a directional lean. The `dominance_trend` field always disambiguates them for agents that need to distinguish.
 - **Stablecoin influence on breadth score.** Stablecoins in the top-250 universe register near-zero price changes and create a slight conservative bias on the breadth score — the same limitation documented in `market-breadth`. The breadth threshold of 0.40/0.60 is calibrated against this bias being present.
 - **BTC dominance is a lagging signal in fast-moving markets.** During rapid price dislocations (e.g., a flash crash), dominance percentage shifts may lag the actual capital flow by minutes due to CoinGecko's data aggregation pipeline. The modifier (BTC price direction) captures the intraday move faster than the dominance delta. In high-volatility conditions, treat the modifier as the leading signal and the dominance trend as the confirming signal.
@@ -518,7 +628,7 @@ Falling dominance + narrow breadth + high conviction volume. Panic selling confi
 
 When an LLM or agent calls this tool, apply the following heuristics:
 
-- **Always read `regime` + `modifier` together.** The regime label is the structural state; the modifier is the immediate directional pressure. "Institutional Build" alone is bullish; "Institutional Build" + `negative_pressure` is a warning that the build is happening in a down market — relative strength, not accumulation. Never act on regime label alone without checking modifier.
+- **Always call `mr` at `--detail extended`.** Basic detail suppresses meta entirely (global `root.go` behavior). At basic detail you get the seven `data` fields only. `confidence`, `notes`, and `dominance_cold_start` are absent. The `summary` field embeds stable ASCII reliability tokens (`[SIGNAL_UNVERIFIED]`, `[MISSING_BTC_REF]`, `[BREADTH_PARTIAL]`) when critical conditions exist, so basic-detail callers are not completely blind — but extended is the minimum viable detail level for full reliability assessment. Extended is required before acting on any regime label in production.
 
 - **Check `notes` before acting.** If `"cold_start"` is present, `dominance_trend` is a default, not computed — the matrix fired on the Neutral row by definition. Do not treat a Neutral-row regime from a cold-start call with the same confidence as a computed Neutral. Make a second call after `cache_hint_sec` to get a populated delta.
 
@@ -528,7 +638,7 @@ When an LLM or agent calls this tool, apply the following heuristics:
 
 - **Cross-metric divergence is an agent-layer responsibility in v1.** `divergent_momentum` is not emitted by `mr` in v1. If `mr.regime` is defensive while `md.label` is `risk_on` (or vice versa), the agent must detect this by calling both metrics and comparing outputs. Neither metric takes precedence — use `stablecoin-power` and `flow-tension` as tiebreakers. The `divergent_momentum` note is planned for v1.1 once the persistent metric state infrastructure exists.
 
-- **Stagnation is the highest-risk alt-entry state.** It does not look dangerous — dominance is flat, breadth is just narrow. But it is the state with the least support for alt positions: no rotation signal, no participation depth, no directional anchor. Any BTC move amplifies into alts without a breadth floor to absorb it. Treat as equivalent to Flight to Safety for alt exposure decisions.
+- **Stagnation is the highest-risk alt-entry state.** It does not look dangerous — dominance is flat, breadth is just narrow. But it is the state with the least support for alt positions: no rotation signal, no participation depth, no directional anchor. Any BTC move amplifies into alts without a breadth floor to absorb it. Treat as equivalent to Flight to Safety for alt exposure decisions — unless `conviction: "high"`, in which case this is the Stagnation Pressure Cooker: do not enter positions, but watch for an imminent violent break in either direction and cross-reference `flow-tension` OI for the resolution signal.
 
 - **Capitulation is not a buy signal — it is a necessary condition for a buy signal.** Read the sub-state note first: `"capitulation_price_stabilizing"` (BTC stopped falling) is the shift from observation to cautious scaling; `"abnormal_capitulation"` (BTC actively reversing) is the urgency signal with lower confidence. Neither fires without `flow-tension` confirmation: OI unwinding + funding turning negative + `stablecoin-power` stable or expanding are the exhaustion signals required before treating any Capitulation sub-state as an entry. During fast-moving panics, cross-reference `flow-tension` (1h TTL) rather than waiting for `mr`'s 4h cache window to refresh.
 
