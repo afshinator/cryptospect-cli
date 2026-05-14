@@ -134,13 +134,12 @@ func TestProvider_Compute_SegmentsClamping(t *testing.T) {
 	if result.Meta == nil {
 		t.Fatal("Meta should not be nil")
 	}
-	var meta map[string]interface{}
+	var meta Meta
 	if err := json.Unmarshal(result.Meta, &meta); err != nil {
 		t.Fatalf("unmarshal meta: %v", err)
 	}
 	// 3 < 5 → large_ceiling clamped to 5; 300 > 200 → small_ceiling clamped to 200
-	clamped, ok := meta["segments_clamped"].(bool)
-	if !ok || !clamped {
+	if !meta.SegmentsClamped {
 		t.Error("segments_clamped should be true")
 	}
 }
@@ -269,7 +268,7 @@ func TestProvider_RegisteredOnInit(t *testing.T) {
 	}
 }
 
-func TestProvider_MetaHasDataTimestamp(t *testing.T) {
+func TestProvider_MetaHasPrimarySource(t *testing.T) {
 	p := &Provider{}
 	ctx := context.Background()
 
@@ -284,12 +283,12 @@ func TestProvider_MetaHasDataTimestamp(t *testing.T) {
 	if result.Meta == nil {
 		t.Fatal("Meta should not be nil")
 	}
-	var meta map[string]interface{}
+	var meta Meta
 	if err := json.Unmarshal(result.Meta, &meta); err != nil {
 		t.Fatalf("unmarshal meta: %v", err)
 	}
-	if _, ok := meta["data_timestamp"]; !ok {
-		t.Error("meta should contain data_timestamp")
+	if meta.PrimarySource != "coingecko" {
+		t.Errorf("primary_source: got %q, want coingecko", meta.PrimarySource)
 	}
 }
 
@@ -320,12 +319,11 @@ func TestProvider_CacheStarvationGuard(t *testing.T) {
 	if result.Meta == nil {
 		t.Fatal("Meta should not be nil")
 	}
-	var meta map[string]interface{}
+	var meta Meta
 	if err := json.Unmarshal(result.Meta, &meta); err != nil {
 		t.Fatalf("unmarshal meta: %v", err)
 	}
-	conf, _ := meta["confidence"].(string)
-	if conf != "low" {
-		t.Errorf("confidence: got %q, want low (6 coins < 250)", conf)
+	if meta.Confidence != "low" {
+		t.Errorf("confidence: got %q, want low (6 coins < 250)", meta.Confidence)
 	}
 }

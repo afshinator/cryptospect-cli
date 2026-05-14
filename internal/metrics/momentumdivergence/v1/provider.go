@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/afshinator/cryptospect-cli/internal/api"
 	"github.com/afshinator/cryptospect-cli/internal/api/coingecko"
@@ -100,28 +99,23 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		return p.unavailable("failed to marshal data: " + err.Error())
 	}
 
-	metaMap := map[string]interface{}{
-		"cache_hit":         false,
-		"ttl_remaining_sec": 0,
-		"primary_source":    "coingecko",
-		"confidence":        compMeta.Confidence,
-		"tier_counts":       compMeta.TierCounts,
-		"segments_used":     map[string]int{"large_ceiling": largeCeiling, "mid_ceiling": midCeiling, "small_ceiling": smallCeiling},
-		"data_timestamp":    time.Now().UTC().Format(time.RFC3339),
+	meta := Meta{
+		PrimarySource:   "coingecko",
+		Confidence:      compMeta.Confidence,
+		TierCounts:      compMeta.TierCounts,
+		SegmentsUsed:    SegmentsUsed{LargeCeiling: largeCeiling, MidCeiling: midCeiling, SmallCeiling: smallCeiling},
+		WeightingMethod: "market_cap_weighted",
+		Thresholds:      compMeta.Thresholds,
+		Description:     metricDescription,
+		TierDetail:      compMeta.TierDetail,
 	}
-
-	metaMap["weighting_method"] = "market_cap_weighted"
 
 	if clamped {
-		metaMap["segments_clamped"] = true
-		metaMap["segments_clamped_reason"] = clampReason
+		meta.SegmentsClamped = true
+		meta.SegmentsClampedReason = clampReason
 	}
 
-	metaMap["thresholds"] = compMeta.Thresholds
-	metaMap["description"] = compMeta.LabelDescription
-	metaMap["tier_detail"] = compMeta.TierDetail
-
-	metaBytes, err := json.Marshal(metaMap)
+	metaBytes, err := json.Marshal(meta)
 	if err != nil {
 		return p.unavailable("failed to marshal meta: " + err.Error())
 	}

@@ -98,6 +98,26 @@ type TierDetail struct {
 	Small []TierCoinDetail `json:"small,omitempty"`
 }
 
+// Meta holds extended and full-detail metadata for the momentum-divergence metric.
+type Meta struct {
+	PrimarySource         string             `json:"primary_source"`
+	Confidence            string             `json:"confidence"`
+	TierCounts            TierCounts         `json:"tier_counts"`
+	SegmentsUsed          SegmentsUsed       `json:"segments_used"`
+	WeightingMethod       string             `json:"weighting_method"`
+	SegmentsClamped       bool               `json:"segments_clamped,omitempty"`
+	SegmentsClampedReason string             `json:"segments_clamped_reason,omitempty"`
+	Thresholds            map[string]float64 `json:"thresholds,omitempty"`
+	Description           string             `json:"description,omitempty"`
+	TierDetail            *TierDetail        `json:"tier_detail,omitempty"`
+}
+
+// metricDescription is a human-readable description of the methodology.
+const metricDescription = "Momentum divergence measures capital rotation across market-cap " +
+	"tiers by computing market-cap weighted 24h returns for large, mid, and small cap segments. " +
+	"A positive mid-vs-large spread above 5pp with positive mid-cap returns signals Risk-On rotation; " +
+	"a negative spread below -3pp with positive large-cap returns signals Top-Heavy concentration."
+
 // computedMeta holds metadata computed by the pure Compute function.
 type computedMeta struct {
 	Confidence       string
