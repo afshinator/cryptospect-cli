@@ -637,6 +637,23 @@ func TestProvider_WeightsUsedOutputShape(t *testing.T) {
 	}
 }
 
+// ── MarketBreadthScore serialization precision ──
+
+// TestData_MarketBreadthScore_FourDecimalPrecision verifies that market_breadth_score
+// serializes as a JSON number with exactly 4 decimal places (MetricFloat Ratio precision),
+// matching the format used by the market-breadth metric for the same field.
+func TestData_MarketBreadthScore_FourDecimalPrecision(t *testing.T) {
+	d := Data{MarketBreadthScore: metrics.Ratio(0.6)}
+	b, err := json.Marshal(d)
+	if err != nil {
+		t.Fatalf("marshal Data: %v", err)
+	}
+	want := `"market_breadth_score":0.6000`
+	if !strings.Contains(string(b), want) {
+		t.Errorf("market_breadth_score must serialize with 4 decimal places\ngot:  %s\nwant substring: %s", b, want)
+	}
+}
+
 // ── Combined state + freshness in single Compute call ──
 
 // TestProvider_StateAndFreshness_Combined verifies that a single Compute call

@@ -1,5 +1,7 @@
 package v1
 
+import "github.com/afshinator/cryptospect-cli/internal/metrics"
+
 // ── Dominance trend labels ──
 const (
 	TrendRising  = "rising"
@@ -94,13 +96,13 @@ type ComputeResult struct {
 
 // Data is the output payload for the market-regime metric.
 type Data struct {
-	Regime             string         `json:"regime"`
-	Modifier           string         `json:"modifier"`
-	DominanceTrend     string         `json:"dominance_trend"`
-	Conviction         string         `json:"conviction"`
-	MarketBreadthScore float64        `json:"market_breadth_score"`
-	Classification     Classification `json:"classification"`
-	Summary            string         `json:"summary"`
+	Regime             string              `json:"regime"`
+	Modifier           string              `json:"modifier"`
+	DominanceTrend     string              `json:"dominance_trend"`
+	Conviction         string              `json:"conviction"`
+	MarketBreadthScore metrics.MetricFloat `json:"market_breadth_score"`
+	Classification     Classification      `json:"classification"`
+	Summary            string              `json:"summary"`
 }
 
 // Classification holds the categorical output.

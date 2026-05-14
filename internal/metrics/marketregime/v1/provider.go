@@ -174,7 +174,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		Modifier:           computed.Modifier,
 		DominanceTrend:     computed.DominanceTrend,
 		Conviction:         computed.Conviction,
-		MarketBreadthScore: computed.BreadthScore,
+		MarketBreadthScore: metrics.Ratio(computed.BreadthScore),
 		Classification: Classification{
 			Label:       computed.Regime,
 			Description: classDesc,
