@@ -402,7 +402,15 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - **Location:** `internal/metrics/helpers.go`
 - **Signature:** `func DetectStatus(confidence float64, thinData bool) string`
 - **Mapping:** confidence ≥ 0.8 → `"ok"`; confidence ≥ 0.5 → `"degraded"`; else `"unavailable"`. If `thinData` is true, downgrade by one level (e.g., `"ok"` → `"degraded"`, `"degraded"` → `"unavailable"`, `"unavailable"` unchanged).
-- **Usage:** Each metric’s `Compute` function calls `DetectStatus` to set the `MetricResult.Status` field.
+- **Shared helpers (also in `helpers.go`):**
+  - `ConfidenceToFloat(conf string) float64` — `"high" → 0.9`, `"medium" → 0.6`, `"low" → 0.3`
+  - `FloatToConfidence(f float64) string` — inverse of above
+- **Usage:** Each metric's `Provider.Compute` method calls `DetectStatus` to set `MetricResult.Status`. The confidence float is derived from the metric's own confidence model using `ConfidenceToFloat`. Per-metric details:
+  - **LP, SP:** Call `DetectStatus(ConfidenceToFloat(confidence), thinData)` in the provider.
+  - **MD:** Calls `DetectStatus(ConfidenceToFloat(conf), false)` with a 0.5 floor — partial data still produces valid metrics.
+  - **FT:** Derives confidence from source availability (0.9 both sources, 0.6 CVD-only), passes `thinData=false` (signal quality handled internally by CVD hook).
+  - **MB:** Combines `MetricStatus` (data sufficiency) and `ValidatorConfidence` (source agreement) via a cascading switch to produce a combined confidence, then calls `DetectStatus`.
+  - **MR:** Maps `computed.Confidence` from the pure Compute function to a DetectStatus call, with breadth-degraded as the primary trigger for degradation.
 
 ### 9. Command‑Level Integration Tests
 - **Pattern:** Each metric command gets an `_e2e_test.go` file (e.g., `liquidity‑pulse_e2e_test.go`) that tests the full CLI flow.

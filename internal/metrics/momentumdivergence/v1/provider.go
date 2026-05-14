@@ -120,10 +120,11 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		return p.unavailable("failed to marshal meta: " + err.Error())
 	}
 
-	status := "ok"
-	if compMeta.Confidence == "low" {
-		status = "degraded"
+	conf := metrics.ConfidenceToFloat(compMeta.Confidence)
+	if conf < 0.5 {
+		conf = 0.5 // MD never goes unavailable when Compute succeeded — missing tiers still produce valid partial data
 	}
+	status := metrics.DetectStatus(conf, false)
 
 	return output.MetricResult{
 		Metric:  MetricName,

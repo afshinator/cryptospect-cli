@@ -279,7 +279,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		return p.unavailable("marshaling meta: " + err.Error())
 	}
 
-	status := metrics.DetectStatus(confidenceToFloat(confidence), false)
+	status := metrics.DetectStatus(metrics.ConfidenceToFloat(confidence), false)
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
@@ -318,19 +318,6 @@ func buildSummary(ratio float64, cl Classification, trend string) string {
 		return fmt.Sprintf("SP Ratio: %.4f | %s | Supply: %s", ratio, cl.Description, trend)
 	}
 	return fmt.Sprintf("SP Ratio: %.4f | %s", ratio, cl.Description)
-}
-
-func confidenceToFloat(conf string) float64 {
-	switch conf {
-	case "high":
-		return 0.9
-	case "medium":
-		return 0.6
-	case "low":
-		return 0.3
-	default:
-		return 0.0
-	}
 }
 
 const metricDescription = "Stablecoin Power measures the ratio of aggregate stablecoin market cap to the " +

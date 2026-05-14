@@ -47,19 +47,6 @@ const (
 	validationThreshold = 0.20
 )
 
-func confidenceToFloat(conf string) float64 {
-	switch conf {
-	case "high":
-		return 0.9
-	case "medium":
-		return 0.6
-	case "low":
-		return 0.3
-	default:
-		return 0.0
-	}
-}
-
 // Meta holds metadata about the metric computation.
 type Meta struct {
 	PrimarySource       string             `json:"primary_source"`
@@ -191,7 +178,7 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 	}
 
 	thinData := marketCapUSD < 1e12
-	status := metrics.DetectStatus(confidenceToFloat(meta.Confidence), thinData)
+	status := metrics.DetectStatus(metrics.ConfidenceToFloat(meta.Confidence), thinData)
 
 	return output.MetricResult{
 		Metric:  MetricName,

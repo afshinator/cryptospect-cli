@@ -2,36 +2,67 @@ package metrics
 
 import "testing"
 
-func TestDetectStatus(t *testing.T) {
+func TestConfidenceToFloat(t *testing.T) {
 	tests := []struct {
-		name       string
-		confidence float64
-		thinData   bool
-		want       string
+		input string
+		want  float64
 	}{
-		// Without thinData
-		{name: "high confidence", confidence: 0.9, thinData: false, want: "ok"},
-		{name: "exact 0.8 boundary", confidence: 0.8, thinData: false, want: "ok"},
-		{name: "medium confidence", confidence: 0.7, thinData: false, want: "degraded"},
-		{name: "exact 0.5 boundary", confidence: 0.5, thinData: false, want: "degraded"},
-		{name: "low confidence", confidence: 0.3, thinData: false, want: "unavailable"},
-		{name: "zero confidence", confidence: 0.0, thinData: false, want: "unavailable"},
-
-		// With thinData (downgrade one level)
-		{name: "high confidence with thinData", confidence: 0.9, thinData: true, want: "degraded"},
-		{name: "0.8 with thinData", confidence: 0.8, thinData: true, want: "degraded"},
-		{name: "medium confidence with thinData", confidence: 0.7, thinData: true, want: "unavailable"},
-		{name: "0.5 with thinData", confidence: 0.5, thinData: true, want: "unavailable"},
-		{name: "low confidence with thinData", confidence: 0.3, thinData: true, want: "unavailable"},
-		{name: "zero confidence with thinData", confidence: 0.0, thinData: true, want: "unavailable"},
+		{"high", 0.9},
+		{"medium", 0.6},
+		{"low", 0.3},
+		{"unknown", 0.0},
+		{"", 0.0},
 	}
+	for _, tc := range tests {
+		got := ConfidenceToFloat(tc.input)
+		if got != tc.want {
+			t.Errorf("ConfidenceToFloat(%q) = %v, want %v", tc.input, got, tc.want)
+		}
+	}
+}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := DetectStatus(tt.confidence, tt.thinData)
-			if got != tt.want {
-				t.Errorf("detectStatus(%v, %v) = %v, want %v", tt.confidence, tt.thinData, got, tt.want)
-			}
-		})
+func TestFloatToConfidence(t *testing.T) {
+	tests := []struct {
+		input float64
+		want  string
+	}{
+		{1.0, "high"},
+		{0.8, "high"},
+		{0.79, "medium"},
+		{0.5, "medium"},
+		{0.49, "low"},
+		{0.0, "low"},
+		{-0.1, "low"},
+	}
+	for _, tc := range tests {
+		got := FloatToConfidence(tc.input)
+		if got != tc.want {
+			t.Errorf("FloatToConfidence(%v) = %q, want %q", tc.input, got, tc.want)
+		}
+	}
+}
+
+func TestDetectStatus_PreservesFloatToConfidence(t *testing.T) {
+	// Round-trip: a confidence string → float → DetectStatus should give
+	// the expected status mapping from Design-Decisions.md.
+	tests := []struct {
+		conf     string
+		thinData bool
+		want     string
+	}{
+		{"high", false, "ok"},
+		{"high", true, "degraded"}, // downgrade
+		{"medium", false, "degraded"},
+		{"medium", true, "unavailable"}, // downgrade
+		{"low", false, "unavailable"},
+		{"low", true, "unavailable"},
+	}
+	for _, tc := range tests {
+		f := ConfidenceToFloat(tc.conf)
+		got := DetectStatus(f, tc.thinData)
+		if got != tc.want {
+			t.Errorf("DetectStatus(ConfidenceToFloat(%q)=%v, thinData=%v) = %q, want %q",
+				tc.conf, f, tc.thinData, got, tc.want)
+		}
 	}
 }

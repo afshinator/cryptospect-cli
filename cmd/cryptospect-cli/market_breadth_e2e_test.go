@@ -254,8 +254,8 @@ func TestMarketBreadth_ProviderDirect(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if result.Status != "ok" {
-		t.Errorf("status: got %s, want ok with 60 coins", result.Status)
+	if result.Status != "degraded" {
+		t.Errorf("status: got %s, want degraded (stale kline → low validator confidence)", result.Status)
 	}
 
 	var dataOut map[string]interface{}

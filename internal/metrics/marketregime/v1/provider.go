@@ -242,15 +242,19 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	}
 
 	// ── 10. Determine status ──
-	mrStatus := "ok"
-	if breadthDegraded {
-		mrStatus = "degraded"
+	conf := 0.9
+	switch {
+	case breadthDegraded:
+		conf = 0.5 // breadth data insufficient → degraded
+	case computed.Confidence == ConfidenceMedium:
+		conf = 0.8 // cold start or weight redistribution → ok with caveats
 	}
+	status := metrics.DetectStatus(conf, false)
 
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
-		Status:  mrStatus,
+		Status:  status,
 		Data:    json.RawMessage(dataJSON),
 		Meta:    json.RawMessage(metaJSON),
 	}, nil

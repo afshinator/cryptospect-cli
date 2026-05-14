@@ -147,10 +147,23 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		return p.unavailable(fmt.Sprintf("marshaling meta: %v", err))
 	}
 
+	var baseConf float64
+	switch {
+	case result.MetricStatus == "unavailable":
+		baseConf = 0.3
+	case result.ValidatorConfidence == "low":
+		baseConf = 0.5 // stale validator → floor at degraded
+	case result.MetricStatus == "degraded":
+		baseConf = 0.5 // dropped timeframes / few coins → degraded
+	default:
+		baseConf = metrics.ConfidenceToFloat(result.ValidatorConfidence)
+	}
+	status := metrics.DetectStatus(baseConf, false)
+
 	return output.MetricResult{
 		Metric:  MetricName,
 		Version: MetricVersion,
-		Status:  result.MetricStatus,
+		Status:  status,
 		Data:    json.RawMessage(dJSON),
 		Meta:    json.RawMessage(metaJSON),
 	}, nil

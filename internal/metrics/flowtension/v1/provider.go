@@ -129,11 +129,12 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		return p.computeErr(fmt.Sprintf("marshaling data: %v", err))
 	}
 
-	// ── Status ──
-	status := "ok"
+	// ── Status (from source availability) ──
+	conf := 0.9
 	if !cgAvailable {
-		status = "degraded"
+		conf = 0.6
 	}
+	status := metrics.DetectStatus(conf, false)
 
 	// ── Meta ──
 	sources := []string{"binance_us"}
@@ -142,7 +143,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	}
 	meta := Meta{
 		PrimarySources:  sources,
-		Confidence:      status,
+		Confidence:      metrics.FloatToConfidence(conf),
 		CvdSampleTrades: klines.NumTrades,
 		OIExchangeCount: exchangeCount,
 		Instrument:      "btc",
