@@ -261,7 +261,6 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		Thresholds: map[string]float64{
 			"high":       thresholdHigh,
 			"normal_min": thresholdNormal,
-			"low":        thresholdNormal,
 		},
 		Description:     metricDescription,
 		TopNStablecoins: topNList,

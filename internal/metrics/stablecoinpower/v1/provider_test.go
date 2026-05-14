@@ -506,6 +506,29 @@ func TestCompute_DiscrepancyLow(t *testing.T) {
 
 // ----- Compute: data/meta field completeness -----
 
+func TestCompute_ThresholdKeys_NoLowDuplicate(t *testing.T) {
+	dm := dataMap3(cgGlobalJSON(3e12), cgStablesJSON(8, 27e9), dlJSON(216e9, 215e9))
+	p := &Provider{}
+	result, err := p.Compute(context.Background(), dm)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var m Meta
+	if err := json.Unmarshal(result.Meta, &m); err != nil {
+		t.Fatalf("unmarshal Meta: %v", err)
+	}
+	if _, ok := m.Thresholds["low"]; ok {
+		t.Error(`thresholds["low"] is a duplicate of "normal_min" and must not be present`)
+	}
+	if _, ok := m.Thresholds["high"]; !ok {
+		t.Error(`thresholds["high"] must be present`)
+	}
+	if _, ok := m.Thresholds["normal_min"]; !ok {
+		t.Error(`thresholds["normal_min"] must be present`)
+	}
+}
+
 func TestCompute_DataFields(t *testing.T) {
 	dm := dataMap3(cgGlobalJSON(3e12), cgStablesJSON(8, 27e9), dlJSON(216e9, 215e9))
 	p := &Provider{}

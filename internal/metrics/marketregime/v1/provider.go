@@ -113,15 +113,17 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		math.Abs(mbResult.WeightsUsed["7d"]-mbv1.Weight7d) > 1e-9 ||
 		math.Abs(mbResult.WeightsUsed["30d"]-mbv1.Weight30d) > 1e-9
 
-	// ── 5. State cache: read prior dominance, write current ──
+	// ── 5. State cache: read prior dominance, write current; also compute freshness meta ──
 	var priorDom *float64
 	var priorAge *int
 	coldStart := true
+	cacheHit := false
+	ttlRemaining := 0
 
 	if cfg, hasCfg := config.FromContext(ctx); hasCfg {
 		if c, err := cache.Open(cfg.CacheDir()); err == nil {
-			entry, err := c.Get(StateKey)
-			if err == nil && entry.Found {
+			// State read
+			if entry, err := c.Get(StateKey); err == nil && entry.Found {
 				var cached float64
 				if err := json.Unmarshal(entry.Data, &cached); err == nil {
 					ageSec := int(time.Since(entry.FetchedAt).Seconds())
@@ -132,19 +134,11 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 					}
 				}
 			}
-			// Write current dominance back
+			// State write
 			if curBytes, err := json.Marshal(*btcDom); err == nil {
 				_ = c.Set(StateKey, curBytes, StateTTLSec)
 			}
-			_ = c.Close()
-		}
-	}
-
-	// ── 6. Compute cache freshness meta ──
-	cacheHit := false
-	ttlRemaining := 0
-	if cfg, hasCfg := config.FromContext(ctx); hasCfg {
-		if c, err := cache.Open(cfg.CacheDir()); err == nil {
+			// Freshness meta
 			globalEntry, gErr := c.Get(api.CoinGeckoGlobalMarket)
 			breadthEntry, bErr := c.Get(api.CoinGeckoCoinMarketsBreadth)
 			if gErr == nil && bErr == nil && globalEntry.Found && breadthEntry.Found {

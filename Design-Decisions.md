@@ -802,7 +802,7 @@ cmd/cryptospect-cli/
 **Files:**
 ```
 internal/metrics/marketregime/v1/
-├── types.go          — Input, ComputeResult, Classification constants (7 regimes), Meta
+├── types.go          — Input, ComputeResult, Classification constants (10 regimes), Meta
 ├── compute.go        — pure Compute function: regime matrix, confidence scoring, summary
 ├── compute_test.go   — table-driven tests
 ├── provider.go       — MetricProvider: calls lp/sp/ft/mb Compute internally
@@ -813,7 +813,7 @@ cmd/cryptospect-cli/
 **Status:** Complete (mr v1.0.0)
 **Key design decisions:**
 - Aggregator metric — imports and calls lp/sp/ft/mb Compute() functions directly (pure-Go, no subprocess calls)
-- 7-regime classification matrix: expansion/contraction × volatility (high/low/neutral) × trend (bullish/bearish/neutral)
+- 10-regime classification matrix: dominance × breadth × conviction, with capitulation split
 - Weighted macro confidence scoring across component metrics
 - Dominance-cold-start detection via stale-snapshot guard
 - Ghost Rally divergence passthrough from mb

@@ -10,7 +10,7 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 - **flow-tension complete:** ft-1 through ft-9 all done
 - **market-breadth complete:** mb-1 through mb-9 all done. Multi-timeframe breadth composite (1h/24h/7d/30d) with null-exclusion per timeframe, weight redistribution, Ghost Rally divergence detection, Binance directional consensus validator. 92.6% coverage. 11 compute tests + 6 provider tests + 8 E2E tests.
 - **momentum-divergence complete:** md v1.1.0. Market-cap weighted tier averages with configurable `--segments` flag (default 5), cache starvation guard. 92.8% coverage.
-- **market-regime complete:** mr v1.0.0. Aggregator metric — calls lp/sp/ft/mb Compute functions internally via pure-Go imports. 7-regime classification matrix (expansion/contraction × volatility × trend), weighted macro confidence scoring, dominance-cold-start detection, Ghost Rally divergence passthrough. 92.1% coverage. 67 compute/provider tests + 6 E2E tests.
+- **market-regime complete:** mr v1.0.0. Aggregator metric — calls lp/sp/ft/mb Compute functions internally via pure-Go imports. 10-regime classification matrix (dominance × breadth × conviction, capitulation split), weighted macro confidence scoring, dominance-cold-start detection, Ghost Rally divergence passthrough. 92.1% coverage. 67 compute/provider tests + 6 E2E tests.
 - **All 6 metrics implemented.** 495 tests passing across 18 packages. Clean working tree.
 - **Binance KlinesData extended:** Close, Open, OpenTime added (additive — FT and LP unaffected)
 - **CoinGecko CoinMarketsBreadthData restructured:** per-timeframe GreenCount/TotalCount with BTC reference extraction

@@ -43,8 +43,8 @@ func (p *Provider) Def() metrics.MetricDef {
 	}
 }
 
-// computeErr is a helper to build an unavailable MetricResult.
-func (p *Provider) computeErr(msg string) (output.MetricResult, error) {
+// unavailable is a helper to build an unavailable MetricResult.
+func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
 	errMsg, _ := json.Marshal(map[string]string{"error": msg})
 	return output.MetricResult{
 		Metric:  MetricName,
@@ -59,11 +59,11 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	// ── Parse Binance CVD data (required) ──
 	binanceRaw, ok := data[api.BinanceSpotCVD_BTC_1h]
 	if !ok || len(binanceRaw) == 0 {
-		return p.computeErr("missing Binance CVD data")
+		return p.unavailable("missing Binance CVD data")
 	}
 	klines, err := binance.ParseKlinesResponse(binanceRaw)
 	if err != nil {
-		return p.computeErr(fmt.Sprintf("parsing Binance klines: %v", err))
+		return p.unavailable(fmt.Sprintf("parsing Binance klines: %v", err))
 	}
 	takerSell := klines.TotalVolume - klines.TakerBuyVolume
 
@@ -121,12 +121,12 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	computed, err := Compute(input)
 	if err != nil {
-		return p.computeErr(fmt.Sprintf("compute: %v", err))
+		return p.unavailable(fmt.Sprintf("compute: %v", err))
 	}
 
 	dJSON, err := json.Marshal(computed)
 	if err != nil {
-		return p.computeErr(fmt.Sprintf("marshaling data: %v", err))
+		return p.unavailable(fmt.Sprintf("marshaling data: %v", err))
 	}
 
 	// ── Status (from source availability) ──
@@ -158,7 +158,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	metaJSON, err := json.Marshal(meta)
 	if err != nil {
-		return p.computeErr(fmt.Sprintf("marshaling meta: %v", err))
+		return p.unavailable(fmt.Sprintf("marshaling meta: %v", err))
 	}
 
 	return output.MetricResult{

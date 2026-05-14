@@ -637,6 +637,61 @@ func TestProvider_WeightsUsedOutputShape(t *testing.T) {
 	}
 }
 
+// ── Combined state + freshness in single Compute call ──
+
+// TestProvider_StateAndFreshness_Combined verifies that a single Compute call
+// correctly reads prior dominance state AND evaluates cache freshness.
+// This is the regression guard for the single-open cache refactor (#7).
+func TestProvider_StateAndFreshness_Combined(t *testing.T) {
+	cacheDir := filepath.Join(t.TempDir(), "cache")
+	_ = os.MkdirAll(cacheDir, 0o750)
+	cfg := newCacheConfig(cacheDir)
+	ctx := config.StoreInContext(context.Background(), cfg)
+
+	c, err := cache.Open(cacheDir)
+	if err != nil {
+		t.Fatalf("opening cache: %v", err)
+	}
+	// Seed state (prior dominance)
+	priorBytes, _ := json.Marshal(52.0)
+	_ = c.Set(StateKey, priorBytes, StateTTLSec)
+	// Seed API endpoint caches (fresh, 1-hour TTL)
+	_ = c.Set(api.CoinGeckoGlobalMarket, makeGlobalFixture(53.3, 1e10, 1e12), 3600)
+	_ = c.Set(api.CoinGeckoCoinMarketsBreadth, makeBreadthFixture(60, ptr(2.5)), 3600)
+	_ = c.Close()
+
+	time.Sleep(10 * time.Millisecond)
+
+	p := &Provider{}
+	result, err := p.Compute(ctx, dataMap(makeGlobalFixture(53.3, 1e10, 1e12), makeBreadthFixture(60, ptr(2.5))))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Status != "ok" {
+		t.Fatalf("Status = %q, want ok", result.Status)
+	}
+
+	var meta map[string]any
+	_ = json.Unmarshal(result.Meta, &meta)
+
+	// State path: should not be cold start
+	if dc, _ := meta["dominance_cold_start"].(bool); dc {
+		t.Error("dominance_cold_start should be false — prior state was seeded")
+	}
+	// State path: delta should be present (+1.3pp)
+	if _, ok := meta["dominance_delta_since_last_fetch"]; !ok {
+		t.Error("dominance_delta_since_last_fetch should be present")
+	}
+	// Freshness path: cache_hit should be true
+	if ch, _ := meta["cache_hit"].(bool); !ch {
+		t.Error("cache_hit should be true — both API endpoints were seeded as fresh")
+	}
+	// Freshness path: ttl > 0
+	if ttl, _ := meta["ttl_remaining_sec"].(float64); ttl <= 0 {
+		t.Errorf("ttl_remaining_sec = %v, want > 0", ttl)
+	}
+}
+
 // ── Helpers ──
 
 func assertErrorPayload(t *testing.T, data json.RawMessage) {
