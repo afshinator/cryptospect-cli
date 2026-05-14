@@ -7,13 +7,13 @@ Computes crypto market regime metrics for agentic consumption. Outputs machine-r
 
 ## CLI Signatures (v1)
 
-### Global Metrics (Tier 2+3) — 5 implemented, 1 scaffold
+### Global Metrics — all 6 implemented
     cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
     cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]  [--top N]
     cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
     cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]  [--top N]
     cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]  [--segments N]
-    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]  (scaffold — not yet implemented)
+    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
 
 ### Utility Commands
     cryptospect-cli list-metrics         # list all available metrics + aliases

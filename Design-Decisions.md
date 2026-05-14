@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-04-23
+Last updated: 2026-05-13
 
 
 ## Step 1: Environment & Project Init
@@ -593,8 +593,8 @@ Example: `"Binance-US reported BTC volume is 22% lower than CoinGecko's indexed 
 17. `cmd/cache.go` — cache‑clear subcommand
 18. `cmd/list.go` — list metrics from registry (`list‑metrics`)
 15a. **Plugin Architecture Refactor** — MetricProvider interface, SemVer registry, 6 scaffolded metric packages, `catalog.go`, generic dispatcher in `root.go`
-19. **First metric compute: liquidity‑pulse** — implement `Compute()` inside `internal/metrics/liquiditypulse/v1/provider.go`; add command‑level integration test
-20. Repeat for remaining Tier 2+3 metrics (`stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`, `market‑regime`) — each includes command‑level integration test
+19. **First metric compute: liquidity‑pulse** — implement `Compute()` inside `internal/metrics/liquiditypulse/v1/provider.go`; add command‑level integration test ✅
+20. Repeat for remaining Tier 2+3 metrics (`stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`, `market‑regime`) — each includes command‑level integration test ✅
 
 ---
 
@@ -790,5 +790,23 @@ cmd/cryptospect-cli/
 - **Coverage:** 92.6% — 11 compute + 6 provider + 8 E2E tests
 - **Parser changes:** KlinesData extended with Close/Open/OpenTime (additive, FT/LP unaffected); CoinMarketsBreadthData restructured to per-timeframe counts with BTCReference
 
-### Remaining metric (scaffold only)
-- `market-regime` (mr)
+### Step 20: market-regime (mr) — Implemented 2026-05-13
+**Files:**
+```
+internal/metrics/marketregime/v1/
+├── types.go          — Input, ComputeResult, Classification constants (7 regimes), Meta
+├── compute.go        — pure Compute function: regime matrix, confidence scoring, summary
+├── compute_test.go   — table-driven tests
+├── provider.go       — MetricProvider: calls lp/sp/ft/mb Compute internally
+├── provider_test.go  — mock-injection tests
+cmd/cryptospect-cli/
+└── market_regime_e2e_test.go — CLI integration tests
+```
+**Status:** Complete (mr v1.0.0)
+**Key design decisions:**
+- Aggregator metric — imports and calls lp/sp/ft/mb Compute() functions directly (pure-Go, no subprocess calls)
+- 7-regime classification matrix: expansion/contraction × volatility (high/low/neutral) × trend (bullish/bearish/neutral)
+- Weighted macro confidence scoring across component metrics
+- Dominance-cold-start detection via stale-snapshot guard
+- Ghost Rally divergence passthrough from mb
+- **Coverage:** 92.1% — 67 compute/provider + 6 E2E tests

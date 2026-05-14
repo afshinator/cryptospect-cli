@@ -4,12 +4,14 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 **Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
-## Project Status (2026‑05‑04)
+## Project Status (2026‑05‑13)
 - **liquidity-pulse complete:** lp-1 through lp-7 all done
 - **stablecoin-power complete:** sp-1 through sp-7 all done
 - **flow-tension complete:** ft-1 through ft-9 all done
 - **market-breadth complete:** mb-1 through mb-9 all done. Multi-timeframe breadth composite (1h/24h/7d/30d) with null-exclusion per timeframe, weight redistribution, Ghost Rally divergence detection, Binance directional consensus validator. 92.6% coverage. 11 compute tests + 6 provider tests + 8 E2E tests.
-- **Scaffolds remain:** market-regime (mr), momentum-divergence (md)
+- **momentum-divergence complete:** md v1.1.0. Market-cap weighted tier averages with configurable `--segments` flag (default 5), cache starvation guard. 92.8% coverage.
+- **market-regime complete:** mr v1.0.0. Aggregator metric — calls lp/sp/ft/mb Compute functions internally via pure-Go imports. 7-regime classification matrix (expansion/contraction × volatility × trend), weighted macro confidence scoring, dominance-cold-start detection, Ghost Rally divergence passthrough. 92.1% coverage. 67 compute/provider tests + 6 E2E tests.
+- **All 6 metrics implemented.** 495 tests passing across 18 packages. Clean working tree.
 - **Binance KlinesData extended:** Close, Open, OpenTime added (additive — FT and LP unaffected)
 - **CoinGecko CoinMarketsBreadthData restructured:** per-timeframe GreenCount/TotalCount with BTC reference extraction
 
@@ -62,7 +64,7 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 - **Source‑truth:** `docs/metrics/<metric>.md` (Overview, Formula, Output Schema, Interpretation, Data Source)
 
 ## Orchestration (for agents calling this tool)
-1. Run `regime` first to establish macro context (future)
-2. For v1, use standalone commands: `liquidity‑pulse`, `stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`, `market‑regime`
+1. Run `market-regime` first to establish macro context
+2. Follow up with individual metrics for drill-down: `liquidity‑pulse`, `stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`
 3. Use `--detail full` for thresholds and descriptions
 4. Always pass `--output json` (default)
