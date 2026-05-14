@@ -136,6 +136,7 @@ func TestStablecoinPowerDetailExtended(t *testing.T) {
 		if _, has := meta["top_n_stablecoins"]; has {
 			t.Error("extended detail must not include top_n_stablecoins")
 		}
+		assertCacheFields(t, resp.Results[0].Meta)
 	}
 }
 
@@ -175,6 +176,7 @@ func TestStablecoinPowerDetailFull(t *testing.T) {
 		if _, has := meta["description"]; !has {
 			t.Error("full detail should include description")
 		}
+		assertCacheFields(t, resp.Results[0].Meta)
 	}
 }
 

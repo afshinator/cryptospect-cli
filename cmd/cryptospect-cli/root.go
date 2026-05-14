@@ -168,15 +168,17 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 
 		def := p.Def()
 		data := make(map[string]json.RawMessage)
+		fetchMetas := make(map[string]api.FetchMeta)
 
 		for _, endpointKey := range def.Endpoints {
-			fetched, _, err := fetcher.Fetch(ctx, endpointKey)
+			fetched, fetchMeta, err := fetcher.Fetch(ctx, endpointKey)
 			if err != nil {
 				slog.Debug("endpoint fetch failed, using unavailable", "endpoint", endpointKey, "error", err)
 				data[endpointKey] = nil
 				continue
 			}
 			data[endpointKey] = fetched
+			fetchMetas[endpointKey] = fetchMeta
 		}
 
 		result, err := p.Compute(ctx, data)
@@ -184,25 +186,14 @@ func buildMetricRunE(p metrics.MetricProvider) func(*cobra.Command, []string) er
 			return err
 		}
 
-		// Filter meta based on detail level
+		// Post-process meta based on detail level.
 		detailLevel, _ := config.DetailFromContext(ctx)
+		cacheHit, ttlRemaining := aggregateFetchMeta(fetchMetas)
 		switch detailLevel {
 		case "basic":
 			result.Meta = nil
-		case "extended":
-			// Filter out thresholds and description for extended level
-			if result.Meta != nil {
-				var meta map[string]interface{}
-				if err := json.Unmarshal(result.Meta, &meta); err == nil {
-					// Remove full-detail-only fields (harmless no-op for metrics that lack them).
-					delete(meta, "thresholds")
-					delete(meta, "description")
-					delete(meta, "top_n_stablecoins")
-					delete(meta, "tier_detail")
-					filtered, _ := json.Marshal(meta)
-					result.Meta = filtered
-				}
-			}
+		default: // "extended" or "full"
+			result.Meta = postProcessMeta(result.Meta, detailLevel, cacheHit, ttlRemaining, fullDetailOnlyFields)
 		}
 
 		return output.WriteSuccess([]output.MetricResult{result})

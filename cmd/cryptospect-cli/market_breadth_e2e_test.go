@@ -129,6 +129,7 @@ func TestMarketBreadthDetailExtended(t *testing.T) {
 		if _, has := meta["description"]; has {
 			t.Error("extended detail must not include description")
 		}
+		assertCacheFields(t, resp.Results[0].Meta)
 	}
 }
 
@@ -168,6 +169,7 @@ func TestMarketBreadthDetailFull(t *testing.T) {
 		if _, has := meta["description"]; !has {
 			t.Error("full detail should include description")
 		}
+		assertCacheFields(t, resp.Results[0].Meta)
 	}
 }
 

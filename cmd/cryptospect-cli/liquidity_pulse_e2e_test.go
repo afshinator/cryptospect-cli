@@ -129,6 +129,9 @@ func TestLiquidityPulseDetailExtended(t *testing.T) {
 	if (st == "ok" || st == "degraded") && resp.Results[0].Meta == nil {
 		t.Error("Meta should be present for extended detail when data is available")
 	}
+	if resp.Results[0].Meta != nil {
+		assertCacheFields(t, resp.Results[0].Meta)
+	}
 }
 
 func TestLiquidityPulseDetailFull(t *testing.T) {
@@ -154,5 +157,8 @@ func TestLiquidityPulseDetailFull(t *testing.T) {
 	st := resp.Results[0].Status
 	if (st == "ok" || st == "degraded") && resp.Results[0].Meta == nil {
 		t.Error("Meta should be present for full detail when data is available")
+	}
+	if resp.Results[0].Meta != nil {
+		assertCacheFields(t, resp.Results[0].Meta)
 	}
 }

@@ -102,6 +102,7 @@ func TestMomentumDivergenceDetailExtended(t *testing.T) {
 		} else if wm != "market_cap_weighted" {
 			t.Errorf("weighting_method: got %q, want market_cap_weighted", wm)
 		}
+		assertCacheFields(t, r.Meta)
 	}
 }
 
@@ -139,6 +140,7 @@ func TestMomentumDivergenceDetailFull(t *testing.T) {
 				t.Error("tier_detail should be present at full detail")
 			}
 		}
+		assertCacheFields(t, r.Meta)
 	}
 }
 
