@@ -578,10 +578,6 @@ Example: `"Binance-US reported BTC volume is 22% lower than CoinGecko's indexed 
   - **Test coverage gaps** – `Clear()` error paths, `Validate` edge cases (`Write()` now covered)
   - **Go 1.25 structured caching patterns** – ~~Sharded maps, `unique.Handle`~~ **implemented**; `testing/synctest`, JSON v2 experiment deferred
 
-### 🚀 **Next Steps**
-1. Implement Step 15: Plugin Architecture (MetricProvider interface, SemVer registry, scaffolds, generic dispatcher — see Step 15 section below)
-2. Proceed with first metric compute implementation (`liquidity‑pulse`) inside its scaffolded package
-3. Repeat for remaining metrics
 
 ---
 

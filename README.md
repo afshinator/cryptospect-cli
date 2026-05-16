@@ -6,7 +6,7 @@ A portable, zero-dependency CLI tool that fetches live cryptocurrency data, comp
 
 ## Quick Start
 
-    git clone https://github.com/<you>/cryptospect-cli.git
+    git clone https://github.com/afshinator/cryptospect-cli
     cd cryptospect-cli
     make build
     ./bin/cryptospect-cli list-metrics
