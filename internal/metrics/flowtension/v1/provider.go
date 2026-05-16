@@ -43,27 +43,16 @@ func (p *Provider) Def() metrics.MetricDef {
 	}
 }
 
-// unavailable is a helper to build an unavailable MetricResult.
-func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
-	errMsg, _ := json.Marshal(map[string]string{"error": msg})
-	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  "unavailable",
-		Data:    json.RawMessage(errMsg),
-	}, nil
-}
-
 // Compute implements metrics.MetricProvider.
 func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
 	// ── Parse Binance CVD data (required) ──
 	binanceRaw, ok := data[api.BinanceSpotCVD_BTC_1h]
 	if !ok || len(binanceRaw) == 0 {
-		return p.unavailable("missing Binance CVD data")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "missing Binance CVD data")
 	}
 	klines, err := binance.ParseKlinesResponse(binanceRaw)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("parsing Binance klines: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("parsing Binance klines: %v", err))
 	}
 	takerSell := klines.TotalVolume - klines.TakerBuyVolume
 
@@ -121,12 +110,12 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	computed, err := Compute(input)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("compute: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("compute: %v", err))
 	}
 
 	dJSON, err := json.Marshal(computed)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("marshaling data: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("marshaling data: %v", err))
 	}
 
 	// ── Status (from source availability) ──
@@ -137,36 +126,37 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	status := metrics.DetectStatus(conf, false)
 
 	// ── Meta ──
-	sources := []string{"binance_us"}
+	source := "binance_us"
 	if cgAvailable {
-		sources = append(sources, "coingecko")
+		source += "+coingecko"
 	}
 	meta := Meta{
-		PrimarySources:  sources,
+		PrimarySource:   source,
 		Confidence:      metrics.FloatToConfidence(conf),
 		CvdSampleTrades: klines.NumTrades,
 		OIExchangeCount: exchangeCount,
 		Instrument:      "btc",
 	}
 	// Full-detail fields computed unconditionally (filtered by detail level in root.go)
-	meta.Thresholds = map[string]any{
-		"cvd":     map[string]float64{"aggressive": FlowAggressiveThreshold},
-		"oi":      map[string]float64{"building": OIBuildingThreshold, "unwinding": OIUnwindingThreshold},
-		"funding": map[string]float64{"negative": FundingNegativeThreshold, "positive": FundingPositiveThreshold, "overheated": FundingOverheatedThreshold},
+	meta.Thresholds = &FTThresholds{
+		CVD:     CVDThresholds{Aggressive: FlowAggressiveThreshold},
+		OI:      OIThresholds{Building: OIBuildingThreshold, Unwinding: OIUnwindingThreshold},
+		Funding: FundingThresholds{Negative: FundingNegativeThreshold, Positive: FundingPositiveThreshold, Overheated: FundingOverheatedThreshold},
 	}
 	meta.Description = metricDescription
 
 	metaJSON, err := json.Marshal(meta)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("marshaling meta: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("marshaling meta: %v", err))
 	}
 
 	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  status,
-		Data:    json.RawMessage(dJSON),
-		Meta:    json.RawMessage(metaJSON),
+		Metric:    MetricName,
+		Version:   MetricVersion,
+		Namespace: metrics.CoreNamespace,
+		Status:    status,
+		Data:      json.RawMessage(dJSON),
+		Meta:      json.RawMessage(metaJSON),
 	}, nil
 }
 

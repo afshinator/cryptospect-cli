@@ -53,16 +53,16 @@ func (p *Provider) RegisterFlags(cmd *cobra.Command) {
 func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
 	cgRaw, ok := data[api.CoinGeckoCoinMarketsBreadth]
 	if !ok || cgRaw == nil {
-		return p.unavailable("CoinGecko coin markets breadth data not available")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "CoinGecko coin markets breadth data not available")
 	}
 
 	ranked, err := coingecko.ParseCoinMarketsRankedResponse(cgRaw)
 	if err != nil {
-		return p.unavailable("failed to parse coin markets data: " + err.Error())
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "failed to parse coin markets data: "+err.Error())
 	}
 
 	if len(ranked.Coins) == 0 {
-		return p.unavailable("no coins with valid market_cap_rank in response")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "no coins with valid market_cap_rank in response")
 	}
 
 	largeCeiling := DefaultLargeCeiling
@@ -74,7 +74,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	if segsRaw, ok := config.SegmentsFromContext(ctx); ok && segsRaw != "" {
 		largeCeiling, midCeiling, smallCeiling, clamped, clampReason, err = parseSegments(segsRaw)
 		if err != nil {
-			return p.unavailable(err.Error())
+			return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, err.Error())
 		}
 	}
 
@@ -87,7 +87,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	dataResult, compMeta, err := Compute(input)
 	if err != nil {
-		return p.unavailable(err.Error())
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, err.Error())
 	}
 
 	if ranked.CoinCount < starvationThreshold {
@@ -96,7 +96,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	dataBytes, err := json.Marshal(dataResult)
 	if err != nil {
-		return p.unavailable("failed to marshal data: " + err.Error())
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "failed to marshal data: "+err.Error())
 	}
 
 	meta := Meta{
@@ -117,7 +117,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	metaBytes, err := json.Marshal(meta)
 	if err != nil {
-		return p.unavailable("failed to marshal meta: " + err.Error())
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "failed to marshal meta: "+err.Error())
 	}
 
 	conf := metrics.ConfidenceToFloat(compMeta.Confidence)
@@ -127,11 +127,12 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	status := metrics.DetectStatus(conf, false)
 
 	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  status,
-		Data:    json.RawMessage(dataBytes),
-		Meta:    json.RawMessage(metaBytes),
+		Metric:    MetricName,
+		Version:   MetricVersion,
+		Namespace: metrics.CoreNamespace,
+		Status:    status,
+		Data:      json.RawMessage(dataBytes),
+		Meta:      json.RawMessage(metaBytes),
 	}, nil
 }
 
@@ -175,15 +176,4 @@ func parseSegments(raw string) (large, mid, small int, clamped bool, reason stri
 		clamped = true
 	}
 	return large, mid, small, clamped, reason, nil
-}
-
-// unavailable returns a MetricResult with status "unavailable" and an error message.
-func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
-	errorData, _ := json.Marshal(map[string]string{"error": msg})
-	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  "unavailable",
-		Data:    json.RawMessage(errorData),
-	}, nil
 }

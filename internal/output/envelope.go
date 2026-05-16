@@ -21,6 +21,8 @@ type MetricResult struct {
 	Metric string `json:"metric"`
 	// Version is the SemVer of the provider, e.g., "v1.0.0".
 	Version string `json:"version"`
+	// Namespace identifies the provider namespace, e.g., "cryptospect".
+	Namespace string `json:"namespace,omitempty"`
 	// Status is "ok", "degraded", or "unavailable" for this specific metric.
 	Status string `json:"status"`
 	// Data contains the metric-specific payload as raw JSON.

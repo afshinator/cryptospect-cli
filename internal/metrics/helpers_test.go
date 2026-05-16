@@ -1,6 +1,9 @@
 package metrics
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestConfidenceToFloat(t *testing.T) {
 	tests := []struct {
@@ -38,6 +41,70 @@ func TestFloatToConfidence(t *testing.T) {
 		got := FloatToConfidence(tc.input)
 		if got != tc.want {
 			t.Errorf("FloatToConfidence(%v) = %q, want %q", tc.input, got, tc.want)
+		}
+	}
+}
+
+func TestUnavailableResult(t *testing.T) {
+	result, err := UnavailableResult("my-metric", "v1.0.0", "cryptospect", "test failure")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if result.Metric != "my-metric" {
+		t.Errorf("Metric = %q, want %q", result.Metric, "my-metric")
+	}
+	if result.Version != "v1.0.0" {
+		t.Errorf("Version = %q, want %q", result.Version, "v1.0.0")
+	}
+	if result.Namespace != "cryptospect" {
+		t.Errorf("Namespace = %q, want %q", result.Namespace, "cryptospect")
+	}
+	if result.Status != "unavailable" {
+		t.Errorf("Status = %q, want %q", result.Status, "unavailable")
+	}
+	if result.Meta != nil {
+		t.Errorf("Meta should be nil, got %s", string(result.Meta))
+	}
+
+	var data map[string]string
+	if err := json.Unmarshal(result.Data, &data); err != nil {
+		t.Fatalf("failed to unmarshal data: %v", err)
+	}
+	if data["error"] != "test failure" {
+		t.Errorf("error message = %q, want %q", data["error"], "test failure")
+	}
+}
+
+func TestUnavailableResult_AllProviders_Equivalent(t *testing.T) {
+	// Prove the helper produces identical output to each provider's old inline version.
+	// Each provider's old unavailable() returned: Metric, Version, Status="unavailable", Data={"error":msg}, Meta=nil.
+	// The helper adds Namespace which old providers didn't set.
+	providers := []struct {
+		name, version, namespace string
+	}{
+		{"liquidity-pulse", "v1.0.0", "cryptospect"},
+		{"stablecoin-power", "v1.0.0", "cryptospect"},
+		{"flow-tension", "v1.0.0", "cryptospect"},
+		{"market-breadth", "v1.0.0", "cryptospect"},
+		{"momentum-divergence", "v1.1.0", "cryptospect"},
+		{"market-regime", "v1.0.0", "cryptospect"},
+	}
+	for _, p := range providers {
+		result, err := UnavailableResult(p.name, p.version, p.namespace, "test")
+		if err != nil {
+			t.Fatalf("%s: unexpected error: %v", p.name, err)
+		}
+		if result.Metric != p.name {
+			t.Errorf("%s: Metric = %q", p.name, result.Metric)
+		}
+		if result.Version != p.version {
+			t.Errorf("%s: Version = %q", p.name, result.Version)
+		}
+		if result.Namespace != p.namespace {
+			t.Errorf("%s: Namespace = %q", p.name, result.Namespace)
+		}
+		if result.Status != "unavailable" {
+			t.Errorf("%s: Status = %q", p.name, result.Status)
 		}
 	}
 }

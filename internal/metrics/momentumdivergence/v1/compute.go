@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/afshinator/cryptospect-cli/internal/api/coingecko"
+	"github.com/afshinator/cryptospect-cli/internal/metrics"
 )
 
 type tierCoin struct {
@@ -79,27 +80,27 @@ func Compute(input Input) (Data, computedMeta, error) {
 	}
 
 	averages := TierAverages{
-		Large: largeAvg,
-		Mid:   midAvg,
-		Small: smallAvg,
+		Large: metrics.Ratio(largeAvg),
+		Mid:   metrics.Ratio(midAvg),
+		Small: metrics.Ratio(smallAvg),
 	}
 
 	var spreads Spreads
 	if !largeAbsent && !midAbsent {
-		v := round4(midAvg - largeAvg)
+		v := metrics.Ratio(midAvg - largeAvg)
 		spreads.MidVsLarge = &v
 	}
 	if !largeAbsent && !smallAbsent {
-		v := round4(smallAvg - largeAvg)
+		v := metrics.Ratio(smallAvg - largeAvg)
 		spreads.SmallVsLarge = &v
 	}
 	if !midAbsent && !smallAbsent {
-		v := round4(smallAvg - midAvg)
+		v := metrics.Ratio(smallAvg - midAvg)
 		spreads.SmallVsMid = &v
 	}
 
 	var tailExtension bool
-	if spreads.SmallVsLarge != nil && *spreads.SmallVsLarge > TailExtensionSpread {
+	if spreads.SmallVsLarge != nil && spreads.SmallVsLarge.Value() > TailExtensionSpread {
 		tailExtension = true
 	}
 
@@ -107,7 +108,7 @@ func Compute(input Input) (Data, computedMeta, error) {
 	desc := "Neutral"
 
 	if spreads.MidVsLarge != nil {
-		spread := *spreads.MidVsLarge
+		spread := spreads.MidVsLarge.Value()
 		if spread > RiskOnSpread && midAvg > MinPositivityGuard {
 			label = LabelRiskOn
 			desc = "Risk-On Rotation"
@@ -125,7 +126,7 @@ func Compute(input Input) (Data, computedMeta, error) {
 
 	// Barbell modifier
 	if tailExtension && label == LabelNeutral &&
-		spreads.MidVsLarge != nil && *spreads.MidVsLarge > BarbellMidVsLargeMin {
+		spreads.MidVsLarge != nil && spreads.MidVsLarge.Value() > BarbellMidVsLargeMin {
 		desc = "Barbell — Speculative Tail Extension"
 	}
 
@@ -212,10 +213,6 @@ func buildTierDetail(coins []tierCoin) []TierCoinDetail {
 	return details
 }
 
-func round4(v float64) float64 {
-	return math.Round(v*10000) / 10000
-}
-
 func buildSummary(label string, averages TierAverages, spreads Spreads, tailExtension bool) string {
 	prefix := fmt.Sprintf("[%s]", label)
 	var body string
@@ -224,23 +221,23 @@ func buildSummary(label string, averages TierAverages, spreads Spreads, tailExte
 	case LabelRiskOn:
 		if spreads.MidVsLarge != nil {
 			body = fmt.Sprintf("Mid-caps outpacing mega-caps by %+.1fpp (mid avg %+.1f%%);",
-				*spreads.MidVsLarge, averages.Mid)
+				spreads.MidVsLarge.Value(), averages.Mid.Value())
 		} else {
 			body = fmt.Sprintf("Mid-caps outpacing mega-caps (mid avg %+.1f%%);",
-				averages.Mid)
+				averages.Mid.Value())
 		}
 		if tailExtension {
 			if spreads.SmallVsLarge != nil {
-				body += fmt.Sprintf(" full alt-season rotation detected (small_vs_large %+.1fpp).", *spreads.SmallVsLarge)
+				body += fmt.Sprintf(" full alt-season rotation detected (small_vs_large %+.1fpp).", spreads.SmallVsLarge.Value())
 			} else {
 				body += " full alt-season rotation detected."
 			}
 		} else {
 			if spreads.SmallVsLarge != nil {
-				if *spreads.SmallVsLarge < -5.0 {
-					body += fmt.Sprintf(" but significant long-tail weakness detected (small_vs_large %+.1fpp).", *spreads.SmallVsLarge)
+				if spreads.SmallVsLarge.Value() < -5.0 {
+					body += fmt.Sprintf(" but significant long-tail weakness detected (small_vs_large %+.1fpp).", spreads.SmallVsLarge.Value())
 				} else {
-					body += fmt.Sprintf(" long-tail not yet extending (small_vs_large %+.1fpp).", *spreads.SmallVsLarge)
+					body += fmt.Sprintf(" long-tail not yet extending (small_vs_large %+.1fpp).", spreads.SmallVsLarge.Value())
 				}
 			} else {
 				body += " long-tail data unavailable."
@@ -249,18 +246,18 @@ func buildSummary(label string, averages TierAverages, spreads Spreads, tailExte
 	case LabelTopHeavy:
 		if spreads.MidVsLarge != nil {
 			body = fmt.Sprintf("Mega-caps up %+.1f%%, mid-caps lagging (spread %+.1fpp) — narrow rally concentration.",
-				averages.Large, *spreads.MidVsLarge)
+				averages.Large.Value(), spreads.MidVsLarge.Value())
 		} else {
 			body = fmt.Sprintf("Mega-caps up %+.1f%%, mid-caps lagging — narrow rally concentration.",
-				averages.Large)
+				averages.Large.Value())
 		}
 	case LabelFlightToSafety:
 		if spreads.MidVsLarge != nil {
 			body = fmt.Sprintf("Mega-caps down %+.1f%%, mid-caps down harder (spread %+.1fpp) — defensive capital flight into large-caps.",
-				averages.Large, *spreads.MidVsLarge)
+				averages.Large.Value(), spreads.MidVsLarge.Value())
 		} else {
 			body = fmt.Sprintf("Mega-caps down %+.1f%%, mid-caps down harder — defensive capital flight into large-caps.",
-				averages.Large)
+				averages.Large.Value())
 		}
 	case LabelNeutral:
 		if tailExtension {

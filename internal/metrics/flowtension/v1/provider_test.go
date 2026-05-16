@@ -177,8 +177,8 @@ func TestCompute_FullSignals_Ok(t *testing.T) {
 	if m.OIExchangeCount != 10 {
 		t.Errorf("OIExchangeCount = %d, want 10", m.OIExchangeCount)
 	}
-	if len(m.PrimarySources) != 2 {
-		t.Errorf("PrimarySources len = %d, want 2", len(m.PrimarySources))
+	if m.PrimarySource != "binance_us+coingecko" {
+		t.Errorf("PrimarySource = %q, want %q", m.PrimarySource, "binance_us+coingecko")
 	}
 }
 

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/afshinator/cryptospect-cli/internal/api/coingecko"
+	"github.com/afshinator/cryptospect-cli/internal/metrics"
 )
 
 // Threshold constants for the 6-stage momentum-divergence pipeline.
@@ -39,19 +40,19 @@ type Input struct {
 
 // TierAverages holds the market-cap weighted 24h return for each market-cap tier.
 type TierAverages struct {
-	Large float64 `json:"large"`
-	Mid   float64 `json:"mid"`
-	Small float64 `json:"small"`
+	Large metrics.MetricFloat `json:"large"`
+	Mid   metrics.MetricFloat `json:"mid"`
+	Small metrics.MetricFloat `json:"small"`
 }
 
 // Spreads holds the percentage-point differences between tier averages.
-// Fields are *float64 — nil means the spread could not be computed because
+// Fields are *MetricFloat — nil means the spread could not be computed because
 // one of the constituent tiers was absent. 0.0 is a valid real value
 // (tiers performing identically).
 type Spreads struct {
-	MidVsLarge   *float64 `json:"mid_vs_large"`
-	SmallVsLarge *float64 `json:"small_vs_large"`
-	SmallVsMid   *float64 `json:"small_vs_mid"`
+	MidVsLarge   *metrics.MetricFloat `json:"mid_vs_large"`
+	SmallVsLarge *metrics.MetricFloat `json:"small_vs_large"`
+	SmallVsMid   *metrics.MetricFloat `json:"small_vs_mid"`
 }
 
 // Classification holds the primary label and human-readable description.

@@ -47,14 +47,6 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Handle --version flag
-			if len(args) > 0 && args[0] == "--version" {
-				_, err := fmt.Fprintf(cmd.OutOrStdout(), "Version: %s\n", cmd.Version)
-				if err != nil {
-					return err
-				}
-				return nil
-			}
 			if len(args) == 0 {
 				return cmd.Help()
 			}
@@ -117,7 +109,6 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 	cmd.PersistentFlags().StringVar(&detail, "detail", "basic", "Detail level: basic, extended, full")
 	cmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (only json supported)")
 	cmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key for authenticated endpoints (maps to CoinGecko)")
-	cmd.Flags().BoolP("version", "", false, "Print version")
 
 	cmd.AddCommand(newListCommand())
 	cmd.AddCommand(newCacheClearCommand())

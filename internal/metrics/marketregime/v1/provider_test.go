@@ -532,9 +532,11 @@ func TestProvider_MissingBTCReference(t *testing.T) {
 	}
 }
 
-// ── cache_hit / ttl_remaining_sec ──
+// ── cache_hit / ttl_remaining_sec — NOT in provider meta ──
+// cache_hit and ttl_remaining_sec are injected by root.go's postProcessMeta
+// overlay, not by MR's own provider. They must not appear in raw provider output.
 
-func TestProvider_CacheHit_FalseWhenNoCache(t *testing.T) {
+func TestProvider_CacheHit_NotInProviderMeta(t *testing.T) {
 	p := &Provider{}
 	result, err := p.Compute(context.Background(), dataMap(makeGlobalFixture(52.0, 1e10, 1e12), makeBreadthFixture(60, ptr(2.5))))
 	if err != nil {
@@ -546,46 +548,11 @@ func TestProvider_CacheHit_FalseWhenNoCache(t *testing.T) {
 
 	var meta map[string]any
 	_ = json.Unmarshal(result.Meta, &meta)
-	if ch, _ := meta["cache_hit"].(bool); ch {
-		t.Error("cache_hit should be false when no config/cache available")
+	if _, ok := meta["cache_hit"]; ok {
+		t.Error("cache_hit should not be in provider meta (injected by root.go overlay)")
 	}
-	if ttl, _ := meta["ttl_remaining_sec"].(float64); ttl != 0 {
-		t.Errorf("ttl_remaining_sec = %v, want 0 when no cache", ttl)
-	}
-}
-
-func TestProvider_CacheHit_TrueWithFreshCache(t *testing.T) {
-	cacheDir := filepath.Join(t.TempDir(), "cache")
-	_ = os.MkdirAll(cacheDir, 0o750)
-	cfg := newCacheConfig(cacheDir)
-	ctx := config.StoreInContext(context.Background(), cfg)
-
-	// Pre-seed both endpoint caches
-	c, _ := cache.Open(cacheDir)
-	_ = c.Set(api.CoinGeckoGlobalMarket, makeGlobalFixture(52.0, 1e10, 1e12), 3600)
-	_ = c.Set(api.CoinGeckoCoinMarketsBreadth, makeBreadthFixture(60, ptr(2.5)), 3600)
-	_ = c.Close()
-
-	// Wait a tiny bit so that ages are measurable
-	time.Sleep(10 * time.Millisecond)
-
-	p := &Provider{}
-	result, err := p.Compute(ctx, dataMap(makeGlobalFixture(52.0, 1e10, 1e12), makeBreadthFixture(60, ptr(2.5))))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if result.Status != "ok" {
-		t.Fatalf("Status = %q, want ok", result.Status)
-	}
-
-	var meta map[string]any
-	_ = json.Unmarshal(result.Meta, &meta)
-	if ch, _ := meta["cache_hit"].(bool); !ch {
-		t.Error("cache_hit should be true when both endpoints are cached and fresh")
-	}
-	// ttl should reflect the 1-hour TTL we set, minus the 10ms slept
-	if ttl, _ := meta["ttl_remaining_sec"].(float64); ttl <= 0 {
-		t.Errorf("ttl_remaining_sec = %v, want > 0", ttl)
+	if _, ok := meta["ttl_remaining_sec"]; ok {
+		t.Error("ttl_remaining_sec should not be in provider meta (injected by root.go overlay)")
 	}
 }
 
@@ -657,8 +624,9 @@ func TestData_MarketBreadthScore_FourDecimalPrecision(t *testing.T) {
 // ── Combined state + freshness in single Compute call ──
 
 // TestProvider_StateAndFreshness_Combined verifies that a single Compute call
-// correctly reads prior dominance state AND evaluates cache freshness.
-// This is the regression guard for the single-open cache refactor (#7).
+// correctly reads and writes prior dominance state.
+// cache_hit/ttl_remaining_sec are no longer part of provider meta — they are
+// injected by root.go's postProcessMeta overlay.
 func TestProvider_StateAndFreshness_Combined(t *testing.T) {
 	cacheDir := filepath.Join(t.TempDir(), "cache")
 	_ = os.MkdirAll(cacheDir, 0o750)
@@ -699,13 +667,12 @@ func TestProvider_StateAndFreshness_Combined(t *testing.T) {
 	if _, ok := meta["dominance_delta_since_last_fetch"]; !ok {
 		t.Error("dominance_delta_since_last_fetch should be present")
 	}
-	// Freshness path: cache_hit should be true
-	if ch, _ := meta["cache_hit"].(bool); !ch {
-		t.Error("cache_hit should be true — both API endpoints were seeded as fresh")
+	// cache_hit and ttl_remaining_sec are NOT in provider meta — injected by root.go
+	if _, ok := meta["cache_hit"]; ok {
+		t.Error("cache_hit should not be in provider meta (injected by root.go overlay)")
 	}
-	// Freshness path: ttl > 0
-	if ttl, _ := meta["ttl_remaining_sec"].(float64); ttl <= 0 {
-		t.Errorf("ttl_remaining_sec = %v, want > 0", ttl)
+	if _, ok := meta["ttl_remaining_sec"]; ok {
+		t.Error("ttl_remaining_sec should not be in provider meta (injected by root.go overlay)")
 	}
 }
 

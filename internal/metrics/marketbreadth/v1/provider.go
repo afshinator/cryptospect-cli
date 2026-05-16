@@ -50,11 +50,11 @@ func (p *Provider) RegisterFlags(cmd *cobra.Command) {
 func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
 	cgRaw, ok := data[api.CoinGeckoCoinMarketsBreadth]
 	if !ok || len(cgRaw) == 0 {
-		return p.unavailable("missing CoinGecko breadth data")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "missing CoinGecko breadth data")
 	}
 	cgData, err := coingecko.ParseCoinMarketsBreadthResponse(cgRaw)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("parsing CoinGecko breadth: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("parsing CoinGecko breadth: %v", err))
 	}
 
 	var klineClose, klineOpen float64
@@ -104,12 +104,12 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	result, err := Compute(&input)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("compute: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("compute: %v", err))
 	}
 
 	dJSON, err := json.Marshal(result)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("marshaling data: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("marshaling data: %v", err))
 	}
 
 	timeframeCounts := make(map[string]coingecko.TimeframeMetric, 4)
@@ -144,7 +144,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 
 	metaJSON, err := json.Marshal(meta)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("marshaling meta: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("marshaling meta: %v", err))
 	}
 
 	var baseConf float64
@@ -161,21 +161,12 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	status := metrics.DetectStatus(baseConf, false)
 
 	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  status,
-		Data:    json.RawMessage(dJSON),
-		Meta:    json.RawMessage(metaJSON),
-	}, nil
-}
-
-func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
-	errMsg, _ := json.Marshal(map[string]string{"error": msg})
-	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  "unavailable",
-		Data:    json.RawMessage(errMsg),
+		Metric:    MetricName,
+		Version:   MetricVersion,
+		Namespace: metrics.CoreNamespace,
+		Status:    status,
+		Data:      json.RawMessage(dJSON),
+		Meta:      json.RawMessage(metaJSON),
 	}, nil
 }
 

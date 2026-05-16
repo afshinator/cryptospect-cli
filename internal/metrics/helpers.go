@@ -1,5 +1,11 @@
 package metrics
 
+import (
+	"encoding/json"
+
+	"github.com/afshinator/cryptospect-cli/internal/output"
+)
+
 // ConfidenceToFloat maps a confidence label string to the float used by DetectStatus.
 // "high" → 0.9, "medium" → 0.6, "low" → 0.3, anything else → 0.0.
 func ConfidenceToFloat(conf string) float64 {
@@ -60,4 +66,18 @@ func DetectStatus(confidence float64, thinData bool) string {
 	default:
 		return "unavailable" // already unavailable
 	}
+}
+
+// UnavailableResult builds a MetricResult with status "unavailable" and the
+// given error message marshaled into data. It never returns a non-nil error
+// (unavailability is expressed in the result, not as a Go error).
+func UnavailableResult(metric, version, namespace, msg string) (output.MetricResult, error) {
+	errData, _ := json.Marshal(map[string]string{"error": msg})
+	return output.MetricResult{
+		Metric:    metric,
+		Version:   version,
+		Namespace: namespace,
+		Status:    "unavailable",
+		Data:      json.RawMessage(errData),
+	}, nil
 }

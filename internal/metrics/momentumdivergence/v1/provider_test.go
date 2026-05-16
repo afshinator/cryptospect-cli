@@ -206,7 +206,7 @@ func TestProvider_OutputEnvelope(t *testing.T) {
 	}
 	if !dataParsed.TailExtension {
 		// Should be true since small_vs_large > 5pp in this fixture
-		if dataParsed.Spreads.SmallVsLarge != nil && *dataParsed.Spreads.SmallVsLarge <= TailExtensionSpread {
+		if dataParsed.Spreads.SmallVsLarge != nil && dataParsed.Spreads.SmallVsLarge.Value() <= TailExtensionSpread {
 			t.Log("tail_extension false is valid given fixture")
 		}
 	}

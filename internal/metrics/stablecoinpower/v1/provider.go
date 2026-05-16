@@ -112,28 +112,28 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	// --- Global market cap ---
 	globalRaw := data[api.CoinGeckoGlobalMarket]
 	if len(globalRaw) == 0 {
-		return p.unavailable("missing global market data")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "missing global market data")
 	}
 	globalData, err := coingecko.ParseGlobalResponse(globalRaw)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("parsing global: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("parsing global: %v", err))
 	}
 	totalMcap, ok := globalData.GetMarketCapUSD()
 	if !ok || totalMcap == 0 {
-		return p.unavailable("total market cap usd not available")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "total market cap usd not available")
 	}
 
 	// --- Stablecoin markets ---
 	stablesRaw := data[api.CoinGeckoSPPStablesMarkets]
 	if len(stablesRaw) == 0 {
-		return p.unavailable("missing stablecoin markets data")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "missing stablecoin markets data")
 	}
 	stables, err := coingecko.ParseStablesMarketsResponse(stablesRaw)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("parsing stables: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("parsing stables: %v", err))
 	}
 	if len(stables) == 0 {
-		return p.unavailable("no stablecoin data in response")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "no stablecoin data in response")
 	}
 
 	// Filter by config IDs when set.
@@ -151,7 +151,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 		}
 		stables = filtered
 		if len(stables) == 0 {
-			return p.unavailable("no stablecoins match configured stablecoin_ids")
+			return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "no stablecoins match configured stablecoin_ids")
 		}
 	}
 
@@ -187,7 +187,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	}
 	volatileMcap := totalMcap - stableMcap
 	if volatileMcap <= 0 {
-		return p.unavailable("volatile market cap is zero or negative")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "volatile market cap is zero or negative")
 	}
 	ratio := stableMcap / volatileMcap
 
@@ -248,7 +248,7 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	}
 	dJSON, err := json.Marshal(d)
 	if err != nil {
-		return p.unavailable("marshaling data: " + err.Error())
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "marshaling data: "+err.Error())
 	}
 
 	// --- Meta ---
@@ -275,26 +275,17 @@ func (p *Provider) Compute(ctx context.Context, data map[string]json.RawMessage)
 	}
 	metaJSON, err := json.Marshal(meta)
 	if err != nil {
-		return p.unavailable("marshaling meta: " + err.Error())
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "marshaling meta: "+err.Error())
 	}
 
 	status := metrics.DetectStatus(metrics.ConfidenceToFloat(confidence), false)
 	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  status,
-		Data:    json.RawMessage(dJSON),
-		Meta:    json.RawMessage(metaJSON),
-	}, nil
-}
-
-func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
-	errMsg, _ := json.Marshal(map[string]string{"error": msg})
-	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  "unavailable",
-		Data:    json.RawMessage(errMsg),
+		Metric:    MetricName,
+		Version:   MetricVersion,
+		Namespace: metrics.CoreNamespace,
+		Status:    status,
+		Data:      json.RawMessage(dJSON),
+		Meta:      json.RawMessage(metaJSON),
 	}, nil
 }
 

@@ -4,7 +4,7 @@ This document captures every design decision, convention, and schema
 defined during project setup (steps 1-11). Anything here is subject
 to change as the project evolves. Update this file when decisions change.
 
-Last updated: 2026-05-13
+Last updated: 2026-05-16
 
 
 ## Step 1: Environment & Project Init
@@ -176,7 +176,9 @@ Last updated: 2026-05-13
 - Callers check with errors.Is(err, api.ErrRateLimited)
 
 ### stdout/stderr Boundary (HARD RULE)
-- stdout: ONLY the JSON envelope (CLIResponse). One object per invocation.
+- stdout: ALWAYS the JSON envelope (CLIResponse) for metric commands and utility commands.
+  Exceptions: `--version` and `--help` output plaintext to stdout, following universal CLI convention
+  (GNU Coding Standards §4.8.1, CLIG Guidelines). Cobra's built-in handlers manage these flags.
 - stderr: ONLY slog diagnostic output. Gated by --verbose.
 - No fmt.Println anywhere. No log.Printf. Ever.
 - Only slog.Debug/Info/Warn/Error for diagnostics.
@@ -215,6 +217,10 @@ NOTE: These schemas are likely to change as development progresses.
         data       <varies>      // metric-specific payload
         meta       <varies>      // metadata, omitted when --detail basic
     }
+
+    NOTE: namespace was previously removed (fix for issue 4) because all core metrics
+    use the same namespace. It was re-added in 2026-05-16 to support the plugin
+    architecture's fork model and give agents a way to identify provider provenance.
 
     NOTE: version is a mandatory identity field — non-pointer plain string,
     never omitted regardless of --detail level. A provider registering with empty
@@ -405,6 +411,7 @@ They are preserved here for reference; do not treat them as current v1 output sh
 - **Shared helpers (also in `helpers.go`):**
   - `ConfidenceToFloat(conf string) float64` — `"high" → 0.9`, `"medium" → 0.6`, `"low" → 0.3`
   - `FloatToConfidence(f float64) string` — inverse of above
+  - `UnavailableResult(metric, version, namespace, msg string) (output.MetricResult, error)` — builds a standard unavailable result with `{"error": msg}` in data. All 6 providers share this implementation.
 - **Usage:** Each metric's `Provider.Compute` method calls `DetectStatus` to set `MetricResult.Status`. The confidence float is derived from the metric's own confidence model using `ConfidenceToFloat`. Per-metric details:
   - **LP, SP:** Call `DetectStatus(ConfidenceToFloat(confidence), thinData)` in the provider.
   - **MD:** Calls `DetectStatus(ConfidenceToFloat(conf), false)` with a 0.5 floor — partial data still produces valid metrics.

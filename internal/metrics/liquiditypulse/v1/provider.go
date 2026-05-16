@@ -94,21 +94,21 @@ func (p *Provider) Def() metrics.MetricDef {
 func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (output.MetricResult, error) {
 	globalData, ok := data[api.CoinGeckoGlobalMarket]
 	if !ok || len(globalData) == 0 {
-		return p.unavailable("missing primary endpoint data")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "missing primary endpoint data")
 	}
 
 	parsed, err := coingecko.ParseGlobalResponse(globalData)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("parsing primary data: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("parsing primary data: %v", err))
 	}
 
 	volumeUSD, ok := parsed.GetVolumeUSD()
 	if !ok {
-		return p.unavailable("volume usd not in response")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "volume usd not in response")
 	}
 	marketCapUSD, ok := parsed.GetMarketCapUSD()
 	if !ok || marketCapUSD == 0 {
-		return p.unavailable("market_cap usd not in response or zero")
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, "market_cap usd not in response or zero")
 	}
 
 	ratio := volumeUSD / marketCapUSD
@@ -124,7 +124,7 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 	}
 	dJSON, err := json.Marshal(d)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("marshaling data: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("marshaling data: %v", err))
 	}
 
 	meta := Meta{
@@ -174,27 +174,18 @@ func (p *Provider) Compute(_ context.Context, data map[string]json.RawMessage) (
 
 	metaJSON, err := json.Marshal(meta)
 	if err != nil {
-		return p.unavailable(fmt.Sprintf("marshaling meta: %v", err))
+		return metrics.UnavailableResult(MetricName, MetricVersion, metrics.CoreNamespace, fmt.Sprintf("marshaling meta: %v", err))
 	}
 
 	thinData := marketCapUSD < 1e12
 	status := metrics.DetectStatus(metrics.ConfidenceToFloat(meta.Confidence), thinData)
 
 	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  status,
-		Data:    json.RawMessage(dJSON),
-		Meta:    json.RawMessage(metaJSON),
-	}, nil
-}
-
-func (p *Provider) unavailable(msg string) (output.MetricResult, error) {
-	errMsg, _ := json.Marshal(map[string]string{"error": msg})
-	return output.MetricResult{
-		Metric:  MetricName,
-		Version: MetricVersion,
-		Status:  "unavailable",
-		Data:    json.RawMessage(errMsg),
+		Metric:    MetricName,
+		Version:   MetricVersion,
+		Namespace: metrics.CoreNamespace,
+		Status:    status,
+		Data:      json.RawMessage(dJSON),
+		Meta:      json.RawMessage(metaJSON),
 	}, nil
 }

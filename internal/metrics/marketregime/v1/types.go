@@ -122,9 +122,9 @@ type WeightsUsed struct {
 }
 
 // MetaExtended holds extended-detail metadata.
+// cache_hit and ttl_remaining_sec are injected by root.go's postProcessMeta overlay
+// (consistent across all 6 metrics); they live outside this struct.
 type MetaExtended struct {
-	CacheHit                     bool        `json:"cache_hit"`
-	TTLRemainingSec              int         `json:"ttl_remaining_sec"`
 	PrimarySource                string      `json:"primary_source"`
 	BTCDominancePct              float64     `json:"btc_dominance_pct"`
 	BTC24hChange                 *float64    `json:"btc_24h_change,omitempty"`

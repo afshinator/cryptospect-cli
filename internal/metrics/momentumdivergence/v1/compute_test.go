@@ -46,8 +46,8 @@ func TestCompute_RiskOn(t *testing.T) {
 		t.Fatal("midVsLarge should not be nil")
 	}
 	// mid avg: 8.0, large avg: (2+3+0.01+1.5+2.5)/5 = 1.802 → spread ~6.198
-	if *data.Spreads.MidVsLarge <= RiskOnSpread {
-		t.Errorf("midVsLarge: got %v, want > %v", *data.Spreads.MidVsLarge, RiskOnSpread)
+	if data.Spreads.MidVsLarge.Value() <= RiskOnSpread {
+		t.Errorf("midVsLarge: got %v, want > %v", data.Spreads.MidVsLarge.Value(), RiskOnSpread)
 	}
 }
 
@@ -81,8 +81,8 @@ func TestCompute_TopHeavy(t *testing.T) {
 	if data.Spreads.MidVsLarge == nil {
 		t.Fatal("midVsLarge should not be nil")
 	}
-	if *data.Spreads.MidVsLarge >= TopHeavySpread {
-		t.Errorf("midVsLarge: got %v, want < %v", *data.Spreads.MidVsLarge, TopHeavySpread)
+	if data.Spreads.MidVsLarge.Value() >= TopHeavySpread {
+		t.Errorf("midVsLarge: got %v, want < %v", data.Spreads.MidVsLarge.Value(), TopHeavySpread)
 	}
 }
 
@@ -200,7 +200,7 @@ func TestCompute_TailExtension_WithoutRiskOn(t *testing.T) {
 		t.Error("tail_extension should be true even when primary label is neutral")
 	}
 	// Barbell check: neutral + tail_extension + midVsLarge > 1.0
-	if data.Spreads.MidVsLarge != nil && *data.Spreads.MidVsLarge > BarbellMidVsLargeMin {
+	if data.Spreads.MidVsLarge != nil && data.Spreads.MidVsLarge.Value() > BarbellMidVsLargeMin {
 		if data.Classification.Description != "Barbell — Speculative Tail Extension" {
 			t.Errorf("description: got %q, want Barbell", data.Classification.Description)
 		}
@@ -661,9 +661,9 @@ func TestCompute_NullChangeExcluded(t *testing.T) {
 	if data.Spreads.MidVsLarge == nil {
 		t.Fatal("midVsLarge should be present")
 	}
-	diff := *data.Spreads.MidVsLarge - 7.9967
+	diff := data.Spreads.MidVsLarge.Value() - 7.9967
 	if diff < -0.01 || diff > 0.01 {
-		t.Errorf("midVsLarge: got %v, want ~7.9967 (null changes excluded)", *data.Spreads.MidVsLarge)
+		t.Errorf("midVsLarge: got %v, want ~7.9967 (null changes excluded)", data.Spreads.MidVsLarge.Value())
 	}
 	if data.Classification.Label != LabelRiskOn {
 		t.Errorf("label: got %q, want risk_on", data.Classification.Label)
@@ -729,8 +729,8 @@ func TestCompute_SmallVsMid(t *testing.T) {
 	if data.Spreads.SmallVsMid == nil {
 		t.Fatal("smallVsMid should be present")
 	}
-	if *data.Spreads.SmallVsMid != 2.0 {
-		t.Errorf("smallVsMid: got %v, want 2.0 (small avg 10 - mid avg 8)", *data.Spreads.SmallVsMid)
+	if data.Spreads.SmallVsMid.Value() != 2.0 {
+		t.Errorf("smallVsMid: got %v, want 2.0 (small avg 10 - mid avg 8)", data.Spreads.SmallVsMid.Value())
 	}
 }
 
@@ -794,7 +794,7 @@ func TestCompute_SummaryContainsWarningForSmallWeakness(t *testing.T) {
 	if data.Spreads.SmallVsLarge == nil {
 		t.Fatal("smallVsLarge should be present")
 	}
-	if *data.Spreads.SmallVsLarge > -5.0 {
+	if data.Spreads.SmallVsLarge.Value() > -5.0 {
 		t.Skip("smallVsLarge not negative enough for warning test")
 	}
 	found := strings.Contains(data.Summary, "weak") ||

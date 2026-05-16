@@ -107,13 +107,38 @@ type SignalFR struct {
 // │                Meta struct                    │
 // └─────────────────────────────────────────────┘
 
+// FTThresholds holds the threshold constants for flow-tension sub-signals.
+type FTThresholds struct {
+	CVD     CVDThresholds     `json:"cvd"`
+	OI      OIThresholds      `json:"oi"`
+	Funding FundingThresholds `json:"funding"`
+}
+
+// CVDThresholds holds CVD (cumulative volume delta) thresholds.
+type CVDThresholds struct {
+	Aggressive float64 `json:"aggressive"`
+}
+
+// OIThresholds holds Open Interest change thresholds.
+type OIThresholds struct {
+	Building  float64 `json:"building"`
+	Unwinding float64 `json:"unwinding"`
+}
+
+// FundingThresholds holds funding rate thresholds.
+type FundingThresholds struct {
+	Negative   float64 `json:"negative"`
+	Positive   float64 `json:"positive"`
+	Overheated float64 `json:"overheated"`
+}
+
 // Meta holds extended and full-detail metadata.
 type Meta struct {
-	PrimarySources  []string       `json:"primary_sources"`
-	Confidence      string         `json:"confidence"`
-	CvdSampleTrades int            `json:"cvd_sample_trades"`
-	OIExchangeCount int            `json:"oi_exchange_count"`
-	Instrument      string         `json:"instrument"`
-	Thresholds      map[string]any `json:"thresholds,omitempty"`
-	Description     string         `json:"description,omitempty"`
+	PrimarySource   string        `json:"primary_source"`
+	Confidence      string        `json:"confidence"`
+	CvdSampleTrades int           `json:"cvd_sample_trades"`
+	OIExchangeCount int           `json:"oi_exchange_count"`
+	Instrument      string        `json:"instrument"`
+	Thresholds      *FTThresholds `json:"thresholds,omitempty"`
+	Description     string        `json:"description,omitempty"`
 }
