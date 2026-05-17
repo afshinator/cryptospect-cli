@@ -3,6 +3,8 @@ package output
 import (
 	"bytes"
 	"encoding/json"
+	"os"
+	"strings"
 	"testing"
 )
 
@@ -80,5 +82,56 @@ func TestWriteError(t *testing.T) {
 	}
 	if resp.Error.RetryAfterSec != 60 {
 		t.Errorf("Error.RetryAfterSec = %v, want 60", resp.Error.RetryAfterSec)
+	}
+}
+
+func TestWriteSuccessCompact(t *testing.T) {
+	var buf bytes.Buffer
+	SetWriter(&buf)
+	defer func() { SetWriter(os.Stdout) }()
+
+	_ = WriteSuccess([]MetricResult{{Metric: "x", Status: "ok"}})
+
+	if strings.Contains(buf.String(), "\n") {
+		t.Errorf("expected compact JSON (no newlines), got: %q", buf.String())
+	}
+}
+
+func TestWriteSuccessPretty(t *testing.T) {
+	t.Cleanup(ResetForTest)
+	SetPretty(true)
+
+	var buf bytes.Buffer
+	SetWriter(&buf)
+
+	_ = WriteSuccess([]MetricResult{{Metric: "x", Status: "ok"}})
+
+	out := buf.String()
+	if !strings.HasPrefix(out, "{\n") {
+		t.Errorf("expected indented JSON starting with {\\n, got: %q", out)
+	}
+	// Must still be valid JSON.
+	var resp CLIResponse
+	if err := json.Unmarshal([]byte(out), &resp); err != nil {
+		t.Errorf("pretty output is not valid JSON: %v", err)
+	}
+}
+
+func TestWriteErrorPretty(t *testing.T) {
+	t.Cleanup(ResetForTest)
+	SetPretty(true)
+
+	var buf bytes.Buffer
+	SetWriter(&buf)
+
+	_ = WriteError(500, "internal", "test", 0)
+
+	out := buf.String()
+	if !strings.HasPrefix(out, "{\n") {
+		t.Errorf("expected indented JSON starting with {\\n, got: %q", out)
+	}
+	var resp CLIResponse
+	if err := json.Unmarshal([]byte(out), &resp); err != nil {
+		t.Errorf("pretty output is not valid JSON: %v", err)
 	}
 }

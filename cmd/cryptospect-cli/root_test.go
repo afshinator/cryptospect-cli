@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -110,5 +111,55 @@ func TestListMetricsSubcommandExists(t *testing.T) {
 	}
 	if !found {
 		t.Error("list-metrics subcommand not found")
+	}
+}
+
+func TestRootVersion(t *testing.T) {
+	cmd := NewRootCommand()
+	if cmd.Version == "" {
+		t.Fatal("Version is empty")
+	}
+	if !strings.HasPrefix(cmd.Version, "v") {
+		t.Errorf("Version = %q, want v-prefixed string", cmd.Version)
+	}
+}
+
+func TestCommandGroups(t *testing.T) {
+	cmd := NewRootCommand()
+
+	groups := map[string]bool{}
+	for _, g := range cmd.Groups() {
+		groups[g.ID] = true
+	}
+	for _, want := range []string{"metrics", "utility"} {
+		if !groups[want] {
+			t.Errorf("group %q not found on root command", want)
+		}
+	}
+
+	metricCmds := map[string]bool{
+		"market-regime": true, "liquidity-pulse": true, "flow-tension": true,
+		"stablecoin-power": true, "market-breadth": true, "momentum-divergence": true,
+	}
+	utilityCmds := map[string]bool{"list-metrics": true, "cache-clear": true}
+
+	for _, sub := range cmd.Commands() {
+		if metricCmds[sub.Use] {
+			if sub.GroupID != "metrics" {
+				t.Errorf("%s GroupID = %q, want %q", sub.Use, sub.GroupID, "metrics")
+			}
+		}
+		if utilityCmds[sub.Use] {
+			if sub.GroupID != "utility" {
+				t.Errorf("%s GroupID = %q, want %q", sub.Use, sub.GroupID, "utility")
+			}
+		}
+	}
+}
+
+func TestCompletionHidden(t *testing.T) {
+	cmd := NewRootCommand()
+	if !cmd.CompletionOptions.HiddenDefaultCmd {
+		t.Error("CompletionOptions.HiddenDefaultCmd should be true")
 	}
 }

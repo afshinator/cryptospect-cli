@@ -1,6 +1,12 @@
 APP_NAME := cryptospect-cli
-VERSION  := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-LDFLAGS  := -s -w -X main.version=$(VERSION)
+VERSION  := $(shell git describe --tags --dirty 2>/dev/null)
+ifeq ($(VERSION),)
+LDFLAGS  := -s -w
+else
+LDFLAGS  := -s -w \
+	-X github.com/afshinator/cryptospect-cli/internal/version.Value=$(VERSION) \
+	-X github.com/afshinator/cryptospect-cli/internal/version.tagged=true
+endif
 
 .PHONY: build lint fmt vet test clean release
 

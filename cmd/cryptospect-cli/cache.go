@@ -13,6 +13,20 @@ func newCacheClearCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "cache-clear",
 		Short: "Clear the local API response cache",
+		Long: `Clear all cached API responses stored on disk.
+
+Cache location: ~/.cryptospect-cli/cache/ (or the directory set by your config file).
+
+Each entry is a raw API response keyed by endpoint. Responses are reused until their
+TTL expires — default TTLs range from 60 s (Binance klines) to 300 s (CoinGecko global).
+The cache is shared across all metrics; clearing it affects every subsequent call.
+
+When to use:
+  • Force fresh data after a market event without waiting for TTL expiry
+  • Troubleshoot stale or unexpected metric output
+  • Reset state after changing API keys or endpoints in your config
+
+The cache is repopulated automatically on the next metric call.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Retrieve config from context (set by root command)
 			ctx := cmd.Context()

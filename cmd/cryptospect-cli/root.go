@@ -12,6 +12,7 @@ import (
 	"github.com/afshinator/cryptospect-cli/internal/config"
 	"github.com/afshinator/cryptospect-cli/internal/metrics"
 	"github.com/afshinator/cryptospect-cli/internal/output"
+	"github.com/afshinator/cryptospect-cli/internal/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -40,7 +41,7 @@ func NewRootCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "cryptospect-cli",
-		Version: version,
+		Version: version.String(),
 		Short:   "Compute crypto market regime metrics for agentic consumption",
 		Long: `A portable, zero-dependency CLI tool that fetches live and historical cryptocurrency data,
 computes high-signal market regime metrics, and outputs them in a format optimized for AI agents and LLM tool-calling.`,
@@ -95,6 +96,10 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 				return fmt.Errorf("loading config: %w", err)
 			}
 
+			if cfg.Output.Pretty {
+				output.SetPretty(true)
+			}
+
 			// Store config and detail in context for subcommands and providers
 			ctx := config.StoreInContext(cmd.Context(), cfg)
 			ctx = config.StoreDetailInContext(ctx, detail)
@@ -107,11 +112,23 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 	cmd.PersistentFlags().StringVar(&configFile, "config", "", "Config file (default $HOME/.cryptospect.yaml)")
 	cmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable debug logging on stderr")
 	cmd.PersistentFlags().StringVar(&detail, "detail", "basic", "Detail level: basic, extended, full")
-	cmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", "Output format (only json supported)")
-	cmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key for authenticated endpoints (maps to CoinGecko)")
+	cmd.PersistentFlags().StringVarP(&outputFmt, "output", "o", "json", `Output format. Currently only "json" is supported (forward-compatibility placeholder).`)
+	cmd.PersistentFlags().StringVar(&apiKey, "api-key", "", "API key for CoinGecko authenticated endpoints. All metrics work without a key; a key unlocks Pro-tier rate limits and derivatives data.")
 
-	cmd.AddCommand(newListCommand())
-	cmd.AddCommand(newCacheClearCommand())
+	cmd.CompletionOptions = cobra.CompletionOptions{HiddenDefaultCmd: true}
+
+	cmd.AddGroup(
+		&cobra.Group{ID: "metrics", Title: "Metrics:"},
+		&cobra.Group{ID: "utility", Title: "Utility:"},
+	)
+
+	listCmd := newListCommand()
+	listCmd.GroupID = "utility"
+	cmd.AddCommand(listCmd)
+
+	cacheCmd := newCacheClearCommand()
+	cacheCmd.GroupID = "utility"
+	cmd.AddCommand(cacheCmd)
 
 	reg := metrics.GlobalRegistry()
 	for _, p := range reg.BestProviders() {
@@ -122,6 +139,7 @@ computes high-signal market regime metrics, and outputs them in a format optimiz
 			Aliases: def.Aliases,
 			Short:   def.Description,
 			Long:    fmt.Sprintf("%s\n\nVersion: %s | Namespace: %s", def.Description, def.Version, def.Namespace),
+			GroupID: "metrics",
 			RunE:    buildMetricRunE(p),
 		}
 		if fr, ok := p.(flagRegistrar); ok {

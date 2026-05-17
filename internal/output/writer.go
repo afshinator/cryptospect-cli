@@ -5,13 +5,26 @@ import (
 	"io"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 var (
 	stdoutMu sync.RWMutex
 	stdout   io.Writer = os.Stdout
+	pretty   atomic.Bool
 )
+
+// SetPretty enables or disables pretty-printed JSON output (2-space indent).
+func SetPretty(v bool) { pretty.Store(v) }
+
+// ResetForTest restores package-level defaults. Use with t.Cleanup in tests.
+func ResetForTest() {
+	pretty.Store(false)
+	stdoutMu.Lock()
+	stdout = os.Stdout
+	stdoutMu.Unlock()
+}
 
 // SetWriter replaces the writer used for JSON output.
 // This is intended for testing only.
@@ -36,7 +49,7 @@ func WriteSuccess(results []MetricResult) error {
 		Results: results,
 	}
 
-	data, err := json.Marshal(resp)
+	data, err := encodeJSON(resp)
 	if err != nil {
 		return err
 	}
@@ -62,7 +75,7 @@ func WriteError(code int, msg, source string, retryAfterSec int) error {
 		Error:  &err,
 	}
 
-	data, err2 := json.Marshal(resp)
+	data, err2 := encodeJSON(resp)
 	if err2 != nil {
 		return err2
 	}
@@ -71,4 +84,12 @@ func WriteError(code int, msg, source string, retryAfterSec int) error {
 	defer stdoutMu.RUnlock()
 	_, err2 = stdout.Write(data)
 	return err2
+}
+
+// encodeJSON serialises v as compact or indented JSON depending on the pretty flag.
+func encodeJSON(v any) ([]byte, error) {
+	if pretty.Load() {
+		return json.MarshalIndent(v, "", "  ")
+	}
+	return json.Marshal(v)
 }
