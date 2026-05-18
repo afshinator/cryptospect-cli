@@ -1,0 +1,10 @@
+{
+  "classification": {
+    "description": "Healthy market",
+    "label": "normal"
+  },
+  "market_cap_usd": 8000000000,
+  "summary": "Volume/MCap: 12.50% | Conviction: normal",
+  "volume_to_mcap_ratio": 0.125,
+  "volume_usd": 1000000000
+}

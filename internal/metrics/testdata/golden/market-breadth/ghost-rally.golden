@@ -1,0 +1,17 @@
+{
+  "btc_change_24h_pct": 5,
+  "classification": {
+    "description": "The Illusion",
+    "label": "narrow"
+  },
+  "coins_counted": 250,
+  "divergence_detected": true,
+  "market_breadth_score": 0.132,
+  "summary": "Market breadth 13% (narrow): 7d at 12% green, 1h at 20%. BTC +5.0% but Ghost Rally flagged.",
+  "timeframe_breadth": {
+    "1h": 0.2,
+    "24h": 0.16,
+    "30d": 0.08,
+    "7d": 0.12
+  }
+}

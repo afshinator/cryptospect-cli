@@ -1,0 +1,12 @@
+{
+  "classification": {
+    "description": "Stagnation — flat dominance, narrow breadth, market ignored (Pressure Cooker if conviction is high)",
+    "label": "Stagnation"
+  },
+  "conviction": "low",
+  "dominance_trend": "neutral",
+  "market_breadth_score": 0.35,
+  "modifier": "neutral",
+  "regime": "Stagnation",
+  "summary": "Dominance neutral, breadth narrow, low conviction — Stagnation. Market ignored; alt exposure is high-risk."
+}

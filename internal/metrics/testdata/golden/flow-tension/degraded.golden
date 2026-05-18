@@ -1,0 +1,18 @@
+{
+  "signals": {
+    "cvd": {
+      "hook": "aggressive_sell",
+      "ratio": -0.4
+    },
+    "funding_rate": {
+      "hook": "neutral",
+      "rate": 0
+    },
+    "open_interest": {
+      "current_usd": 0,
+      "exchange_count": 0,
+      "hook": "stable"
+    }
+  },
+  "summary": "Assets staged on exchanges with aggressive selling — supply shock / top warning."
+}

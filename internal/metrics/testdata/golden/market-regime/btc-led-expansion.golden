@@ -1,0 +1,12 @@
+{
+  "classification": {
+    "description": "BTC-Led Expansion — broad participation with rising BTC dominance",
+    "label": "BTC-Led Expansion"
+  },
+  "conviction": "normal",
+  "dominance_trend": "rising",
+  "market_breadth_score": 0.75,
+  "modifier": "positive_momentum",
+  "regime": "BTC-Led Expansion",
+  "summary": "BTC dominance rising, breadth broad — BTC-Led Expansion with positive momentum. Capital flowing into BTC with broad alt participation."
+}

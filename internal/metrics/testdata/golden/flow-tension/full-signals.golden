@@ -1,0 +1,19 @@
+{
+  "signals": {
+    "cvd": {
+      "hook": "aggressive_buy",
+      "ratio": 0.4
+    },
+    "funding_rate": {
+      "hook": "positive",
+      "rate": 0.0003
+    },
+    "open_interest": {
+      "change_pct_24h": 0.0632,
+      "current_usd": 18500000000,
+      "exchange_count": 0,
+      "hook": "building"
+    }
+  },
+  "summary": "Leverage building with aggressive buying — tension coiling, breakout likely."
+}

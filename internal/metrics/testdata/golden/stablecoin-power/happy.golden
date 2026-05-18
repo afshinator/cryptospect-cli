@@ -1,0 +1,12 @@
+{
+  "classification": {
+    "description": "Healthy Balance",
+    "label": "normal"
+  },
+  "stable_mcap_usd": 216000000000,
+  "stable_power_ratio": 0.0776,
+  "stablecoins_counted": 8,
+  "summary": "SP Ratio: 0.0776 | Healthy Balance",
+  "supply_trend_7d": "stable",
+  "volatile_mcap_usd": 2784000000000
+}

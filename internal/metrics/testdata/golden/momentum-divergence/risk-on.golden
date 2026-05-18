@@ -1,0 +1,18 @@
+{
+  "classification": {
+    "description": "Risk-On Rotation",
+    "label": "risk_on"
+  },
+  "spreads": {
+    "mid_vs_large": 6.198,
+    "small_vs_large": 10.198,
+    "small_vs_mid": 4
+  },
+  "summary": "[risk_on] Mid-caps outpacing mega-caps by +6.2pp (mid avg +8.0%); full alt-season rotation detected (small_vs_large +10.2pp).",
+  "tail_extension": true,
+  "tier_averages": {
+    "large": 1.802,
+    "mid": 8,
+    "small": 12
+  }
+}

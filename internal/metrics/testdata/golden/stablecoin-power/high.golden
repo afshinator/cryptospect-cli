@@ -1,0 +1,12 @@
+{
+  "classification": {
+    "description": "Dry Powder Alert",
+    "label": "high"
+  },
+  "stable_mcap_usd": 640000000000,
+  "stable_power_ratio": 0.2712,
+  "stablecoins_counted": 8,
+  "summary": "SP Ratio: 0.2712 | Dry Powder Alert",
+  "supply_trend_7d": "stable",
+  "volatile_mcap_usd": 2360000000000
+}

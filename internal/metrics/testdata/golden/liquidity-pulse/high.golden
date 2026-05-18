@@ -1,0 +1,10 @@
+{
+  "classification": {
+    "description": "Strong short-term conviction",
+    "label": "high"
+  },
+  "market_cap_usd": 8000000000,
+  "summary": "Volume/MCap: 20.00% | Conviction: high",
+  "volume_to_mcap_ratio": 0.2,
+  "volume_usd": 1600000000
+}

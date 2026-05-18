@@ -1,0 +1,18 @@
+{
+  "classification": {
+    "description": "Flight to Safety — Defensive Capital Concentration",
+    "label": "flight_to_safety"
+  },
+  "spreads": {
+    "mid_vs_large": -8.8353,
+    "small_vs_large": -18.502,
+    "small_vs_mid": -9.6667
+  },
+  "summary": "[flight_to_safety] Mega-caps down -1.5%, mid-caps down harder (spread -8.8pp) — defensive capital flight into large-caps.",
+  "tail_extension": false,
+  "tier_averages": {
+    "large": -1.498,
+    "mid": -10.3333,
+    "small": -20
+  }
+}

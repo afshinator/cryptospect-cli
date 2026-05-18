@@ -1,0 +1,17 @@
+{
+  "btc_change_24h_pct": 5,
+  "classification": {
+    "description": "Healthy Growth",
+    "label": "broad"
+  },
+  "coins_counted": 250,
+  "divergence_detected": false,
+  "market_breadth_score": 0.648,
+  "summary": "Market breadth 65% (broad): 7d at 68% green, 1h at 72%. No divergence.",
+  "timeframe_breadth": {
+    "1h": 0.72,
+    "24h": 0.64,
+    "30d": 0.56,
+    "7d": 0.68
+  }
+}
