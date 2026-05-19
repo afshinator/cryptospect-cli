@@ -1,4 +1,13 @@
-# Phase 2: CLI-Level Golden Tests (Deferred)
+# Phase 2: CLI-Level Golden Tests — SKIPPED
+
+**Decision (2026-05-18):** Skipped in favor of hand-calculated spec goldens at the provider level.
+Phase 1 golden tests were upgraded from snapshot/characterization tests to specification-level
+tests — each golden file is now backed by a documented hand calculation in the test function comment,
+proving the expected output is correct rather than just consistent-with-self. Phase 2 CLI-level
+golden tests would duplicate the same characterization-only weakness across 18 more fixture files
+without independent validation. The deferred prerequisites (time injection, API URL override config,
+httptest mock servers) remain documented here for reference if full-pipeline golden tests are
+revisited later under a different validation strategy.
 
 ## Goal
 Test the **complete CLI output pipeline** — envelope, meta injection, detail-level filtering, compact vs pretty — using deterministic mocked API servers.
