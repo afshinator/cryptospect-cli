@@ -1,0 +1,10 @@
+{
+  "btc_realized_vol": 0.0273,
+  "classification": {
+    "description": "Elevated ETH volatility relative to BTC — heightened altcoin speculation",
+    "label": "elevated"
+  },
+  "eth_realized_vol": 46.9274,
+  "summary": "BTC vol 2.7% (annualized), ETH vol 4692.7%, spread 1720.06× — elevated ETH speculation.",
+  "vol_spread": 1720.0595
+}

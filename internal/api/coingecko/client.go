@@ -70,6 +70,40 @@ func ParseGlobalDominance(body []byte) *float64 {
 	return &btc
 }
 
+// GlobalDominanceData holds BTC and ETH dominance percentages from /global.
+type GlobalDominanceData struct {
+	BTC float64
+	ETH float64
+}
+
+// ParseGlobalDominanceBoth extracts BTC and ETH dominance (%) from a global response.
+// Returns (nil, error) if either value is not available.
+func ParseGlobalDominanceBoth(body []byte) (*GlobalDominanceData, error) {
+	if len(body) == 0 {
+		return nil, fmt.Errorf("empty response body")
+	}
+
+	var resp struct {
+		Data struct {
+			MarketCapPercentage map[string]float64 `json:"market_cap_percentage"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, fmt.Errorf("parsing global dominance: %w", err)
+	}
+
+	btc, ok := resp.Data.MarketCapPercentage["btc"]
+	if !ok {
+		return nil, fmt.Errorf("btc dominance not in response")
+	}
+	eth, ok := resp.Data.MarketCapPercentage["eth"]
+	if !ok {
+		return nil, fmt.Errorf("eth dominance not in response")
+	}
+
+	return &GlobalDominanceData{BTC: btc, ETH: eth}, nil
+}
+
 // SPPStableIDs is the authoritative list of stablecoin CoinGecko IDs for the
 // stablecoin‑power metric. Ordered by approximate market cap rank.
 var SPPStableIDs = []string{

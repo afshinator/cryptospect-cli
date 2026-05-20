@@ -167,3 +167,68 @@ func ParseKlinesVolumesResponse(body []byte) (KlinesVolumes, error) {
 
 	return KlinesVolumes{Volumes: volumes}, nil
 }
+
+// KlinesSlice holds parsed data from multiple klines in chronological order.
+type KlinesSlice struct {
+	Klines []KlinesData // oldest first
+}
+
+// ParseMultiKlinesResponse parses a multi‑kline Binance response and returns
+// all klines with Close, Open, OpenTime, and Volume fields. Used by volatility
+// for realized vol computation from hourly OHLC data.
+func ParseMultiKlinesResponse(body []byte) (KlinesSlice, error) {
+	if len(body) == 0 {
+		return KlinesSlice{}, fmt.Errorf("empty response body")
+	}
+
+	var raw [][]json.RawMessage
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return KlinesSlice{}, fmt.Errorf("parsing klines response: %w", err)
+	}
+	if len(raw) == 0 {
+		return KlinesSlice{}, fmt.Errorf("klines response contains no data")
+	}
+
+	klines := make([]KlinesData, 0, len(raw))
+	for i, kline := range raw {
+		if len(kline) < 11 {
+			return KlinesSlice{}, fmt.Errorf("kline %d has %d fields, expected at least 11", i, len(kline))
+		}
+
+		var openTime int64
+		if err := json.Unmarshal(kline[0], &openTime); err != nil {
+			return KlinesSlice{}, fmt.Errorf("parsing openTime (index 0) for kline %d: %w", i, err)
+		}
+
+		open, err := parseStringFloat(kline[1])
+		if err != nil {
+			return KlinesSlice{}, fmt.Errorf("parsing open (index 1) for kline %d: %w", i, err)
+		}
+
+		close, err := parseStringFloat(kline[4])
+		if err != nil {
+			return KlinesSlice{}, fmt.Errorf("parsing close (index 4) for kline %d: %w", i, err)
+		}
+
+		totalVolume, err := parseStringFloat(kline[5])
+		if err != nil {
+			return KlinesSlice{}, fmt.Errorf("parsing volume (index 5) for kline %d: %w", i, err)
+		}
+
+		takerBuyVol, err := parseStringFloat(kline[9])
+		if err != nil {
+			return KlinesSlice{}, fmt.Errorf("parsing takerBuyBaseVol (index 9) for kline %d: %w", i, err)
+		}
+
+		klines = append(klines, KlinesData{
+			Close:           close,
+			Open:            open,
+			OpenTime:        openTime,
+			TotalVolume:     totalVolume,
+			TakerBuyVolume:  takerBuyVol,
+			TakerSellVolume: totalVolume - takerBuyVol,
+		})
+	}
+
+	return KlinesSlice{Klines: klines}, nil
+}

@@ -12,12 +12,16 @@ var wantCatalogMetrics = []struct {
 	alias   string
 	version string
 }{
+	{"china-m2", "cnm2", "v1.0.0"},
+	{"dominance", "dom", "v1.0.0"},
+	{"fear-greed-index", "fgi", "v1.0.0"},
 	{"flow-tension", "ft", "v1.0.0"},
 	{"liquidity-pulse", "lp", "v1.0.0"},
 	{"market-breadth", "mb", "v1.0.0"},
 	{"market-regime", "mr", "v1.0.0"},
 	{"momentum-divergence", "md", "v1.1.0"},
 	{"stablecoin-power", "sp", "v1.0.0"},
+	{"volatility", "vol", "v1.0.0"},
 }
 
 func TestCatalog_AllProvidersRegistered(t *testing.T) {

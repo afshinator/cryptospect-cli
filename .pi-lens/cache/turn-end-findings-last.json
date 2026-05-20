@@ -1,0 +1,4 @@
+{
+  "signature": "internal/metrics/chinam2/v1/provider_test.go::Unresolved from this turn — internal/metrics/chinam2/v1/provider_test.go:\n🔴 STOP — 1 issue(s) must be fixed:\n  L5: \"encoding/json\" imported and not used",
+  "sessionId": "lens-mpd7dw8k-c30871f1"
+}

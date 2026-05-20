@@ -47,9 +47,9 @@ func TestListMetricsCommand(t *testing.T) {
 	if len(list) == 0 {
 		t.Error("list data is empty")
 	}
-	// Expect exactly 6 metrics (the default registered ones)
-	if len(list) != 6 {
-		t.Errorf("expected 6 metrics, got %d", len(list))
+	// Expect exactly 10 metrics (6 original + 4 new)
+	if len(list) != 10 {
+		t.Errorf("expected 10 metrics, got %d", len(list))
 	}
 	// Ensure each entry has "name", "aliases", "namespace", "version"
 	for i, item := range list {

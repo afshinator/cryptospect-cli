@@ -1,0 +1,18 @@
+{
+  "btc": {
+    "delta_pp": null,
+    "dominance": 52.3,
+    "trend": "neutral"
+  },
+  "classification": {
+    "description": "No significant dominance trend detected",
+    "label": "neutral"
+  },
+  "eth": {
+    "delta_pp": null,
+    "dominance": 18.1,
+    "trend": "neutral"
+  },
+  "eth_btc_ratio": 0.3461,
+  "summary": "BTC dominance 52.3% (neutral), ETH dominance 18.1% (neutral) [UNVERIFIED — first run, no prior snapshot]."
+}

@@ -1,0 +1,18 @@
+{
+  "btc": {
+    "delta_pp": 1.3,
+    "dominance": 52.3,
+    "trend": "rising"
+  },
+  "classification": {
+    "description": "BTC dominance rising (+1.3pp) — capital rotating into BTC",
+    "label": "btc_rising"
+  },
+  "eth": {
+    "delta_pp": -0.6,
+    "dominance": 18.1,
+    "trend": "falling"
+  },
+  "eth_btc_ratio": 0.3461,
+  "summary": "BTC dominance 52.3% (rising, +1.3pp), ETH dominance 18.1% (falling, -0.6pp) — capital rotating into BTC."
+}
