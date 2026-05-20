@@ -2,6 +2,9 @@
 
 A portable, zero-dependency CLI tool that fetches live cryptocurrency data, computes high-signal market regime metrics, and outputs them in a format optimized for AI agents and LLM tool-calling.
 
+<!-- Image placeholder: add here -->
+<!-- ![cryptospect-cli](docs/images/cryptospect-cli.png) -->
+
 ## Metrics
 
 Six signals, each answering a different question about current market conditions:
@@ -14,6 +17,10 @@ Six signals, each answering a different question about current market conditions
 | `market-breadth` | `mb` | Is a move broad-based or driven by a handful of large caps? Measures how many of the top coins are participating across 1h / 24h / 7d / 30d windows. |
 | `momentum-divergence` | `md` | Where is capital rotating? Compares momentum across large-, mid-, and small-cap tiers — rotation into small caps signals risk-on appetite. |
 | `market-regime` | `mr` | What is the overall market state? Aggregates all five signals into a single regime label (e.g. Bull Trend, Stagnation, Capitulation) with a confidence score. |
+| `dominance` | `dom` | Is capital rotating into or out of BTC and ETH? Rising BTC dominance signals safety retreat; rising ETH dominance signals risk-on rotation. |
+| `volatility` | `vol` | Are markets calm or turbulent? Annualized realized volatility from 24h of hourly OHLC data; ETH/BTC vol spread flags elevated ETH speculation. |
+| `fear-greed-index` | `fgi` | What is the current crowd sentiment — fear or greed? Crypto Fear & Greed Index (0–100) with a 7-day MA trend. Contrarian overlay to directional metrics. |
+| `china-m2` | `cnm2` | Is China loosening or tightening monetary conditions? China M2 year-over-year change as a structural macro signal for risk-asset liquidity. |
 
 Run `market-regime` first for macro context, then drill into individual metrics for detail.
 
@@ -26,7 +33,7 @@ Run `market-regime` first for macro context, then drill into individual metrics 
 
 ## Commands
 
-### Market Regime Metrics — all 6 implemented
+### Market Regime Metrics — all 10 implemented
 
     cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
     cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]  [--top N]
@@ -34,6 +41,10 @@ Run `market-regime` first for macro context, then drill into individual metrics 
     cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]  [--top N]
     cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]  [--segments N]
     cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
+    cryptospect-cli dominance            (alias: dom)  [--detail basic|extended|full]
+    cryptospect-cli volatility           (alias: vol)  [--detail basic|extended|full]
+    cryptospect-cli fear-greed-index     (alias: fgi)  [--detail basic|extended|full]
+    cryptospect-cli china-m2             (alias: cnm2) [--detail basic|extended|full]
 
 ### Utility
 
@@ -106,7 +117,7 @@ The `-o` / `--output` flag currently only accepts `json` and exists as a forward
 
 ## API Keys
 
-All 6 metrics work without any API key on the free public tiers. Keys are optional and unlock higher rate limits or additional data sources.
+All 10 metrics work without any API key on the free public tiers. Keys are optional and unlock higher rate limits or additional data sources.
 
 | Key | How to set | Status | What it unlocks |
 |-----|-----------|--------|-----------------|
@@ -199,9 +210,10 @@ Key precedence (highest to lowest): CLI flag `--api-key` → env var → config 
 ## Data Sources
 
 - CoinGecko (free tier, primary — global market, stablecoins, derivatives, coin markets)
-- Binance US (free tier — spot CVD klines)
-- CoinDesk (stub, placeholder)
-- CoinMetrics Community (stub, placeholder)
+- Binance US (free tier — spot CVD klines, hourly volatility candles)
+- alternative.me (free tier, 10 req/min — Fear & Greed Index)
+- DBnomics (free tier — China M2 money supply)
+- DefiLlama (free tier — stablecoin data)
 
 ## Build
 
@@ -223,8 +235,8 @@ Key precedence (highest to lowest): CLI flag `--api-key` → env var → config 
 | Build method | Example version |
 |---|---|
 | `make build` with a git tag | `v1.0.0` |
-| `make build` without a tag (current) | `v1.0.0 (c2331fe-dirty)` |
-| `go build` (dev) | `v1.0.0 (c2331fe-dirty)` |
+| `make build` without a tag (current) | `v1.0.0 (0fedbf2-dirty)` |
+| `go build` (dev) | `v1.0.0 (0fedbf2-dirty)` |
 
 The source default is always `v1.0.0`. `make build` overrides it via ldflags when a tag exists.
 
