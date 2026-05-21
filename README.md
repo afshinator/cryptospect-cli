@@ -3,7 +3,7 @@
 A portable CLI tool that fetches live cryptocurrency data, computes high-signal market regime metrics, and outputs clean JSON — optimized for AI agents, LLM tool-calling, and MCP workflows.
 
 
-![cryptospect-cli](./cryptospect-cli-03.png)
+![cryptospect-cli](./project-image-01.png)
 
 ## Getting Started
 
