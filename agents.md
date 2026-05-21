@@ -1,36 +1,101 @@
 # Agent Guide: cryptospect-cli
 
-**Source of truth:** `Design‑Decisions.md` — CLI signatures, envelope schema, and error handling derived from there.
+Reasoning reference for LLMs using this tool. For CLI flags, config, and per-metric output schemas see [README.md](README.md) and [`docs/metrics/<name>.md`](docs/metrics/).
 
-## What This Tool Does
-Computes crypto market regime metrics for agentic consumption. Outputs machine-readable JSON optimized for low token count.
+## Intent → Metric Map
 
-## CLI Signatures (v1)
+Run the minimal metric subset for the question type. Running all 10 every call is wasteful.
 
-### Global Metrics — all 10 implemented
-    cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
-    cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]  [--top N]
-    cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
-    cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]  [--top N]
-    cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]  [--segments N]
-    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
-    cryptospect-cli dominance            (alias: dom)  [--detail basic|extended|full]
-    cryptospect-cli volatility           (alias: vol)  [--detail basic|extended|full]
-    cryptospect-cli fear-greed-index     (alias: fgi)  [--detail basic|extended|full]
-    cryptospect-cli china-m2             (alias: cnm2) [--detail basic|extended|full]
+| Question Type | Run These | Why |
+|---|---|---|
+| Good time to enter / buy? | `mr`, `sp`, `ft`, `mb` | Macro regime + fuel check + kinetic signals + participation depth |
+| Is this rally real / sustainable? | `mb`, `md`, `ft` | Ghost Rally check + rotation depth + CVD/OI confirmation |
+| Should I rotate into alts? | `mr`, `md`, `mb`, `sp` | Regime label + tier rotation + breadth + dry powder |
+| Macro risk level? | `mr`, `sp`, `ft` | Regime matrix + capital flight check + leverage/funding state |
+| Leverage crowded / squeeze risk? | `ft` | Funding rate + OI + CVD — no other metric needed |
+| Is capital leaving crypto entirely? | `sp`, `mr` | Supply trend contracting + Flight to Safety regime |
+| Accumulation or distribution? | `ft`, `mb`, `sp`, `lp` | OI/CVD + breadth trend + dry powder + conviction ratio |
+| Drill-down on a specific signal | That metric alone | Run `mr` first for macro context if not already in hand |
 
-### Utility Commands
-    cryptospect-cli list-metrics         # list all available metrics + aliases
-    cryptospect-cli cache-clear          # clear the local API response cache
+## Named Signal Combinations
 
-### Future Per‑Asset Commands (planned)
-    cryptospect-cli regime               --asset <SYM> --window <DURATION>
-    cryptospect-cli zscore               --asset <SYM> --period <DURATION>
-    cryptospect-cli rvol                 --asset <SYM>
-    cryptospect-cli correlation          --pair <SYM,SYM> --window <DURATION>
-    cryptospect-cli summary              --assets <SYM,SYM,...> --output json
+Recognize these patterns by name. Where multiple metric docs name the same pattern they are merged below.
 
-## Output Envelope (all commands)
+| Pattern | Triggers | Response |
+|---|---|---|
+| **Early Bull Phase** | `ft` funding `negative→neutral` + CVD `aggressive_buy` | Sellers exhausted, buyers regaining control. Confirm with `sp` dry powder before acting. |
+| **Building Tension** | `ft` OI `building` + price flat + CVD `neutral` | Volatility breakout loading in either direction. No directional position — wait for CVD resolution. |
+| **Long Squeeze Risk** | `ft` funding `overheated` + CVD fading or `aggressive_sell` | Crowded longs at risk of forced unwind. Reduce or hedge long exposure. |
+| **Deleveraging** | `ft` OI `unwinding` + CVD `aggressive_sell` | Flush in progress. Cross-check `sp` — if `supply_trend_7d` expanding, flush may be a buying opportunity. |
+| **Capital Flight / Macro Exodus** | `sp` ratio `< 0.07` + `supply_trend_7d: "contracting"` | Net redemptions — capital leaving crypto entirely. Full defensive posture, not just caution. |
+| **Ghost Rally** | `mb` `divergence_detected: true` (BTC up >2%, alts not following) | `divergence_detected` overrides the classification label. Do not enter broad-market longs regardless of base label. Severity scales with `btc_change_24h_pct` — 2.1% is borderline caution, 6.5%+ is a hard block. |
+| **Ghost Rally Amplified** | `mb` `divergence_detected: true` + `md` `top_heavy` (green day) + `mb` `narrow` | Both metrics confirm concentration. Altcoin longs carry maximum relative underperformance risk. |
+| **Max Conviction Bull** | `mb` `broad` + `sp` High + `md` `risk_on` + `tail_extension: true`; OR `mr` `BTC-Led Expansion` + `sp` High + `ft` funding `neutral` | Full rotation, fuel available, leverage not yet crowded. Strongest configuration for initiating broad exposure. |
+| **Pre-Rotation Coil** | `md` `neutral` + `sp` High + `ft` OI `building` | Dry powder present, leverage loading, no rotation confirmed. Watch for `md` `mid_vs_large > +5pp` as ignition confirmation. |
+| **Blow-Off Warning** | (`md` `risk_on` + `small_vs_mid < 0` + `ft` funding `overheated`) OR (`mr` `Alt-Season/Mania` + `ft` funding `overheated` + `sp` Low) | Rotation stalling or fuel depleted with crowded leverage. Late-cycle peak configuration. Reduce exposure. |
+| **Macro Risk-Off** | (`md` `top_heavy` red day + `ft` OI `unwinding` + `sp` `supply_trend_7d: "contracting"`) OR (`mr` `Flight to Safety` + `sp` `supply_trend_7d: "contracting"`) | Capital fleeing both alts and crypto entirely. Full defensive posture. |
+| **Structural Decay** | `mb` `narrow` + `ft` CVD `aggressive_sell` | Market thinning with aggressive sellers. Active defensive positioning; concentrate risk in BTC/ETH only. |
+| **Pressure Cooker** | `mr` `regime: "Consolidation"` + `conviction: "high"` + `ft` OI `building` | High capital turnover, leverage loading, no directional resolution. Do not initiate positions — wait for regime shift. Likely violent break. |
+| **Confirmed Broad Selloff** | `mr` `Structural Decay` + `md` `flight_to_safety` | Both macro matrix and tier rotation confirm broad selloff. Highest urgency for defensive repositioning across the alt tier. |
+| **Capitulation Floor Confirmation** | `mr` `Capitulation` + `sp` High + `ft` OI `unwinding` + `ft` funding `negative` | All four conditions required — any one alone is insufficient. Closest the suite gets to a validated accumulation entry signal. |
+| **Barbell / Speculative Extension** | `md` `neutral` + `tail_extension: true` | Long-tail moving without confirmed rotation. Non-action state unless corroborated by rising `mb` timeframe spread. Inspect `tier_detail.small` for outlier concentration before acting. |
+
+## Response Construction Rules
+
+**Signal hierarchy — apply in order:**
+1. Check `status` on every result first. `degraded` or `unavailable` changes the answer before any data field is read.
+2. Scan Named Signal Combinations. If 2+ patterns agree → conclude, name the pattern. If patterns conflict → name the conflict explicitly; do not average signals away.
+3. Apply fuel-before-direction: check `sp.supply_trend_7d` before any directional call. A technically bullish setup with contracting stablecoin supply is a different answer than one with high dry powder.
+4. Read individual metric fields for aspects not covered by a named pattern.
+
+**Confidence field semantics — not uniform across metrics:**
+
+| Metric | `confidence` means |
+|---|---|
+| `lp`, `sp` | Cross-source validator agreement (data quality) |
+| `ft` | Signal completeness — all 3 signals present; NOT cross-source agreement (no validator exists) |
+| `mb` | Validator directional consensus + candle freshness; `low` = validator skipped, breadth score unaffected |
+| `md` | Tier completeness — ≥3 coins per tier computed |
+
+Treating all `confidence: "low"` fields the same will misread `mb` and `ft`.
+
+**Gotchas:**
+
+1. **`ft` has no composite score.** Three co-equal signals. Never summarize `flow-tension` as a single number. Use the `summary` field — do not re-derive it.
+
+2. **`ft` OI `"stable"` on first run is a cold-start artifact.** `change_pct_24h` is absent on first run; hook defaults to `"stable"`. Not a real signal — do not act on it if `open_interest.change_pct_24h` is missing from output.
+
+3. **`mb` `confidence: "low"` does not mean the breadth score is wrong.** It means the Binance validator was skipped (stale candle or parse failure). The breadth score is unaffected. Do not downgrade confidence in the breadth reading because of this flag.
+
+4. **`md` `top_heavy` / `flight_to_safety` dead band.** When `tier_averages.large` is within ±0.5% of zero, treat both labels as a single **Concentration** regime. The label flip at exactly zero is noise, not a signal.
+
+5. **`sp` `low` has two opposite meanings.** Always report `supply_trend_7d` alongside it: `stable`/`expanding` → Overextended (volatile market outgrew fuel); `contracting` → Capital Flight (money leaving crypto). Never report "low stablecoin power" without the supply trend.
+
+6. **CVD is taker aggression, not coins moving to exchanges.** It measures buy/sell imbalance within Binance-US spot. Do not describe it to users as "coins moving onto exchanges."
+
+## Quick Reference
+
+### Metrics
+
+| Metric | Alias | Unique Flags |
+|---|---|---|
+| `liquidity-pulse` | `lp` | — |
+| `stablecoin-power` | `sp` | `--top N` |
+| `flow-tension` | `ft` | — |
+| `market-breadth` | `mb` | `--top N` |
+| `momentum-divergence` | `md` | `--segments N` |
+| `market-regime` | `mr` | — |
+| `dominance` | `dom` | — |
+| `volatility` | `vol` | — |
+| `fear-greed-index` | `fgi` | — |
+| `china-m2` | `cnm2` | — |
+
+All metrics: `--detail basic|extended|full`. Use `--detail extended` minimum for `mr` — basic suppresses `notes`, `confidence`, and `dominance_cold_start`.
+
+Utility: `list-metrics`, `cache-clear`
+
+### Output Envelope
+
 Every invocation returns this structure on stdout:
 
     {
@@ -40,28 +105,29 @@ Every invocation returns this structure on stdout:
         {
           "metric": "liquidity-pulse",
           "status": "ok|degraded|unavailable",
-          "data": { ... },           # metric‑specific fields
-          "meta": { ... }            # omitted if --detail basic
+          "data": { ... },
+          "meta": { ... }    // omitted at --detail basic
         }
       ],
-      "error": {
-        "code": 429,
-        "msg": "rate_limited",
-        "retry_after_sec": 60,
-        "source": "coingecko"
-      }
+      "error": { "code": 429, "msg": "rate_limited", "retry_after_sec": 60, "source": "coingecko" }
     }
 
-- Single‑metric commands return a `results` array with one element (forward‑compatible).
-- `--detail basic` (default): `meta` omitted.
-- `--detail extended`: `meta` includes cache hit, TTL, source timestamps.
-- `--detail full`: `meta` includes thresholds, metric description.
+- `--detail basic` (default): `meta` omitted
+- `--detail extended`: `meta` includes cache hit, TTL, source timestamps
+- `--detail full`: `meta` adds thresholds and metric description
 
-## Error Handling
-- On rate limit (429): parse retry_after_sec, sleep, retry
-- On error: check error.source to determine which API failed
-- Never parse stderr — it contains debug logs only
-- Exit 0 for success AND handled errors; non‑zero only for unrecoverable failures
+### Error Handling
 
-## API Key Injection
-Precedence: --api-key flag (CoinGecko) > CRYPTOSPECT_COINGECKO_KEY / CRYPTOSPECT_BINANCE_KEY env vars > ~/.cryptospect.yaml
+- On 429: parse `retry_after_sec`, sleep, retry
+- On error: check `error.source` to identify which API failed
+- Never parse stderr — debug logs only
+- Exit 0 for success and handled errors; non-zero only for unrecoverable failures
+
+### API Key
+
+Precedence: `--api-key` flag > `CRYPTOSPECT_COINGECKO_KEY` / `CRYPTOSPECT_BINANCE_KEY` env vars > `~/.cryptospect.yaml`. Full config: [README.md](README.md).
+
+### Further Reference
+
+- CLI flags, config, caching, data sources: [README.md](README.md)
+- Per-metric output schemas, classification thresholds, field definitions: [`docs/metrics/<name>.md`](docs/metrics/)

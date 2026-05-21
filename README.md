@@ -106,7 +106,7 @@ Example tool definition for an agentic workflow:
 
 Use `--detail full` when feeding output to an LLM — it includes metric descriptions and thresholds that help the model interpret the data. Use `--detail basic` (the default) for lightweight agent loops where token economy matters.
 
-See [agents.md](agents.md) for the full orchestration playbook.
+See [agents.md](agents.md) for the reasoning guide: which metrics to run for a given question, 16 named cross-metric signal patterns to recognize, and rules for turning metric output into grounded answers.
 
 ## Output Format
 
