@@ -1,0 +1,51 @@
+version: 2
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: unix
+    binary: cryptospect-cli
+    main: ./cmd/cryptospect-cli/
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X github.com/afshinator/cryptospect-cli/internal/version.Value={{ .Version }}
+      - -X github.com/afshinator/cryptospect-cli/internal/version.tagged=true
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+  - id: windows
+    binary: cryptospect-cli
+    main: ./cmd/cryptospect-cli/
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X github.com/afshinator/cryptospect-cli/internal/version.Value={{ .Version }}
+      - -X github.com/afshinator/cryptospect-cli/internal/version.tagged=true
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: unix
+    formats: [tar.gz]
+    wrap_in_directory: true
+  - id: windows
+    formats: [zip]
+    wrap_in_directory: true
+
+checksum:
+  name_template: 'checksums.txt'
+
+release:
+  draft: false
+  name_template: '{{ .Tag }}'

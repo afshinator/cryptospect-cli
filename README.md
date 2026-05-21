@@ -1,251 +1,231 @@
 # cryptospect-cli
 
-A portable, zero-dependency CLI tool that fetches live cryptocurrency data, computes high-signal market regime metrics, and outputs them in a format optimized for AI agents and LLM tool-calling.
+A portable CLI tool that fetches live cryptocurrency data, computes high-signal market regime metrics, and outputs clean JSON — optimized for AI agents, LLM tool-calling, and MCP workflows.
 
-<!-- Image placeholder: add here -->
-<!-- ![cryptospect-cli](docs/images/cryptospect-cli.png) -->
 
-## Metrics
+![cryptospect-cli](./cryptospect-cli-03.png)
 
-Six signals, each answering a different question about current market conditions:
+## Getting Started
+
+### Download a pre-built binary
+
+Grab the latest release for your OS from the [Releases page](https://github.com/afshinator/cryptospect-cli/releases), extract it, and run:
+
+```bash
+# Linux / macOS
+tar xzf cryptospect-cli_*.tar.gz
+./cryptospect-cli list-metrics
+
+# Windows (PowerShell)
+tar xzf cryptospect-cli_*.zip
+./cryptospect-cli list-metrics
+```
+
+### Build from source
+
+```bash
+git clone https://github.com/afshinator/cryptospect-cli
+cd cryptospect-cli
+go build -o cryptospect-cli ./cmd/cryptospect-cli/
+./cryptospect-cli list-metrics
+```
+
+No API keys required — all metrics work on free public tiers.  But if you provide a (free) Coingecko api key, it'll work better!
+
+### Your first command
+
+```bash
+cryptospect-cli market-regime    # macro snapshot
+cryptospect-cli liquidity-pulse  # drill into liquidity
+cryptospect-cli --help           # all commands
+```
+
+## CoinGecko API Key (recommended)
+
+All 10 metrics work without any API key on free public tiers. However, **CoinGecko is the primary data source** for most metrics, and the free tier is rate-limited. A free CoinGecko Demo API key is strongly recommended for regular use — it relaxes rate limits and unlocks more reliable data on especially the `flow-tension` metric.
+
+Get a free key at [coingecko.com/en/developers](https://www.coingecko.com/en/developers), then set it one of three ways:
+
+```bash
+# Environment variable (recommended for agent/MCP use)
+export CRYPTOSPECT_COINGECKO_KEY=your_key_here
+
+# CLI flag (per-call)
+cryptospect-cli liquidity-pulse --api-key your_key_here
+
+# Config file (~/.cryptospect.yaml)
+apis:
+  coingecko:
+    api_key: your_key_here
+```
+
+## What It Measures
+
+Ten signals, each answering a different question about current market conditions:
 
 | Metric | Alias | What it tells you |
 |--------|-------|-------------------|
-| `liquidity-pulse` | `lp` | Is money actively moving, or is the market thin and idle? Measures 24h volume relative to total market cap. |
-| `stablecoin-power` | `sp` | How much dry powder is sitting on the sidelines? High stablecoin dominance signals latent buying capacity; a sharp drop signals rotation into risk assets. |
-| `flow-tension` | `ft` | Are buyers or sellers winning right now? CVD (cumulative volume delta) reveals who is absorbing pressure; OI trend and funding rate show whether the futures market agrees. |
-| `market-breadth` | `mb` | Is a move broad-based or driven by a handful of large caps? Measures how many of the top coins are participating across 1h / 24h / 7d / 30d windows. |
-| `momentum-divergence` | `md` | Where is capital rotating? Compares momentum across large-, mid-, and small-cap tiers — rotation into small caps signals risk-on appetite. |
-| `market-regime` | `mr` | What is the overall market state? Aggregates all five signals into a single regime label (e.g. Bull Trend, Stagnation, Capitulation) with a confidence score. |
-| `dominance` | `dom` | Is capital rotating into or out of BTC and ETH? Rising BTC dominance signals safety retreat; rising ETH dominance signals risk-on rotation. |
-| `volatility` | `vol` | Are markets calm or turbulent? Annualized realized volatility from 24h of hourly OHLC data; ETH/BTC vol spread flags elevated ETH speculation. |
-| `fear-greed-index` | `fgi` | What is the current crowd sentiment — fear or greed? Crypto Fear & Greed Index (0–100) with a 7-day MA trend. Contrarian overlay to directional metrics. |
-| `china-m2` | `cnm2` | Is China loosening or tightening monetary conditions? China M2 year-over-year change as a structural macro signal for risk-asset liquidity. |
+| `liquidity-pulse` | `lp` | Is money actively moving, or is the market thin and idle? |
+| `stablecoin-power` | `sp` | How much dry powder is sitting on the sidelines? |
+| `flow-tension` | `ft` | Are buyers or sellers winning right now? |
+| `market-breadth` | `mb` | Is a move broad-based or driven by a handful of large caps? |
+| `momentum-divergence` | `md` | Where is capital rotating across large-, mid-, and small-cap tiers? |
+| `market-regime` | `mr` | What is the overall market state? Aggregates all signals into a single regime label with a confidence score. |
+| `dominance` | `dom` | Is capital rotating into or out of BTC and ETH? |
+| `volatility` | `vol` | Are markets calm or turbulent? |
+| `fear-greed-index` | `fgi` | What is the current crowd sentiment — fear or greed? |
+| `china-m2` | `cnm2` | Is China loosening or tightening monetary conditions? |
 
-Run `market-regime` first for macro context, then drill into individual metrics for detail.
+**Good starting point:** run `market-regime`, `fgi`, and `cnm2` together for a macro picture, then drill into individual metrics.
 
-## Quick Start
+## Install
 
-    git clone https://github.com/afshinator/cryptospect-cli
-    cd cryptospect-cli
-    make build
-    ./bin/cryptospect-cli list-metrics
+```bash
+git clone https://github.com/afshinator/cryptospect-cli
+cd cryptospect-cli
+make build
+./bin/cryptospect-cli list-metrics
+```
 
-## Commands
+> For build details, Go version requirements, and development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
-### Market Regime Metrics — all 10 implemented
+## Agent & MCP Integration
 
-    cryptospect-cli liquidity-pulse      (alias: lp)   [--detail basic|extended|full]
-    cryptospect-cli stablecoin-power     (alias: sp)   [--detail basic|extended|full]  [--top N]
-    cryptospect-cli flow-tension         (alias: ft)   [--detail basic|extended|full]
-    cryptospect-cli market-breadth       (alias: mb)   [--detail basic|extended|full]  [--top N]
-    cryptospect-cli momentum-divergence  (alias: md)   [--detail basic|extended|full]  [--segments N]
-    cryptospect-cli market-regime        (alias: mr)   [--detail basic|extended|full]
-    cryptospect-cli dominance            (alias: dom)  [--detail basic|extended|full]
-    cryptospect-cli volatility           (alias: vol)  [--detail basic|extended|full]
-    cryptospect-cli fear-greed-index     (alias: fgi)  [--detail basic|extended|full]
-    cryptospect-cli china-m2             (alias: cnm2) [--detail basic|extended|full]
+Every invocation writes exactly one JSON object to stdout. Diagnostic logs go to stderr only. This makes `cryptospect-cli` easy to wrap as an LLM tool or MCP resource.
 
-### Utility
+Example tool definition for an agentic workflow:
 
-    cryptospect-cli list-metrics         # list all available metrics and their aliases
-    cryptospect-cli cache-clear          # clear the local API response cache
+```json
+{
+  "name": "crypto_market_regime",
+  "description": "Get the current overall crypto market state — regime label, confidence score, and contributing signals",
+  "parameters": {},
+  "command": "cryptospect-cli market-regime --detail full --output json"
+}
+```
 
-### Global Flags
+Use `--detail full` when feeding output to an LLM — it includes metric descriptions and thresholds that help the model interpret the data. Use `--detail basic` (the default) for lightweight agent loops where token economy matters.
 
-    --output, -o    Output format: json (default)
-    --verbose, -v   Enable debug logging on stderr
-    --detail        Detail level: basic (default), extended, full
-    --api-key       API key for CoinGecko authenticated endpoints
-    --config        Config file path (default $HOME/.cryptospect.yaml)
+See [agents.md](agents.md) for the full orchestration playbook.
 
 ## Output Format
 
-Every invocation writes exactly one JSON object to stdout. Diagnostic logs go to stderr only, gated by `--verbose`. Exit code is `0` for both success and handled errors (e.g. degraded data); non-zero only for unrecoverable failures.
-
 ### Success
 
+```json
+{
+  "status": "ok",
+  "ts": 1744444800,
+  "results": [
     {
+      "metric": "liquidity-pulse",
+      "version": "v1.0.0",
+      "namespace": "cryptospect",
       "status": "ok",
-      "ts": 1744444800,
-      "results": [
-        {
-          "metric": "liquidity-pulse",
-          "version": "v1.0.0",
-          "namespace": "cryptospect",
-          "status": "ok",
-          "data": { ... },
-          "meta": { ... }    // omitted with --detail basic (default)
-        }
-      ]
+      "data": { "..." : "..." },
+      "meta": { "..." : "..." }
     }
+  ]
+}
+```
 
 ### Error
 
-    {
-      "status": "error",
-      "ts": 1744444800,
-      "error": {
-        "code": 429,
-        "msg": "rate_limited",
-        "retry_after_sec": 60,
-        "source": "coingecko"
-      }
-    }
+```json
+{
+  "status": "error",
+  "ts": 1744444800,
+  "error": {
+    "code": 429,
+    "msg": "rate_limited",
+    "retry_after_sec": 60,
+    "source": "coingecko"
+  }
+}
+```
 
 ### Detail Levels
 
-- `--detail basic` (default): `meta` omitted — minimal payload for agents
-- `--detail extended`: `meta` includes `cache_hit`, `ttl_remaining_sec`, source timestamps
-- `--detail full`: `meta` adds thresholds and metric description
+| Flag | `meta` contents | Best for |
+|------|----------------|----------|
+| `--detail basic` (default) | omitted | lightweight agent loops |
+| `--detail extended` | cache hit, TTL remaining, source timestamps | debugging / monitoring |
+| `--detail full` | + thresholds and metric description | LLM tool input |
 
-### Pretty-print
+Exit code is `0` for both success and handled errors (e.g. degraded data); non-zero only for unrecoverable failures.
 
-By default output is compact (single line). To enable indented JSON, set `output.pretty: true` in your config file (see [Configuration](#configuration)). There is no CLI flag — this is a persistent preference, not a per-call option.
+## Commands
 
-    # compact (default)
-    {"status":"ok","ts":1744444800,"results":[...]}
+```bash
+cryptospect-cli liquidity-pulse      # alias: lp    [--detail basic|extended|full]
+cryptospect-cli stablecoin-power     # alias: sp    [--detail basic|extended|full]  [--top N]
+cryptospect-cli flow-tension         # alias: ft    [--detail basic|extended|full]
+cryptospect-cli market-breadth       # alias: mb    [--detail basic|extended|full]  [--top N]
+cryptospect-cli momentum-divergence  # alias: md    [--detail basic|extended|full]  [--segments N]
+cryptospect-cli market-regime        # alias: mr    [--detail basic|extended|full]
+cryptospect-cli dominance            # alias: dom   [--detail basic|extended|full]
+cryptospect-cli volatility           # alias: vol   [--detail basic|extended|full]
+cryptospect-cli fear-greed-index     # alias: fgi   [--detail basic|extended|full]
+cryptospect-cli china-m2             # alias: cnm2  [--detail basic|extended|full]
 
-    # pretty (output.pretty: true in config)
-    {
-      "status": "ok",
-      "ts": 1744444800,
-      "results": [...]
-    }
+cryptospect-cli list-metrics         # list all metrics and aliases
+cryptospect-cli cache-clear          # clear the local API response cache
+```
 
-The `-o` / `--output` flag currently only accepts `json` and exists as a forward-compatibility placeholder for future formats (e.g. `csv`, `text`).
+### Global Flags
 
-## API Keys
+```
+--output, -o    Output format: json (default)
+--verbose, -v   Enable debug logging on stderr
+--detail        Detail level: basic (default), extended, full
+--api-key       CoinGecko API key (per-call override)
+--config        Config file path (default: ~/.cryptospect.yaml)
+```
 
-All 10 metrics work without any API key on the free public tiers. Keys are optional and unlock higher rate limits or additional data sources.
+## Caching
 
-| Key | How to set | Status | What it unlocks |
-|-----|-----------|--------|-----------------|
-| `CRYPTOSPECT_COINGECKO_KEY` | Env var, config, or `--api-key` | Implemented | CoinGecko Demo tier — appended as `x_cg_demo_api_key` on the `/derivatives` endpoint used by `flow-tension`; relaxes rate limits |
-| `CRYPTOSPECT_BINANCE_KEY` | Env var or config | Not yet wired | Reserved for Binance Futures (OI, funding rate); the key is read from config but not passed to any request today (only Binance US spot is implemented) |
+The tool caches API responses to disk so that running multiple metrics back-to-back stays fast and rate-limit safe. The cache is shared — a `market-regime` call reuses the same CoinGecko response that `liquidity-pulse` fetched moments earlier. Running all ten metrics typically triggers only 3–4 actual API calls.
 
-Key precedence (highest to lowest):
+Cache location: `~/.cryptospect-cli/cache/` (override with `cache.dir` in config).
 
-1. CLI flag: `--api-key` (maps to CoinGecko)
-2. Environment variables: `CRYPTOSPECT_COINGECKO_KEY`, `CRYPTOSPECT_BINANCE_KEY`
-3. Config file: `~/.cryptospect.yaml` (see [Configuration](#configuration))
+```bash
+cryptospect-cli cache-clear   # force fresh data after a market event or key change
+```
 
-Without a CoinGecko key, `flow-tension` fetches the `/derivatives` endpoint without authentication and may hit public rate limits; it falls back to spot-CVD only and reports `status: degraded` if the endpoint is unavailable.
-
-## Cache
-
-Each metric fetches data from one or more free public APIs (CoinGecko, Binance US, DefiLlama). These APIs are rate-limited, and some endpoints are slow. Without caching, running several metrics in quick succession would exhaust free-tier rate limits and make every call wait on the network.
-
-The cache stores each API response on disk, keyed by endpoint. Subsequent calls within the TTL window read from disk instead of hitting the network — this makes repeated or back-to-back metric calls fast and rate-limit safe.
-
-**What happens when you run a metric:**
-
-1. **First run (cold cache):** the tool fetches from the API, writes the response to disk, and returns the result. This is the slowest path — expect a brief network delay.
-2. **Within TTL (warm cache):** the tool reads from disk. Fast, no network call. `--detail extended` will show `cache_hit: true` and the seconds remaining.
-3. **TTL expired:** the tool fetches fresh data, updates the cache, and returns the result.
-4. **API unreachable, stale cache exists:** the tool uses the expired cached response and reports `status: degraded` — you still get a result, but it may be minutes or hours old.
-5. **API unreachable, no cache:** the metric reports `status: unavailable` with an error message.
-
-**Cache location:** `~/.cryptospect-cli/cache/` by default. Override with `cache.dir` in your config file.
-
-**TTLs** (approximate defaults):
-
-| Source | Endpoint | TTL |
-|--------|----------|-----|
-| CoinGecko | Global market, stablecoins | 300 s |
-| CoinGecko | Coin markets (breadth, momentum) | 300 s |
-| Binance US | Spot klines (CVD) | 60 s |
-| DefiLlama | Stablecoins | 300 s |
-
-The cache is **shared across all metrics** — a `market-regime` call will reuse the same CoinGecko response that `liquidity-pulse` fetched moments earlier. Running all six metrics back-to-back typically results in only 3–4 actual API calls.
-
-**Clearing the cache:**
-
-    cryptospect-cli cache-clear
-
-Use this to force fresh data after a market event, after changing API keys, or to troubleshoot unexpectedly stale output. The cache repopulates automatically on the next metric call.
-
-## Agent Integration
-
-Example LLM tool definition for agentic workflows:
-
-    {
-      "name": "crypto_liquidity_pulse",
-      "description": "Get the current liquidity pulse metric for the crypto market",
-      "parameters": {},
-      "command": "cryptospect-cli liquidity-pulse --detail full --output json"
-    }
-
-See `agents.md` for the full orchestration playbook.
+If an API is unreachable and a cached response exists, the tool uses it and reports `status: degraded`. If there's no cache at all, it reports `status: unavailable`.
 
 ## Configuration
 
-The config file lives at `~/.cryptospect.yaml` by default. Override with `--config /path/to/file`. The file must have permissions `0600` or stricter (the tool refuses to read world-readable configs).
-
-Full example with all supported fields:
+Config file lives at `~/.cryptospect.yaml`. Must have permissions `0600` or stricter.
 
 ```yaml
-# ~/.cryptospect.yaml
-
 apis:
   coingecko:
-    api_key: ""          # or set CRYPTOSPECT_COINGECKO_KEY env var
-  binance:
-    api_key: ""          # or set CRYPTOSPECT_BINANCE_KEY env var
+    api_key: ""        # or set CRYPTOSPECT_COINGECKO_KEY env var
 
 cache:
   enabled: true
-  dir: ""                # default: ~/.cryptospect-cli/cache/
-  ttl:                   # per-endpoint TTL overrides (seconds)
+  dir: ""              # default: ~/.cryptospect-cli/cache/
+  ttl:
     coingecko.global_market: 300
     binance.spot_cvd_btc_1h: 60
 
 output:
-  format: json           # only "json" supported today
-  pretty: false          # set true for indented JSON output
+  format: json
+  pretty: false        # set true for indented JSON output
 ```
 
-Key precedence (highest to lowest): CLI flag `--api-key` → env var → config file.
+Key precedence (highest → lowest): CLI flag `--api-key` → environment variable → config file.
 
 ## Data Sources
 
-- CoinGecko (free tier, primary — global market, stablecoins, derivatives, coin markets)
-- Binance US (free tier — spot CVD klines, hourly volatility candles)
-- alternative.me (free tier, 10 req/min — Fear & Greed Index)
-- DBnomics (free tier — China M2 money supply)
-- DefiLlama (free tier — stablecoin data)
-
-## Build
-
-    make build    # compile to bin/cryptospect-cli (static binary, CGO_ENABLED=0)
-    make fmt      # format with goimports + gofumpt
-    make lint     # run golangci-lint v2
-    make vet      # run go vet
-    make test     # run tests with race detector and coverage
-    make clean    # remove build artifacts
-
-**`make build` vs `go build`**
-
-`make build` produces a stripped static binary with `CGO_ENABLED=0 GOOS=linux GOARCH=amd64`. It also injects a version string from the nearest git tag (if one exists).
-
-`go build -o ./cryptospect-cli ./cmd/cryptospect-cli/` is faster for development — it skips cross-compilation and produces a debug binary. The version will show `v1.0.0 (commit-dirty)` using the commit hash from build metadata.
-
-**Version strings**
-
-| Build method | Example version |
-|---|---|
-| `make build` with a git tag | `v1.0.0` |
-| `make build` without a tag (current) | `v1.0.0 (0fedbf2-dirty)` |
-| `go build` (dev) | `v1.0.0 (0fedbf2-dirty)` |
-
-The source default is always `v1.0.0`. `make build` overrides it via ldflags when a tag exists.
-
-*(No git tags exist yet — both `make build` and `go build` currently produce the dev format.)*
-
-## Requirements
-
-- Go 1.25+ (see .go-version for exact patch)
-- golangci-lint v2.11+ (for linting only, not required to build)
+| Source | Used for |
+|--------|----------|
+| CoinGecko (free tier) | Global market, stablecoins, derivatives, coin markets — primary source |
+| Binance US (free tier) | Spot CVD klines, hourly volatility candles |
+| alternative.me (free tier) | Fear & Greed Index |
+| DBnomics (free tier) | China M2 money supply |
+| DefiLlama (free tier) | Stablecoin data |
 
 ## License
 
