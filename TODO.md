@@ -1,5 +1,26 @@
 # TODO
 
+## Post-v1: Remove LLM tool config from repo
+
+**Priority:** Low (deferred until after v1 deploy)
+
+These files are currently tracked in git because development switches between machines and they need to roam with the repo. Once v1 is deployed and the multi-machine dev workflow stabilises, they should be removed from git tracking and added to `.gitignore`.
+
+Files to untrack (keep locally, not in repo):
+
+- `.cursorrules` — symlink to `agents.md`; Cursor IDE AI rules
+- `.agents/` — agent framework skill definitions
+- `.config/opencode/` — OpenCode agent config (`AGENTS.md`)
+- `.pi-lens/` — Pi agent state files
+- `skills-lock.json` — Dex/superpowers skill engine lock
+- `.dex/` — Dex task engine state (`tasks.jsonl`)
+
+**`agents.md` stays tracked** — it's project documentation that informs LLMs how to use the tool.
+
+Execution (when ready): add all the above to `.gitignore`, then `git rm --cached` each entry, commit as `chore: untrack LLM tool config files`.
+
+---
+
 ## China M2: Add PBoC as data source
 
 **Priority:** Medium (DBnomics has 82-day lag as of 2026-05-20, approaching 90-day confidence downgrade)
