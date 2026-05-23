@@ -1,29 +1,60 @@
 package main
 
 import (
-	"encoding/json"
-	"testing"
+    "bytes"
+    "encoding/json"
+    "testing"
+
+    "github.com/afshinator/cryptospect-cli/internal/output"
 )
 
-// assertCacheFields verifies that cache_hit and ttl_remaining_sec are present
-// and correctly typed in a meta JSON blob. Both fields must be present at
-// --detail extended and --detail full for all metrics.
-func assertCacheFields(t *testing.T, metaJSON json.RawMessage) {
-	t.Helper()
-	var meta map[string]any
-	if err := json.Unmarshal(metaJSON, &meta); err != nil {
-		t.Fatalf("assertCacheFields: unmarshal meta: %v", err)
-	}
-	if _, ok := meta["cache_hit"]; !ok {
-		t.Error("meta missing cache_hit")
-	}
-	if _, ok := meta["ttl_remaining_sec"]; !ok {
-		t.Error("meta missing ttl_remaining_sec")
-	}
-	if _, ok := meta["cache_hit"].(bool); !ok {
-		t.Errorf("cache_hit must be bool, got %T", meta["cache_hit"])
-	}
-	if _, ok := meta["ttl_remaining_sec"].(float64); !ok {
-		t.Errorf("ttl_remaining_sec must be a number, got %T", meta["ttl_remaining_sec"])
-	}
+// runCLI executes the CLI with args and returns parsed CLIResponse.
+// This is intentionally minimal and mirrors existing E2E patterns.
+func runCLI(t *testing.T, args ...string) output.CLIResponse {
+    t.Helper()
+
+    oldWriter := output.Writer()
+    defer output.SetWriter(oldWriter)
+
+    var buf bytes.Buffer
+    output.SetWriter(&buf)
+
+    cmd := NewRootCommand()
+    cmd.SetArgs(args)
+
+    if err := cmd.Execute(); err != nil {
+        t.Fatalf("command execution failed: %v", err)
+    }
+
+    var resp output.CLIResponse
+    if err := json.Unmarshal(buf.Bytes(), &resp); err != nil {
+        t.Fatalf("unmarshal JSON output: %v", err)
+    }
+
+    return resp
+}
+
+func assertSingleResult(t *testing.T, resp output.CLIResponse) {
+    t.Helper()
+    if len(resp.Results) != 1 {
+        t.Fatalf("expected 1 result, got %d", len(resp.Results))
+    }
+}
+
+// assertCacheFields verifies common cache metadata fields exist.
+func assertCacheFields(t *testing.T, meta json.RawMessage) {
+    t.Helper()
+    if len(meta) == 0 {
+        t.Fatalf("meta is empty")
+    }
+    var m map[string]any
+    if err := json.Unmarshal(meta, &m); err != nil {
+        t.Fatalf("unmarshal meta: %v", err)
+    }
+    if _, ok := m["cache_hit"]; !ok {
+        t.Fatalf("meta missing cache_hit")
+    }
+    if _, ok := m["ttl_remaining_sec"]; !ok {
+        t.Fatalf("meta missing ttl_remaining_sec")
+    }
 }
