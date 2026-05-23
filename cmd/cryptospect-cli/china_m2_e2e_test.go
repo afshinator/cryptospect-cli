@@ -35,3 +35,23 @@ func TestChinaM2Command_E2E(t *testing.T) {
         }
     }
 }
+
+func TestChinaM2Alias_E2E(t *testing.T) {
+    resp := runCLI(t, "cnm2")
+    assertSingleResult(t, resp)
+    if resp.Results[0].Metric != "china-m2" {
+        t.Fatalf("alias failed, got %v", resp.Results[0].Metric)
+    }
+}
+
+func TestChinaM2DetailFull_E2E(t *testing.T) {
+    resp := runCLI(t, "cnm2", "--detail", "full")
+    assertSingleResult(t, resp)
+    res := resp.Results[0]
+    if (res.Status == "ok" || res.Status == "degraded") && res.Meta == nil {
+        t.Fatal("expected meta for full detail")
+    }
+    if res.Meta != nil {
+        assertCacheFields(t, res.Meta)
+    }
+}

@@ -38,3 +38,23 @@ func TestDominanceCommand_E2E(t *testing.T) {
         }
     }
 }
+
+func TestDominanceAlias_E2E(t *testing.T) {
+    resp := runCLI(t, "dom")
+    assertSingleResult(t, resp)
+    if resp.Results[0].Metric != "dominance" {
+        t.Fatalf("alias failed, got %v", resp.Results[0].Metric)
+    }
+}
+
+func TestDominanceDetailFull_E2E(t *testing.T) {
+    resp := runCLI(t, "dom", "--detail", "full")
+    assertSingleResult(t, resp)
+    res := resp.Results[0]
+    if (res.Status == "ok" || res.Status == "degraded") && res.Meta == nil {
+        t.Fatal("expected meta for full detail")
+    }
+    if res.Meta != nil {
+        assertCacheFields(t, res.Meta)
+    }
+}

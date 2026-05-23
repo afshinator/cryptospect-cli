@@ -35,3 +35,23 @@ func TestFGICommand_E2E(t *testing.T) {
         }
     }
 }
+
+func TestFGIAlias_E2E(t *testing.T) {
+    resp := runCLI(t, "fgi")
+    assertSingleResult(t, resp)
+    if resp.Results[0].Metric != "fear-greed-index" {
+        t.Fatalf("alias failed, got %v", resp.Results[0].Metric)
+    }
+}
+
+func TestFGIDetailFull_E2E(t *testing.T) {
+    resp := runCLI(t, "fgi", "--detail", "full")
+    assertSingleResult(t, resp)
+    res := resp.Results[0]
+    if (res.Status == "ok" || res.Status == "degraded") && res.Meta == nil {
+        t.Fatal("expected meta for full detail")
+    }
+    if res.Meta != nil {
+        assertCacheFields(t, res.Meta)
+    }
+}
