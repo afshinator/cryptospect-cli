@@ -97,3 +97,74 @@ PBoC English site at `https://www.pbc.gov.cn/english/` returns 403 Forbidden. No
 - Yearly URL change (`2026ntjsj` → `2027ntjsj` in January) — the code should construct the URL dynamically from `time.Now().Year()`
 - Data is published monthly, typically around 14th–15th of the following month
 - Units in XLSX are "亿元人民币" (100 million yuan) — same as DBnomics; divide by 10 to get CNY billion
+
+---
+
+Your `CLAUDE.md` is a phenomenal technical resource, but it is currently serving two completely different masters: **your project contributors** (the development guidelines) and **the LLM/AI agents** using the tool (the orchestration rules).
+
+Because it contains internal development rules (like style guides, make commands, and project status), copy-pasting it directly into an agent's context window wastes valuable tokens and introduces noise.
+
+Here is an evaluation of your current file and a breakdown of how to turn it into a high-visibility marketing asset for the AI developer community:
+
+### 1. What’s Already Great in Your `CLAUDE.md`
+
+* 
+**Clear Orchestration Sequence:** The "Orchestration" section at the bottom is exactly what an agent needs. Telling the agent to run `market-regime` first to understand the macro context before drilling down is a brilliant top-down framework.
+
+
+* 
+**Flag Instructions:** Telling the agent to use `--detail full` to get thresholds and descriptions ensures the LLM doesn't have to hallucinate what an arbitrary score means.
+
+
+* 
+**Pure JSON Input/Output Guardrails:** Explicitly stating that stdout is *always* valid JSON and stderr handles diagnostics keeps the agent from breaking when handling command outputs.
+
+
+
+### 2. The Big Optimization Opportunity: Structural Split
+
+To capture the attention of developers looking for turn-key "agent brains," you should split this document into two distinct assets in your repository:
+
+1. 
+**Keep `CLAUDE.md` purely for development:** Retain the project status, testing conventions, and build instructions so Claude can seamlessly maintain your Go code.
+
+
+2. 
+**Extract a dedicated `agents.md` (or `docs/agent-orchestration.md`):** This is your marketing goldmine. This file will be explicitly written for external developers to plug directly into their agent systems.
+
+
+
+### 3. Draft Blueprint for Your New `agents.md`
+
+By packaging this nicely in your repository, you provide a copy-pasteable configuration file that developers can instantly feed into LangChain, AutoGPT, CrewAI, or Claude Desktop.
+
+Here is how you can expand and format your existing rules into a standalone agent blueprint:
+
+```markdown
+# Crypto Agent Orchestration Guide (cryptospect-cli)
+
+This document is optimized for LLMs and AI Agents utilizing `cryptospect-cli`. Feed this guide directly into your agent's system prompt or context window to enable expert quantitative analysis.
+
+## Core Rules for the Agent
+1. **Always Use JSON Mode:** Invoke commands with the default output format. Rely on stdout containing a structured `CLIResponse` envelope. Ignore diagnostic text on stderr.
+2. **Request Full Details for Analysis:** Always append the `--detail full` flag when performing reasoning. This appends quantitative thresholds and metric descriptions directly inside the `meta` object, allowing you to ground your conclusions without guessing bounds.
+3. **Budget Tokens with Basic Mode:** For frequent background polling loops where reasoning is not required, use `--detail basic` to omit metadata and minimize your context footprint.
+
+## Sequential Discovery Framework (The Brain)
+To diagnose the crypto market accurately, never query metrics in a random order. Follow this multi-tiered analytical flow:
+
+1. **Macro Context First:** Always execute `cryptospect-cli market-regime` (alias: `mr`) first. Establish the overarching macro state (e.g., capitulation, expansion) and note the weighted macro confidence score.
+2. **Liquidity & Flow Drilldown:** If the market regime shows high conviction or shifting dominance, isolate the moving forces by executing:
+   - `liquidity-pulse` (`lp`) to determine if real capital is active or idle.
+   - `flow-tension` (`ft`) to identify immediate spot CVD direction (buyers vs. sellers).
+3. **Capital Rotation:** Execute `momentum-divergence` (`md`) and `market-breadth` (`mb`) to evaluate if market movements are supported by the broader ecosystem or artificial large-cap manipulation.
+
+## Advanced Signal Patterns to Recognize
+As an advanced analyst agent, look for the following cross-metric patterns:
+
+* **Ghost Rally Divergence:** Detected when `market-regime` notes a structural breadth failure, or when large caps push higher but `market-breadth` (`mb`) fails across multi-timeframe composites. This indicates an unstable, non-inclusive rally.
+* **Flow Tension Fatigue:** When price is flat or falling but `flow-tension` (`ft`) indicates strong buying consensus via Binance spot CVD, watch for an imminent liquidity pop or short squeeze.
+* **Dry Powder Expansion:** A surge in `stablecoin-power` (`sp`) paired with a high-fear macro state (`fear-greed-index` / `fgi`) indicates massive sideline liquidity waiting to buy a capitulation bottom.
+
+```
+
