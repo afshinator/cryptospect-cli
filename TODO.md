@@ -100,7 +100,7 @@ PBoC English site at `https://www.pbc.gov.cn/english/` returns 403 Forbidden. No
 
 ---
 
-Your `CLAUDE.md` is a phenomenal technical resource, but it is currently serving two completely different masters: **your project contributors** (the development guidelines) and **the LLM/AI agents** using the tool (the orchestration rules).
+The `CLAUDE.md` file is a phenomenal technical resource, but it is currently serving two completely different masters: **your project contributors** (the development guidelines) and **the LLM/AI agents** using the tool (the orchestration rules).
 
 Because it contains internal development rules (like style guides, make commands, and project status), copy-pasting it directly into an agent's context window wastes valuable tokens and introduces noise.
 
@@ -168,3 +168,6 @@ As an advanced analyst agent, look for the following cross-metric patterns:
 
 ```
 
+---
+
+## Implement MCP wrapper for tool - tbd.

@@ -4,7 +4,7 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 **Source of truth:** `Design‑Decisions.md` — all conventions, schemas, and build order are defined there.
 
-## Project Status (2026‑05‑13)
+## Project Status (2026‑05‑24)
 - **liquidity-pulse complete:** lp-1 through lp-7 all done
 - **stablecoin-power complete:** sp-1 through sp-7 all done
 - **flow-tension complete:** ft-1 through ft-9 all done
@@ -12,7 +12,8 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 - **momentum-divergence complete:** md v1.1.0. Market-cap weighted tier averages with configurable `--segments` flag (default 5), cache starvation guard. 92.8% coverage.
 - **market-regime complete:** mr v1.0.0. Aggregator metric — calls lp/sp/ft/mb Compute functions internally via pure-Go imports. 10-regime classification matrix (dominance × breadth × conviction, capitulation split), weighted macro confidence scoring, dominance-cold-start detection, Ghost Rally divergence passthrough. 92.1% coverage. 67 compute/provider tests + 6 E2E tests.
 - **Original 6 metrics complete** (lp, sp, ft, mb, md, mr) with full E2E test suites.
-- **4 additional metrics implemented** — `dominance` (`dom`), `fear-greed-index` (`fgi`), `china-m2` (`cnm2`), `volatility` (`vol`) — golden + provider tests; no E2E tests yet.
+- **4 additional metrics implemented** — `dominance` (`dom`), `fear-greed-index` (`fgi`), `china-m2` (`cnm2`), `volatility` (`vol`) — with full E2E test suites.
+- **All 10 metrics complete** with golden, provider, and E2E tests.
 - **Binance KlinesData extended:** Close, Open, OpenTime added (additive — FT and LP unaffected)
 - **CoinGecko CoinMarketsBreadthData restructured:** per-timeframe GreenCount/TotalCount with BTC reference extraction
 
@@ -67,9 +68,5 @@ CLI tool that fetches live crypto data, computes market regime metrics, and outp
 
 ## Documentation
 - **Source‑truth:** `docs/metrics/<metric>.md` (Overview, Formula, Output Schema, Interpretation, Data Source)
-
-## Orchestration (for agents calling this tool)
-1. Run `market-regime` first to establish macro context
-2. Follow up with individual metrics for drill-down: `liquidity‑pulse`, `stablecoin‑power`, `flow‑tension`, `market‑breadth`, `momentum‑divergence`, `dominance`, `fear-greed-index`, `china-m2`, `volatility`
-3. Use `--detail full` for thresholds and descriptions
-4. Always pass `--output json` (default)
+- **Agent guide:** `agents.md` — consumer-facing orchestration guide for LLMs using this tool
+- **Design decisions:** `Design-Decisions.md` — conventions, schemas, build order

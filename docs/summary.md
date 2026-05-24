@@ -1,8 +1,8 @@
-update 5/11/26
+update 5/24/26
 
 cryptospect-cli — Summary
-A Go CLI tool (single static binary, CGO_ENABLED=0) that fetches live crypto data, computes market regime metrics, and outputs agent-optimized JSON. Built with Cobra+Viper, keyless public APIs (CoinGecko, Binance US, DefiLlama). Every invocation writes exactly one JSON object to stdout — an CLIResponse envelope with a results array of MetricResult entries. Stderr is diagnostics only. Agents are meant to call individual metric commands and compose their own analysis.
-5 of 6 metrics are production-implemented. Market-regime (mr) is the last remaining scaffold.
+A Go CLI tool (single static binary, CGO_ENABLED=0) that fetches live crypto data, computes market regime metrics, and outputs agent-optimized JSON. Built with Cobra+Viper, keyless public APIs (CoinGecko, Binance US, DefiLlama, DBnomics, alternative.me). Every invocation writes exactly one JSON object to stdout — an CLIResponse envelope with a results array of MetricResult entries. Stderr is diagnostics only. Agents are meant to call individual metric commands and compose their own analysis.
+All 10 metrics are production-implemented.
 ---
 Implemented Metrics — Definitions & Implementation Fidelity
 1. liquidity-pulse (lp) — v1.0.0
@@ -41,9 +41,33 @@ mid_vs_large = mid_avg - large_avg  (nil-safe via *float64)
 Classification: risk_on (mid_vs_large > +5.0pp AND mid_avg > 1.0), top_heavy (mid_vs_large < -3.0pp AND large_avg > +0.5), flight_to_safety (mid_vs_large < -3.0pp AND large_avg < -0.5), neutral (all else, including ±0.5% dead band). tail_extension decoupled from label.
 Data sources: CoinGecko /coins/markets (single call, same endpoint key as mb — cache-sharing). No cross-source validator (BTC CVD was explicitly rejected as adversarial). --segments flag (e.g., 10,50,200).
 Implementation fidelity: HIGH. Market-cap weighted means (v1.1), nil-safe spreads, concentration dead band, tail extension decoupled from label, cache starvation guard (CoinCount < 250 → low confidence), configurable --segments. tier_detail at full detail. delta_24h and volume conviction deferred to v1.2.
----
-market-regime (mr) — The Last Metric
-Current state: 47-line scaffold. Compute() returns "metric not yet implemented: market-regime" with status "unavailable". No compute.go, no types.go, no metric doc at docs/metrics/market-regime.md.
-What it should be (inferred from design): Intended as the composite/macro metric — the one that synthesizes outputs from the other five metrics into a single market regime classification. The orchestration playbook says "run regime first to establish macro context." Its endpoints are defined in the scaffold: coingecko.global_market and coingecko.coin_markets_breadth.
-Key design question for implementation: Should market-regime be a pure aggregator that calls other metric Compute() functions internally (importing lp/sp/ft/mb/md packages), or should it re-fetch raw data and compute its own signals + classify? The playbook says "regime first" which implies it could be a lightweight aggregator that reads other metrics' outputs and produces a synthesis. But the scaffold has its own endpoints, suggesting an independent computation.
-Dependencies on other metrics (for the aggregator approach): liquidity-pulse's volume_to_mcap_ratio, stablecoin-power's stable_power_ratio + supply_trend_7d, flow-tension's CVD/OI/funding hooks, market-breadth's score + divergence_detected, momentum-divergence's label + tail_extension. These would inform a regime classification like "Bull Trend," "Risk-On Expansion," "Defensive/Accumulation," "Bear Trend," etc.
+6. china-m2 (cnm2) — v1.0.0
+What it measures: China M2 money supply YoY % change — a macro liquidity indicator with historically strong correlation to Bitcoin price cycles. China's M2 (~$47T) is ~2.2× larger than US M2.
+Formula: yoy_change_pct = ((current_value - value_12_months_ago) / value_12_months_ago) × 100
+Classification: expanding (YoY > 8%), normal (4%–8%), slowing (YoY < 4%)
+Data sources: DBnomics (National Bureau of Statistics of China series NBS/M_A0D01/A0D0101). Monthly frequency. Cold start: ≥13 months of history required for YoY; first run returns level only with confidence "medium."
+Implementation fidelity: HIGH. YoY computation, cold-start handling, 30-day cache TTL, data_lag_days in meta. Monthly frequency correctly reflected in output.
+7. dominance (dom) — v1.0.0
+What it measures: BTC and ETH market cap dominance — percentage of total crypto market cap held by each. Trend detection via delta from prior cached snapshot.
+Formula: btc_dominance = BTC.mcap / total_mcap; eth_dominance = ETH.mcap / total_mcap. Dominance trend via dead-banded delta: BTC ±0.5pp, ETH ±0.3pp.
+Classification: btc_rising, eth_rising, neutral, capital_contracting (both falling). Cold start: trends default to "neutral" with cold_start: true.
+Data sources: CoinGecko /global market_cap_percentage map (same endpoint as lp/sp). State cache key for prior-snapshot delta computation (48h TTL, 24h max snapshot age).
+Implementation fidelity: HIGH. BTC and ETH dominance values, dead-banded trend classification, priority label selection, cold-start handling, eth_btc_ratio derived field. delta_24h deferred.
+8. fear-greed-index (fgi) — v1.0.0
+What it measures: Crypto Fear & Greed Index (0–100) from alternative.me — the industry-standard sentiment oscillator. Contrarian overlay to directional metrics.
+Formula: Raw integer 0–100 value. 7-day MA and trend direction when ≥7 days of history available. Trend: improving/deteriorating/stable with ±2 dead band.
+Classification: extreme_fear (0–25), fear (26–45), neutral (46–55), greed (56–75), extreme_greed (76–100). Classification computed from numeric value, not parsed from API string.
+Data sources: alternative.me /fng/ endpoint. 7-day history fetched for MA + trend. 24h TTL (index updates once daily). Rate limit: 10/min.
+Implementation fidelity: HIGH. 5-band classification, 7-day MA, trend direction with dead band, cold-start handling (<7 days history drops confidence to "medium").
+9. volatility (vol) — v1.0.0
+What it measures: Annualized realized volatility for BTC and ETH from hourly OHLC data, plus ETH/BTC volatility spread — a standard crypto volatility desk metric.
+Formula: log_returns[i] = ln(close[i] / close[i-1]) for 24 hourly candles (23 returns). realized_vol = std(log_returns) × sqrt(8760). vol_spread = eth_vol / btc_vol.
+Classification: subdued (spread < 0.8), normal (0.8–1.5), elevated (spread > 1.5). Individual vol bands (Low/Normal/High/Extreme) in meta at full detail.
+Data sources: Binance US spot klines — BTCUSDT and ETHUSDT 1h candles (24 each). 1h TTL (tactical metric).
+Implementation fidelity: HIGH. Sample stddev (n-1), annualization via sqrt(8760), vol spread with classification, per-asset vol band metadata. Realized vol is backward-looking (documented limitation).
+10. market-regime (mr) — v1.0.0
+What it measures: The macro "Master State" indicator — composite regime classification via a 2×3 matrix (Dominance Trend × Market Breadth), gated by BTC price direction (modifier) and liquidity conviction. Answers: "What structural phase is the market in?"
+Formula: 2×3 matrix with 10 named regime labels. Signals: (1) BTC Dominance delta from cached prior snapshot with ±0.5pp dead band, (2) Market Breadth Score computed via mbv1.Compute() import (guarantees identical output to mb), (3) Liquidity Pulse ratio for conviction. Modifier: BTC 24h price change (+0.5pp dead band).
+Classification (10 regimes): BTC-Led Expansion, Institutional Build, Flight to Safety, Steady Appreciation, Consolidation, Stagnation, Alt-Season / Mania, Capital Rotation, Structural Decay, Capitulation. Capitulation requires high conviction (lp_ratio > 0.15). Modifier is independent of regime label. Conviction and description branching for Consolidation/Stagnation Pressure Cooker variants.
+Data sources: CoinGecko /global (dominance + lp_ratio) and /coins/markets (breadth + BTC price). Endpoint cache shared with lp, sp, mb, md. Dominance delta via state cache key marketregime_dominance_pct (prior snapshot comparison). No cross-source validator in v1 (BTC CVD explicitly rejected as adversarial for a dominance-anchored metric).
+Implementation fidelity: HIGH. Direct mbv1.Compute() import for breadth consistency, cold-start handling (dominance_cold_start: true, notes: ["cold_start"], confidence: "medium"), weight redistribution detection, missing BTC reference fallback (modifier defaults to "neutral", confidence: "low"), summary reliability tokens ([SIGNAL_UNVERIFIED], [MISSING_BTC_REF], [BREADTH_PARTIAL]) at all detail levels, conviction-aware branching for all regime labels, Capitulation sub-states (abnormal_capitulation, capitulation_price_stabilizing), cache_hit inference, ttl_remaining_sec computed as min of both endpoint TTLs. cache_hint_sec: 14400 (structural metric). divergent_momentum and Phase overlay deferred to v1.1.
