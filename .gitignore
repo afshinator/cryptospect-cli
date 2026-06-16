@@ -48,8 +48,10 @@ tmp/
 graphify-out/
 
 # Agent/editor config (local only)
+.mcp.json
 .cursorrules
 commandcode/
+.commandcode/
 .config/opencode/
 .claude/
 .dex/
