@@ -34,111 +34,28 @@ No API keys required — all metrics work on free public tiers.  But if you prov
 
 ### Quick Example
 
-Get the macro picture — one command, no API key needed:
+Get the macro picture in one command — no API key needed:
 
 ```bash
-cryptospect-cli market-regime --detail full
+cryptospect-cli market-regime --detail extended
 ```
 
-Real output (pretty-printed for readability; actual stdout is single-line JSON):
+This returns the structural regime label (`Institutional Build`, `Alt-Season`, `Flight to Safety`, etc.), BTC dominance trend, breadth snapshot, and conviction level. It is always the right first call — everything else is context layered on top of it.
 
-<details>
-<summary>Click to expand — real market-regime output</summary>
-
-```json
-{
-  "status": "ok",
-  "ts": 1781566542,
-  "results": [
-    {
-      "metric": "market-regime",
-      "version": "v1.0.0",
-      "namespace": "cryptospect",
-      "status": "ok",
-      "data": {
-        "regime": "Consolidation",
-        "modifier": "positive_momentum",
-        "dominance_trend": "neutral",
-        "conviction": "low",
-        "market_breadth_score": 0.5567,
-        "classification": {
-          "label": "Consolidation",
-          "description": "Consolidation — market seeking direction, mixed participation"
-        },
-        "summary": "Dominance neutral, breadth mixed — Consolidation. Market seeking direction; do not increase exposure."
-      },
-      "meta": {
-        "btc_24h_change": 0.98,
-        "btc_dominance_pct": 56.47,
-        "cache_hit": true,
-        "confidence": "high",
-        "primary_source": "coingecko",
-        "thresholds": {
-          "breadth_broad": 0.6,
-          "breadth_narrow": 0.4,
-          "btc_dir_dead_band_pct": 0.5,
-          "conviction_high": 0.15,
-          "conviction_low": 0.07,
-          "dom_dead_band_pp": 0.5
-        }
-      }
-    }
-  ]
-}
-```
-
-</details>
-
-**What this tells you:** The market is in *Consolidation* — BTC dominance is neutral (56.5%), breadth is mixed (56% of coins green), conviction is low. The tool explicitly says *"do not increase exposure."* This is the kind of actionable signal you get from a single command.
-
-Now zoom into a specific signal — e.g., check if buyers or sellers are winning right now:
+**For a complete daily checkup** with no prior thesis, run the canonical four-command sequence and feed the output to an LLM:
 
 ```bash
-cryptospect-cli flow-tension
+cryptospect-cli market-regime   --detail extended
+cryptospect-cli stablecoin-power --detail extended
+cryptospect-cli flow-tension    --detail extended
+cryptospect-cli fear-greed-index
 ```
 
-<details>
-<summary>Click to expand — real flow-tension output</summary>
+These four cover the four primary axes: structural regime, available fuel, whether capital is moving and in what direction, and crowd sentiment. See [DAILY_BRIEF.md](DAILY_BRIEF.md) for the full reading guide, including how to assemble a daily brief from the output and how to reason when one or more metrics return `status: "degraded"`.
 
-```json
-{
-  "status": "ok",
-  "ts": 1781566514,
-  "results": [
-    {
-      "metric": "flow-tension",
-      "version": "v1.0.0",
-      "namespace": "cryptospect",
-      "status": "ok",
-      "data": {
-        "signals": {
-          "cvd": {
-            "ratio": 0.4528,
-            "hook": "aggressive_buy"
-          },
-          "open_interest": {
-            "current_usd": 57211690083.47,
-            "change_pct_24h": -0.0011,
-            "exchange_count": 145,
-            "hook": "stable"
-          },
-          "funding_rate": {
-            "rate": 0.0,
-            "hook": "neutral"
-          }
-        },
-        "summary": "Mixed signals — monitor for confirmation."
-      }
-    }
-  ]
-}
-```
+**For scenario-driven analysis** — diagnosing a rally, measuring fuel, reading a selloff — see [examples.md](examples.md). Each example shows exact command sequences, interpretation notes, and ready-to-paste LLM prompts.
 
-</details>
-
-**Use the alias for less typing:** `cryptospect-cli mr` and `cryptospect-cli ft` work the same way. All ten metrics have short aliases — see the [commands table](#commands) or run `cryptospect-cli list-metrics`.
-
-For a full session log of all 10 metrics with all three detail levels, see `docs/runs/`.
+**For signal pattern recognition and synthesis rules** — Named Signal Combinations, the signal hierarchy, and per-metric gotchas — see [agents.md](agents.md).
 
 ## CoinGecko API Key (recommended)
 
@@ -206,7 +123,7 @@ Example tool definition for an agentic workflow:
 
 Use `--detail full` when feeding output to an LLM — it includes metric descriptions and thresholds that help the model interpret the data. Use `--detail basic` (the default) for lightweight agent loops where token economy matters.
 
-See [agents.md](agents.md) for the reasoning guide: which metrics to run for a given question, 16 named cross-metric signal patterns to recognize, and rules for turning metric output into grounded answers.
+See [agents.md](agents.md) for the reasoning guide: the universal metric interpretation loop, which metrics to run for a given question, 16 named cross-metric signal patterns to recognize, and rules for turning metric output into grounded answers. See [DAILY_BRIEF.md](DAILY_BRIEF.md) for the canonical cold-start sequence and degraded-data handling.
 
 ## Output Format
 

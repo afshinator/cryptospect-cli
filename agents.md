@@ -2,6 +2,46 @@
 
 Reasoning reference for LLMs using this tool. For CLI flags, config, and per-metric output schemas see [README.md](README.md) and [`docs/metrics/<name>.md`](docs/metrics/).
 
+---
+
+## How to Read Any Metric
+
+Every metric in this suite follows the same interpretation loop. Internalize this and you can reason correctly with any output — including partial or degraded data — without needing a pre-written example for the specific situation.
+
+**Step 1 — Check `status` before reading any data field.**
+
+| `status` | Meaning | Action |
+|----------|---------|--------|
+| `ok` | All signals computed normally | Proceed |
+| `degraded` | Primary data returned but incomplete — one or more signals are missing or stale | Read what's available; note what's absent; lower your confidence proportionally |
+| `unavailable` | Primary data fetch failed entirely | Do not interpret data fields; report the gap; suggest `cache-clear` or retry |
+
+Never read `data` or `meta` fields before checking `status`. A `degraded` metric that looks clean can produce misleading signals — for example, `ft` OI hook defaulting to `"stable"` on cold start when no cached prior value exists.
+
+**Step 2 — Read `classification.label` for the verdict.**
+
+Every metric (except `ft`, which has no composite label) produces a single categorical verdict in `data.classification.label`. This is the conclusion. Everything else is evidence for or against it.
+
+**Step 3 — Read `data.summary` for the plain-language version.**
+
+The `summary` field is pre-synthesized from all signals. For `ft` especially — which has three co-equal signals and no composite label — use `summary` directly rather than re-deriving it yourself.
+
+**Step 4 — Check `meta.confidence` to calibrate trust — but know what it means per metric.**
+
+`confidence` is not uniform. The same `"low"` value means different things depending on which metric emitted it:
+
+| Metric | `confidence: "low"` means |
+|--------|--------------------------|
+| `lp`, `sp` | Cross-source validator disagreed — data quality concern |
+| `ft` | One or more of the three signals is missing (OI/funding transient failure) — not a data quality issue, a completeness issue |
+| `mb` | Binance candle validator was skipped — **breadth score is unaffected**; do not downgrade the breadth reading |
+| `md` | A tier had fewer than 3 valid coins — tier average for that tier is unreliable |
+| `mr` | Dominance cold start (no prior snapshot for delta) — regime label valid, but dominance trend defaults to neutral |
+
+Once you've run these four steps for each metric in your set, apply the signal hierarchy in Response Construction Rules below.
+
+---
+
 ## Intent → Metric Map
 
 Run the minimal metric subset for the question type. Running all 10 every call is wasteful.
@@ -16,6 +56,8 @@ Run the minimal metric subset for the question type. Running all 10 every call i
 | Is capital leaving crypto entirely? | `sp`, `mr` | Supply trend contracting + Flight to Safety regime |
 | Accumulation or distribution? | `ft`, `mb`, `sp`, `lp` | OI/CVD + breadth trend + dry powder + conviction ratio |
 | Drill-down on a specific signal | That metric alone | Run `mr` first for macro context if not already in hand |
+
+---
 
 ## Named Signal Combinations
 
@@ -40,6 +82,8 @@ Recognize these patterns by name. Where multiple metric docs name the same patte
 | **Capitulation Floor Confirmation** | `mr` `Capitulation` + `sp` High + `ft` OI `unwinding` + `ft` funding `negative` | All four conditions required — any one alone is insufficient. Closest the suite gets to a validated accumulation entry signal. |
 | **Barbell / Speculative Extension** | `md` `neutral` + `tail_extension: true` | Long-tail moving without confirmed rotation. Non-action state unless corroborated by rising `mb` timeframe spread. Inspect `tier_detail.small` for outlier concentration before acting. |
 
+---
+
 ## Response Construction Rules
 
 **Signal hierarchy — apply in order:**
@@ -47,15 +91,6 @@ Recognize these patterns by name. Where multiple metric docs name the same patte
 2. Scan Named Signal Combinations. If 2+ patterns agree → conclude, name the pattern. If patterns conflict → name the conflict explicitly; do not average signals away.
 3. Apply fuel-before-direction: check `sp.supply_trend_7d` before any directional call. A technically bullish setup with contracting stablecoin supply is a different answer than one with high dry powder.
 4. Read individual metric fields for aspects not covered by a named pattern.
-
-**Confidence field semantics — not uniform across metrics:**
-
-| Metric | `confidence` means |
-|---|---|
-| `lp`, `sp` | Cross-source validator agreement (data quality) |
-| `ft` | Signal completeness — all 3 signals present; NOT cross-source agreement (no validator exists) |
-| `mb` | Validator directional consensus + candle freshness; `low` = validator skipped, breadth score unaffected |
-| `md` | Tier completeness — ≥3 coins per tier computed |
 
 Treating all `confidence: "low"` fields the same will misread `mb` and `ft`.
 
@@ -72,6 +107,8 @@ Treating all `confidence: "low"` fields the same will misread `mb` and `ft`.
 5. **`sp` `low` has two opposite meanings.** Always report `supply_trend_7d` alongside it: `stable`/`expanding` → Overextended (volatile market outgrew fuel); `contracting` → Capital Flight (money leaving crypto). Never report "low stablecoin power" without the supply trend.
 
 6. **CVD is taker aggression, not coins moving to exchanges.** It measures buy/sell imbalance within Binance-US spot. Do not describe it to users as "coins moving onto exchanges."
+
+---
 
 ## Quick Reference
 
@@ -131,3 +168,4 @@ Precedence: `--api-key` flag > `CRYPTOSPECT_COINGECKO_KEY` / `CRYPTOSPECT_BINANC
 
 - CLI flags, config, caching, data sources: [README.md](README.md)
 - Per-metric output schemas, classification thresholds, field definitions: [`docs/metrics/<name>.md`](docs/metrics/)
+- Daily cold-start sequence and degraded-data reasoning: [DAILY_BRIEF.md](DAILY_BRIEF.md)
