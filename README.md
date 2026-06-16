@@ -87,7 +87,7 @@ make build
 ./bin/cryptospect-cli list-metrics
 ```
 
-> For build details, Go version requirements, and development setup, see [DEVELOPMENT.md](DEVELOPMENT.md).
+> For build details, Go version requirements, and development setup, see [DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
 ## Agent & MCP Integration
 
