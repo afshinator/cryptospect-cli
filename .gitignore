@@ -46,3 +46,11 @@ tmp/
 
 # Graphify local-only state and cache
 graphify-out/
+
+# Agent/editor config (local only)
+.cursorrules
+commandcode/
+.config/opencode/
+.claude/
+.dex/
+.pi-lens/
