@@ -12,13 +12,20 @@ A portable CLI tool that fetches live cryptocurrency data, computes high-signal 
 Grab the latest release for your OS from the [Releases page](https://github.com/afshinator/cryptospect-cli/releases), extract it, and run:
 
 ```bash
-# Linux / macOS
-tar xzf cryptospect-cli_*.tar.gz
+# Linux (amd64)
+tar xzf cryptospect-cli_*_linux_amd64.tar.gz
+cd cryptospect-cli_*_linux_amd64
 ./cryptospect-cli list-metrics
 
-# Windows (PowerShell)
-tar xzf cryptospect-cli_*.zip
+# macOS (Apple Silicon)
+tar xzf cryptospect-cli_*_darwin_arm64.tar.gz
+cd cryptospect-cli_*_darwin_arm64
 ./cryptospect-cli list-metrics
+
+# Windows (amd64 — PowerShell)
+Expand-Archive cryptospect-cli_*_windows_amd64.zip -DestinationPath .
+cd cryptospect-cli_*_windows_amd64
+.\cryptospect-cli.exe list-metrics
 ```
 
 ### Build from source
