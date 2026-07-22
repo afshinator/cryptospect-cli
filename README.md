@@ -30,12 +30,7 @@ cd cryptospect-cli_*_windows_amd64
 
 ### Build from source
 
-```bash
-git clone https://github.com/afshinator/cryptospect-cli
-cd cryptospect-cli
-go build -o cryptospect-cli ./cmd/cryptospect-cli/
-./cryptospect-cli list-metrics
-```
+See [Install](#install) below for build-from-source instructions.
 
 No API keys required — all metrics work on free public tiers.  But if you provide a (free) Coingecko api key, it'll work better!
 
