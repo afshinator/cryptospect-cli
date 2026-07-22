@@ -174,7 +174,7 @@ Precedence: `--api-key` flag > `CRYPTOSPECT_COINGECKO_KEY` / `CRYPTOSPECT_BINANC
 
 ## Repository Quality Gate
 
-This repo uses [`mcp-server-go-quality`](https://github.com/afshinator/mcp-server-go-quality) as its canonical code quality gate. It runs golangci-lint, govulncheck, and nilaway in parallel and returns a unified `Diagnostic[]` array sorted by `file:line:column`.
+This repo uses [`mcp-server-go-quality`](https://github.com/afshinator/mcp-server-go-quality) for agent-driven quality sweeps. CI enforces golangci-lint (v2.11.4); govulncheck and nilaway are available via the MCP server for session-level checking.
 
 **MCP configuration** lives in `.mcp.json` at the repo root. Any MCP-compatible agent client picks it up automatically.
 

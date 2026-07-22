@@ -271,12 +271,13 @@ func ParseCoinMarketsBreadthResponse(body []byte) (CoinMarketsBreadthData, error
 		return CoinMarketsBreadthData{}, fmt.Errorf("no coins in response")
 	}
 
-	counts := map[string]*TimeframeMetric{
-		"1h":  {},
-		"24h": {},
-		"7d":  {},
-		"30d": {},
-	}
+	// Map keys are populated individually (not via literal) so nilaway can see each
+	// pointer is non-nil at the assignment site — the literal form defeats its tracking.
+	counts := make(map[string]*TimeframeMetric, 4)
+	counts["1h"] = &TimeframeMetric{}
+	counts["24h"] = &TimeframeMetric{}
+	counts["7d"] = &TimeframeMetric{}
+	counts["30d"] = &TimeframeMetric{}
 
 	var coinsWithData int
 	var btcRef BTCReference

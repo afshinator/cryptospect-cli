@@ -414,7 +414,10 @@ func TestProvider_StateMalformed_ActsAsColdStart(t *testing.T) {
 	ctx := config.StoreInContext(context.Background(), cfg)
 
 	// Write malformed state
-	c, _ := cache.Open(cacheDir)
+	c, err := cache.Open(cacheDir)
+	if err != nil {
+		t.Fatalf("cache.Open: %v", err)
+	}
 	_ = c.Set(StateKey, json.RawMessage(`not-a-float`), StateTTLSec)
 	_ = c.Close()
 
