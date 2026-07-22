@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "go-quality": {
+      "command": "go",
+      "args": ["run", "github.com/afshinator/mcp-server-go-quality/cmd/mcp-server-go-quality@latest"]
+    }
+  }
+}

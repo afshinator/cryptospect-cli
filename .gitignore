@@ -48,7 +48,6 @@ tmp/
 graphify-out/
 
 # Agent/editor config (local only)
-.mcp.json
 skills-lock.json
 .cursorrules
 commandcode/

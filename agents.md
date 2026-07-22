@@ -169,3 +169,17 @@ Precedence: `--api-key` flag > `CRYPTOSPECT_COINGECKO_KEY` / `CRYPTOSPECT_BINANC
 - CLI flags, config, caching, data sources: [README.md](README.md)
 - Per-metric output schemas, classification thresholds, field definitions: [`docs/metrics/<name>.md`](docs/metrics/)
 - Daily cold-start sequence and degraded-data reasoning: [DAILY_BRIEF.md](DAILY_BRIEF.md)
+
+---
+
+## Repository Quality Gate
+
+This repo uses [`mcp-server-go-quality`](https://github.com/afshinator/mcp-server-go-quality) as its canonical code quality gate. It runs golangci-lint, govulncheck, and nilaway in parallel and returns a unified `Diagnostic[]` array sorted by `file:line:column`.
+
+**MCP configuration** lives in `.mcp.json` at the repo root. Any MCP-compatible agent client picks it up automatically.
+
+**Pre-flight:** Call `install_tools` once at session start to pre-install the pinned tool binaries (no-op if already present). Then call `run_code_checks` with `project_path` set to the repo root to sweep all three checkers.
+
+**Interpreting results:** Check `error` first (non-empty = tool failure), then navigate `file:line:column`. The `native` field carries full raw output for remediation. The `severity` field is only present for golangci-lint; govulncheck and nilaway have no severity concept.
+
+**Verification:** `run_code_checks` golangci-lint output must agree with `go tool golangci-lint run ./...` (currently 0 issues). Disagreement indicates a version mismatch or tool installation problem.
